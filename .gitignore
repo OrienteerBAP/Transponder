@@ -1,0 +1,16 @@
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
+*~
+*.swp
+*.swo
+.classpath
+.project
+.settings/
+build.cmd
+.idea/
+*.iml
+*.log
+*.tar.gz
