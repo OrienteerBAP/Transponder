@@ -37,6 +37,15 @@ public class CoreTest
 	}
 	
 	@Test
+	public void testEntityDescription() {
+		TestDriver testDriver = new TestDriver();
+		new Transponder(testDriver).describe(ISimpleEntity.class);
+		testDriver.assertHasType("Simple");
+		testDriver.assertHasProperty("Simple", "name");
+		testDriver.assertHasProperty("Simple", "description");
+	}
+	
+	@Test
 	public void testEntityCreation() {
 		ISimpleEntity entity = new Transponder(new TestDriver()).create(ISimpleEntity.class);
 		String name = "Name"+RANDOM.nextInt();

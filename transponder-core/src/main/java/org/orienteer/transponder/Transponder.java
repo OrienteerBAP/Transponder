@@ -109,7 +109,7 @@ public class Transponder {
 	
 	String describe(Class<?> clazz, DescribeContext ctx) {
 		if(clazz==null || !clazz.isInterface()) return null;	
-		EntityType type = clazz.getAnnotation(EntityType.class);
+		final EntityType type = clazz.getAnnotation(EntityType.class);
 		if(type==null) return null;
 		if(ctx.wasDescribed(clazz)) return ctx.getType(clazz);
 		ctx.entering(clazz, type.value());
@@ -160,7 +160,7 @@ public class Transponder {
 			final int order = currentOrder++;
 			
 			ctx.postponeTillExit(fieldName, () -> {
-				driver.createProperty(ctx.getCurrentType(), fieldName, linkedType, order);
+				driver.createProperty(type.value(), fieldName, linkedType, order);
 			});
 			if(linkedType!=null && !wasPreviouslyScheduled) ctx.postponeTillDefined(linkedType, () -> {
 				String inverse = property!=null?Strings.emptyToNull(property.inverse()):null;
