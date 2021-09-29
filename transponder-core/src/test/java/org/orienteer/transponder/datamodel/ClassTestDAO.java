@@ -1,4 +1,4 @@
-package org.orienteer.transponder.dao;
+package org.orienteer.transponder.datamodel;
 
 public class ClassTestDAO {
 

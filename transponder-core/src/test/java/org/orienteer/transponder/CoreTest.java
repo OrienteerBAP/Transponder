@@ -6,8 +6,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.Random;
 
 import org.junit.Test;
-import org.orienteer.transponder.dao.ClassTestDAO;
-import org.orienteer.transponder.dao.ITestDAO;
+import org.orienteer.transponder.datamodel.ClassTestDAO;
+import org.orienteer.transponder.datamodel.ISimpleEntity;
+import org.orienteer.transponder.datamodel.ITestDAO;
 
 public class CoreTest 
 {
@@ -33,5 +34,17 @@ public class CoreTest
 		Integer checkInt = RANDOM.nextInt();
 		assertEquals(checkInt, dao.echoNumberDAO(checkInt));
 		assertEquals(checkInt, ((ITestDAO)dao).echoDAO(checkInt));
+	}
+	
+	@Test
+	public void testEntityCreation() {
+		ISimpleEntity entity = new Transponder(new TestDriver()).create(ISimpleEntity.class);
+		String name = "Name"+RANDOM.nextInt();
+		String description = "Description"+RANDOM.nextInt();
+		entity.setName(name);
+		entity.setDescription(description);
+		assertEquals(name, entity.getName());
+		assertEquals(description, entity.getDescription());
+		System.out.print("Object: "+entity);
 	}
 }

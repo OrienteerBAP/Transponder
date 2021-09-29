@@ -2,12 +2,20 @@ package org.orienteer.transponder;
 
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import net.bytebuddy.dynamic.scaffold.InstrumentedType;
+import net.bytebuddy.implementation.Implementation;
+import net.bytebuddy.implementation.MethodCall;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.Implementation.Target;
+import net.bytebuddy.implementation.MethodCall.ArgumentLoader;
+import net.bytebuddy.implementation.MethodCall.ArgumentLoader.ArgumentProvider;
 
 public class TestDriver implements IDriver {
 	
@@ -63,6 +71,26 @@ public class TestDriver implements IDriver {
 		assertHasType(typeName);
 		assertTrue("Driver has not created '"+typeName+"."+propertyName+"' yet", 
 								typeRecords.get(typeName).getProperties().containsKey(propertyName));
+	}
+
+	@Override
+	public Class<?> getGetterDelegationClass() {
+		return ByteBuddyTest.MapGetter.class;
+	}
+
+	@Override
+	public Class<?> getSetterDelegationClass() {
+		return ByteBuddyTest.MapSetter.class;
+	}
+
+	@Override
+	public <T> T newEntityInstance(Class<T> proxyClass, String type) {
+		return newDAOInstance(proxyClass);
+	}
+
+	@Override
+	public Class<?> getEntityBaseClass() {
+		return HashMap.class;
 	}
 
 }

@@ -17,6 +17,7 @@ import java.util.Set;
 
 import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityType;
+import org.orienteer.transponder.mutator.StackedMutator;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -37,7 +38,7 @@ public class Transponder {
 	
 	private final IDriver driver;
 	
-	private final TypeCache<Integer> daoCache = new TypeCache<Integer>(TypeCache.Sort.SOFT);
+	private static final TypeCache<Integer> DAO_CACHE = new TypeCache<Integer>(TypeCache.Sort.SOFT);
 	
 	public Transponder(IDriver driver) {
 		this.driver = driver;
@@ -47,14 +48,27 @@ public class Transponder {
 		return driver;
 	}
 	
+	public <T> T create(Class<T> mainClass, Class<?>... additionalInterfaces) {
+		EntityType entityType = mainClass.getAnnotation(EntityType.class);
+		return create(mainClass, entityType.value(), additionalInterfaces);
+	}
+	
+	public <T> T create(Class<T> mainClass, String className, Class<?>... additionalInterfaces) {
+		if(className==null) throw new NullPointerException("ClassName for Transponder.create(...) should not be null");
+		Class<T> proxyClass = getProxyClass(driver.getEntityBaseClass(), mainClass, StackedMutator.ENTITY_MUTATOR, additionalInterfaces);
+		return driver.newEntityInstance(proxyClass, className);
+	}
+	
 	@SuppressWarnings("unchecked")
-	public <T> T dao(Class<T> mainClass, final Class<?>... additionalInterfaces) {
+	protected <T> Class<T> getProxyClass(Class<?> baseClass, Class<T> mainClass, IMutator rootMutator, final Class<?>... additionalInterfaces) {
 		Integer hash =   Arrays.hashCode(additionalInterfaces);
-		hash = Objects.hashCode(mainClass, hash);
-		Class<T> clazz = (Class<T>) daoCache.findOrInsert(mainClass.getClassLoader(), hash, () -> {
+		hash = Objects.hashCode(driver.getCacheKey(), mainClass, hash);
+		return (Class<T>) DAO_CACHE.findOrInsert(mainClass.getClassLoader(), hash, () -> {
 			ByteBuddy byteBuddy = new ByteBuddy();
 			DynamicType.Builder<T> builder;
 			if(!mainClass.isInterface()) {
+				if(!baseClass.isAssignableFrom(mainClass))
+					throw new IllegalArgumentException("Class "+mainClass.getName()+" should be inherited from "+baseClass.getName());
 				builder = byteBuddy.subclass(mainClass);
 				if(additionalInterfaces!=null && additionalInterfaces.length>0) 
 					builder = builder.implement(additionalInterfaces);
@@ -62,15 +76,19 @@ public class Transponder {
 				Class<?>[] interfaces = new Class[1+additionalInterfaces.length];
 				interfaces[0] = mainClass;
 				builder = (DynamicType.Builder<T>) byteBuddy
-						.subclass(Object.class)
+						.subclass(baseClass)
 						.implement(interfaces);
 			}
-			//TODO: Add mutators
+			if(rootMutator!=null) builder = rootMutator.mutate(this, builder);
 			return builder.make()
 					  .load(mainClass.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
 					  .getLoaded();
 		});
-		return driver.newDAOInstance(clazz);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> T dao(Class<T> mainClass, final Class<?>... additionalInterfaces) {
+		return driver.newDAOInstance(getProxyClass(Object.class, mainClass, StackedMutator.DAO_MUTATOR, additionalInterfaces));
 	}
 	
 	public Transponder describe(Class<?>... classes) {

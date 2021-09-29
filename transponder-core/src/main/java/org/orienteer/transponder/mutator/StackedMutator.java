@@ -4,10 +4,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.orienteer.transponder.IMutator;
+import org.orienteer.transponder.Transponder;
 
 import net.bytebuddy.dynamic.DynamicType.Builder;
 
 public class StackedMutator implements IMutator {
+	
+	public static final IMutator DAO_MUTATOR = new StackedMutator();
+	public static final IMutator ENTITY_MUTATOR = new StackedMutator(new GetterMutator(),
+																	 new SetterMutator());
 	
 	private final List<IMutator> stack;
 	
@@ -20,10 +25,10 @@ public class StackedMutator implements IMutator {
 	}
 
 	@Override
-	public <T> Builder<T> mutate(Builder<T> builder) {
+	public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder) {
 		Builder<T> ret = builder;
 		for (IMutator mutator : stack) {
-			ret = mutator.mutate(ret);
+			ret = mutator.mutate(transponder, ret);
 		}
 		return ret;
 	}
