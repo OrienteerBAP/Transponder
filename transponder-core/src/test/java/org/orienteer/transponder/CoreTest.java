@@ -56,4 +56,6 @@ public class CoreTest
 		assertEquals(description, entity.getDescription());
 		System.out.print("Object: "+entity);
 	}
+	
+	
 }

@@ -2,20 +2,17 @@ package org.orienteer.transponder;
 
 import static org.junit.Assert.assertTrue;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.orienteer.transponder.annotation.PropertyName;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import net.bytebuddy.dynamic.scaffold.InstrumentedType;
-import net.bytebuddy.implementation.Implementation;
-import net.bytebuddy.implementation.MethodCall;
-import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.implementation.Implementation.Target;
-import net.bytebuddy.implementation.MethodCall.ArgumentLoader;
-import net.bytebuddy.implementation.MethodCall.ArgumentLoader.ArgumentProvider;
+import net.bytebuddy.implementation.bind.annotation.Argument;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import net.bytebuddy.implementation.bind.annotation.This;
 
 public class TestDriver implements IDriver {
 	
@@ -75,12 +72,12 @@ public class TestDriver implements IDriver {
 
 	@Override
 	public Class<?> getGetterDelegationClass() {
-		return ByteBuddyTest.MapGetter.class;
+		return MapGetter.class;
 	}
 
 	@Override
 	public Class<?> getSetterDelegationClass() {
-		return ByteBuddyTest.MapSetter.class;
+		return MapSetter.class;
 	}
 
 	@Override
@@ -91,6 +88,20 @@ public class TestDriver implements IDriver {
 	@Override
 	public Class<?> getEntityBaseClass() {
 		return HashMap.class;
+	}
+	
+	public static class MapGetter {
+		@RuntimeType
+		public static Object getValue(@PropertyName String property, @This Map<?, ?> thisObject) {
+			return thisObject.get(property);
+		}
+	}
+	
+	public static class MapSetter {
+		@RuntimeType
+		public static void setValue(@PropertyName String property, @This Map<Object, Object> thisObject, @Argument(0) Object value) {
+			thisObject.put(property, value);
+		}
 	}
 
 }
