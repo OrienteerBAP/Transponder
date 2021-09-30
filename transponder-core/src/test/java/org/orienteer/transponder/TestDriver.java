@@ -2,6 +2,7 @@ package org.orienteer.transponder;
 
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,12 +85,26 @@ public class TestDriver implements IDriver {
 	public <T> T newEntityInstance(Class<T> proxyClass, String type) {
 		return newDAOInstance(proxyClass);
 	}
+	
+	@Override
+	public <T> T wrapEntityInstance(Class<T> proxyClass, Object obj) {
+		try {
+			return proxyClass.getConstructor(Map.class).newInstance(obj);
+		} catch (ReflectiveOperationException e) {
+			throw new IllegalArgumentException("Can't wrap entity ("+obj+") by class "+proxyClass.getSuperclass().getName(), e);
+		}  
+	}
 
 	@Override
-	public Class<?> getEntityBaseClass() {
+	public Class<?> getDefaultEntityBaseClass() {
 		return HashMap.class;
 	}
 	
+	@Override
+	public Class<?> getEntityMainClass(Object object) {
+		return object.getClass();
+	}
+
 	public static class MapGetter {
 		@RuntimeType
 		public static Object getValue(@PropertyName String property, @This Map<?, ?> thisObject) {

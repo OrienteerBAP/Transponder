@@ -16,7 +16,11 @@ public interface IDriver {
 	
 	public <T> T newEntityInstance(Class<T> proxyClass, String type);
 	
-	public Class<?> getEntityBaseClass();
+	public <T> T wrapEntityInstance(Class<T> proxyClass, Object obj);
+	
+	public Class<?> getDefaultEntityBaseClass();
+	
+	public Class<?> getEntityMainClass(Object object);
 	
 	public default <T> T newDAOInstance(Class<T> proxyClass) {
 		try {

@@ -3,6 +3,8 @@ package org.orienteer.transponder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import org.junit.Test;
@@ -54,7 +56,20 @@ public class CoreTest
 		entity.setDescription(description);
 		assertEquals(name, entity.getName());
 		assertEquals(description, entity.getDescription());
-		System.out.print("Object: "+entity);
+		System.out.println("Object: "+entity);
+	}
+	
+	@Test
+	public void testEntityProviding() {
+		String name = "Name"+RANDOM.nextInt();
+		String description = "Description"+RANDOM.nextInt();
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("name", name);
+		map.put("description", description);
+		ISimpleEntity entity = new Transponder(new TestDriver()).provide(map, ISimpleEntity.class);
+		assertEquals(name, entity.getName());
+		assertEquals(description, entity.getDescription());
+		System.out.println("Object: "+entity);
 	}
 	
 	

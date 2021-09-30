@@ -55,8 +55,18 @@ public class Transponder {
 	
 	public <T> T create(Class<T> mainClass, String className, Class<?>... additionalInterfaces) {
 		if(className==null) throw new NullPointerException("ClassName for Transponder.create(...) should not be null");
-		Class<T> proxyClass = getProxyClass(driver.getEntityBaseClass(), mainClass, StackedMutator.ENTITY_MUTATOR, additionalInterfaces);
+		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, StackedMutator.ENTITY_MUTATOR, additionalInterfaces);
 		return driver.newEntityInstance(proxyClass, className);
+	}
+	
+	public <T> T provide(Object object) {
+		Class<T> mainClass = (Class<T>)driver.getEntityMainClass(object);
+		return provide(object, mainClass);
+	}
+	
+	public <T> T provide(Object object, Class<T> mainClass, Class<?>... additionalInterfaces) {
+		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, StackedMutator.ENTITY_MUTATOR, additionalInterfaces);
+		return driver.wrapEntityInstance(proxyClass, object);
 	}
 	
 	@SuppressWarnings("unchecked")
