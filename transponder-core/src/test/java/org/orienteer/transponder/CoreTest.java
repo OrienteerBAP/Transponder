@@ -56,7 +56,6 @@ public class CoreTest
 		entity.setDescription(description);
 		assertEquals(name, entity.getName());
 		assertEquals(description, entity.getDescription());
-		System.out.println("Object: "+entity);
 	}
 	
 	@Test
@@ -69,7 +68,12 @@ public class CoreTest
 		ISimpleEntity entity = new Transponder(new TestDriver()).provide(map, ISimpleEntity.class);
 		assertEquals(name, entity.getName());
 		assertEquals(description, entity.getDescription());
-		System.out.println("Object: "+entity);
+	}
+	
+	@Test
+	public void testDAOQuery() {
+		ITestDAO dao = new Transponder(new TestDriver()).dao(ITestDAO.class);
+		assertEquals(ITestDAO.QUERY, dao.queryEcho());
 	}
 	
 	

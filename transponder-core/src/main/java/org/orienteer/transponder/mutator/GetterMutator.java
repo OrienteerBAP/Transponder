@@ -2,7 +2,7 @@ package org.orienteer.transponder.mutator;
 
 import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
-import org.orienteer.transponder.annotation.PropertyName;
+import org.orienteer.transponder.annotation.binder.PropertyName;
 
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.MethodDelegation;

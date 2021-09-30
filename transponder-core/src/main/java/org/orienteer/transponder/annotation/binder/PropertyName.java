@@ -1,4 +1,4 @@
-package org.orienteer.transponder.annotation;
+package org.orienteer.transponder.annotation.binder;
 
 import static org.orienteer.transponder.CommonUtils.*;
 
@@ -6,6 +6,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import org.orienteer.transponder.annotation.EntityProperty;
 
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.annotation.AnnotationDescription.Loadable;

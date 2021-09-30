@@ -6,7 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.orienteer.transponder.annotation.PropertyName;
+import org.orienteer.transponder.annotation.binder.PropertyName;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
