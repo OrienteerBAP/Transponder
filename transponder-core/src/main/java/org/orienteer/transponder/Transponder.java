@@ -1,6 +1,7 @@
 package org.orienteer.transponder;
 
 import static org.orienteer.transponder.CommonUtils.*;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +27,7 @@ import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.TypeCache;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
+import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.MethodVisitor;
@@ -39,6 +41,11 @@ public class Transponder {
 	private final IDriver driver;
 	
 	private static final TypeCache<Integer> DAO_CACHE = new TypeCache<Integer>(TypeCache.Sort.SOFT);
+	
+	public static interface ITransponderEntity {
+		public Transponder get$transponder();
+		public void set$transponder(Transponder transponder);
+	}
 	
 	public Transponder(IDriver driver) {
 		this.driver = driver;
@@ -56,7 +63,7 @@ public class Transponder {
 	public <T> T create(Class<T> mainClass, String className, Class<?>... additionalInterfaces) {
 		if(className==null) throw new NullPointerException("ClassName for Transponder.create(...) should not be null");
 		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, StackedMutator.ENTITY_MUTATOR, additionalInterfaces);
-		return driver.newEntityInstance(proxyClass, className);
+		return setTransponder(driver.newEntityInstance(proxyClass, className));
 	}
 	
 	public <T> T provide(Object object) {
@@ -66,7 +73,7 @@ public class Transponder {
 	
 	public <T> T provide(Object object, Class<T> mainClass, Class<?>... additionalInterfaces) {
 		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, StackedMutator.ENTITY_MUTATOR, additionalInterfaces);
-		return driver.wrapEntityInstance(proxyClass, object);
+		return setTransponder(driver.wrapEntityInstance(proxyClass, object));
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -75,21 +82,26 @@ public class Transponder {
 		hash = Objects.hashCode(driver.getCacheKey(), mainClass, hash);
 		return (Class<T>) DAO_CACHE.findOrInsert(mainClass.getClassLoader(), hash, () -> {
 			ByteBuddy byteBuddy = new ByteBuddy();
-			DynamicType.Builder<T> builder;
+			DynamicType.Builder<?> builder;
+			List<Class<?>> classesToImplement = new ArrayList<>();
+			
 			if(!mainClass.isInterface()) {
 				if(!baseClass.isAssignableFrom(mainClass))
-					throw new IllegalArgumentException("Class "+mainClass.getName()+" should be inherited from "+baseClass.getName());
+					throw new IllegalArgumentException("Main class "+mainClass.getName()+" should be inherited from "+baseClass.getName() +" or be an interface");
 				builder = byteBuddy.subclass(mainClass);
-				if(additionalInterfaces!=null && additionalInterfaces.length>0) 
-					builder = builder.implement(additionalInterfaces);
 			} else {
-				Class<?>[] interfaces = new Class[1+additionalInterfaces.length];
-				interfaces[0] = mainClass;
-				builder = (DynamicType.Builder<T>) byteBuddy
-						.subclass(baseClass)
-						.implement(interfaces);
+				builder = byteBuddy.subclass(baseClass);
+				classesToImplement.add(mainClass);
 			}
+			classesToImplement.add(ITransponderEntity.class);
+			if(additionalInterfaces!=null && additionalInterfaces.length>0) {
+				classesToImplement.addAll(Arrays.asList(additionalInterfaces));
+			}
+			builder = builder.implement(classesToImplement);
 			if(rootMutator!=null) builder = rootMutator.mutate(this, builder);
+			builder = builder.defineField("$transponder", Transponder.class, Opcodes.ACC_PRIVATE)
+					.method(isDeclaredBy(ITransponderEntity.class).and(isAbstract()))
+					.intercept(FieldAccessor.ofField("$transponder"));
 			return builder.make()
 					  .load(mainClass.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
 					  .getLoaded();
@@ -216,6 +228,21 @@ public class Transponder {
 		//Ubnormal termination: so lets return original order
 		return Arrays.asList(unsortedMethods);
 		
+	}
+	
+	public <T> T setTransponder(T object) {
+		return setTransponder(object, this);
+	}
+	
+	public static <T> T setTransponder(T object, Transponder transponder) {
+		if(!(object instanceof ITransponderEntity)) throw new IllegalArgumentException("Object has not been provided by Transponder");
+		((ITransponderEntity)object).set$transponder(transponder);
+		return object;
+	}
+	
+	public static Transponder getTransponder(Object object) {
+		if(!(object instanceof ITransponderEntity)) throw new IllegalArgumentException("Object has not been provided by Transponder");
+		return ((ITransponderEntity)object).get$transponder();
 	}
 	
 }

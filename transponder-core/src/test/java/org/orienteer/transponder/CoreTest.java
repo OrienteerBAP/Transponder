@@ -3,11 +3,13 @@ package org.orienteer.transponder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import org.junit.Test;
+import org.orienteer.transponder.Transponder.ITransponderEntity;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
 import org.orienteer.transponder.datamodel.ITestDAO;
@@ -68,6 +70,17 @@ public class CoreTest
 		ISimpleEntity entity = new Transponder(new TestDriver()).provide(map, ISimpleEntity.class);
 		assertEquals(name, entity.getName());
 		assertEquals(description, entity.getDescription());
+	}
+	
+	@Test
+	public void testTransponderPreserving() throws Exception {
+		Transponder transponder = new Transponder(new TestDriver());
+		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
+		assertTrue(entity instanceof ITransponderEntity);
+		assertEquals(transponder, ((ITransponderEntity)entity).get$transponder());
+		Field field = entity.getClass().getDeclaredField("$transponder");
+		field.setAccessible(true);
+		assertEquals(transponder, field.get(entity));
 	}
 	
 	@Test

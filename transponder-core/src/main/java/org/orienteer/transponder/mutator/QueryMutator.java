@@ -24,12 +24,12 @@ public class QueryMutator implements IMutator {
 		return builder.method(isAnnotatedWith(Query.class).and(isAbstract()))
 							.intercept(MethodDelegation
 										.withDefaultConfiguration()
-										.to(QueryDelegate.class));
+										.to(new QueryDelegate()));
 	}
 	
-	public static class QueryDelegate {
+	public class QueryDelegate {
 		@RuntimeType
-		public static Object query(@Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
+		public Object query(@Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
 			Query query = origin.getAnnotation(Query.class);
 			
 			return query.value();

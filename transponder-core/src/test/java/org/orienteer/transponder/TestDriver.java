@@ -115,6 +115,7 @@ public class TestDriver implements IDriver {
 	public static class MapSetter {
 		@RuntimeType
 		public static void setValue(@PropertyName String property, @This Map<Object, Object> thisObject, @Argument(0) Object value) {
+			System.out.print("Setting: "+property +" to "+value);
 			thisObject.put(property, value);
 		}
 	}
