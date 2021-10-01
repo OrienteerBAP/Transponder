@@ -84,6 +84,14 @@ public class CoreTest
 	}
 	
 	@Test
+	public void testIgnoringDefaultGettersAndSetters() throws Exception {
+		ISimpleEntity entity = new Transponder(new TestDriver()).create(ISimpleEntity.class);
+		assertEquals(ISimpleEntity.defaultValue, entity.getDefault());
+		String echoDefaultValue = "Echo Default Value";
+		assertEquals(echoDefaultValue, entity.setDefault(echoDefaultValue));
+	}
+	
+	@Test
 	public void testDAOQuery() {
 		ITestDAO dao = new Transponder(new TestDriver()).dao(ITestDAO.class);
 		assertEquals(ITestDAO.QUERY, dao.queryEcho());
