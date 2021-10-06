@@ -85,7 +85,7 @@ public class Transponder {
 			return (T) provide(seed, requiredClass);
 		} else if(seed instanceof Iterable) {
 			Iterator<?> it = ((Iterable<?>)seed).iterator(); 
-			if(!it.hasNext()) return  CommonUtils.newInstance(requiredClass);
+			if(!it.hasNext()) return (T) newInstance(requiredClass);
 			Object probe;
 			do {
 				probe = it.next();
@@ -93,7 +93,7 @@ public class Transponder {
 			if(driver.isSeed(probe)) {
 				return wrapIterable((Iterable<?>)seed, targetType);
 			} else if(Collection.class.isAssignableFrom(requiredClass)) {
-				Collection<Object> collection = CommonUtils.newInstance(requiredClass);
+				Collection<Object> collection = (Collection<Object>)newInstance(requiredClass);
 				if(probe!=null) collection.addAll((Collection<Object>)seed);
 				else {
 					Class<?> elementClass = typeToRequiredClass(targetType, requiredClass);
@@ -141,7 +141,7 @@ public class Transponder {
 		Class<?> masterClass = CommonUtils.typeToMasterClass(targetType);
 		if(masterClass.isAssignableFrom(ret.getClass())) return (T)ret;
 		else if(Collection.class.isAssignableFrom(masterClass)) {
-			Collection<Object> instance = CommonUtils.newInstance(masterClass);
+			Collection<Object> instance = (Collection<Object>)newInstance(masterClass);
 			instance.addAll((Collection<Object>)ret);
 			return (T) instance;
 		}

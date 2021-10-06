@@ -194,7 +194,7 @@ public class CommonUtils {
 		return null;
 	}
 	
-	public <T> T newInstance(Class<? super T> clazz) {
+	public <T> T newInstance(Class<T> clazz) {
 		if(!clazz.isInterface()) {
 			try {
 				return (T) clazz.newInstance();
