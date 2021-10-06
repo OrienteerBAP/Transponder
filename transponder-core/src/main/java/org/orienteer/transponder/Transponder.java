@@ -5,6 +5,7 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -81,7 +82,9 @@ public class Transponder {
 	public <T> T wrap(Object seed, Type targetType) {
 		if(seed==null) return null;
 		Class<?> requiredClass = CommonUtils.typeToMasterClass(targetType);
-		if(driver.isSeed(seed)) {
+		if(seed instanceof ITransponderEntity) {
+			return (T) seed;
+		} else if(driver.isSeed(seed)) {
 			return (T) provide(seed, requiredClass);
 		} else if(seed instanceof Iterable) {
 			Iterator<?> it = ((Iterable<?>)seed).iterator(); 
@@ -166,6 +169,33 @@ public class Transponder {
 		
 		if(CommonUtils.typeToMasterClass(targetType).isAssignableFrom(Map.class)) return (T) ret;
 		else throw new IllegalStateException("Can't prepare required return type: "+targetType);
+	}
+	
+	public Object unwrap(Object arg) {
+		if(arg==null) return null;
+		if(isSimpleType(arg)) return arg;
+		else if (arg instanceof ITransponderEntity) {
+			Transponder otherTransponder = ((ITransponderEntity)arg).get$transponder();
+			return otherTransponder.getDriver().toSeed(arg);
+		}
+		else if (arg instanceof Collection<?>) {
+			Collection<?> col = (Collection<?>)arg;
+			List<Object> ret = new ArrayList<>(col.size());
+			for (Object object : col) ret.add(unwrap(object));
+			return ret;
+		} else if (arg instanceof Map) {
+			Map<?, ?> map = (Map<?, ?>)arg;
+			Map<Object, Object> ret = new HashMap<Object, Object>(map.size());
+			for (Map.Entry<?, ?> entry : map.entrySet()) ret.put(entry.getKey(), unwrap(entry.getValue()));
+			return ret;
+		} else if (arg.getClass().isArray()) {
+			Object[] array = (Object[])arg;
+			List<Object> ret = new ArrayList<>(array.length);
+			for (Object object : array) ret.add(unwrap(object));
+			return ret;
+		} else if(arg instanceof Serializable) {
+			return arg;
+		} else throw new IllegalStateException("Type "+arg.getClass()+" can't be cast to use in DB");
 	}
 	
 	@SuppressWarnings("unchecked")

@@ -79,8 +79,8 @@ public class TestDriver implements IDriver {
 	}
 
 	@Override
-	public Class<?> getSetterDelegationClass() {
-		return MapSetter.class;
+	public void setPropertyValue(Object wrapper, String property, Object value) {
+		((Map<Object, Object>)wrapper).put(property, value);
 	}
 
 	@Override
@@ -111,6 +111,11 @@ public class TestDriver implements IDriver {
 	public boolean isSeedClass(Class<?> seedClass) {
 		return Map.class.isAssignableFrom(seedClass);
 	}
+	
+	@Override
+	public Object toSeed(Object wrapped) {
+		return new HashMap<>((Map<String, Object>)wrapped);
+	}
 
 	public TestDriver insertRecord(Integer pk, Map<String, Object> value) {
 		db.put(pk, value);
@@ -119,14 +124,6 @@ public class TestDriver implements IDriver {
 	
 	public TestDriver insertRecord(Integer pk, Object... objects) {
 		return insertRecord(pk, CommonUtils.toMap(objects));
-	}
-
-	public static class MapSetter {
-		@RuntimeType
-		public static void setValue(@PropertyName String property, @This Map<Object, Object> thisObject, @Argument(0) Object value) {
-			System.out.print("Setting: "+property +" to "+value);
-			thisObject.put(property, value);
-		}
 	}
 
 }

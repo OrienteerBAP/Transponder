@@ -31,7 +31,7 @@ public interface IDriver {
 	public void setupRelationship(String type1Name, String property1Name, String type2Name, String property2Name);
 	
 	public Object getPropertyValue(Object wrapper, String property);
-	public Class<?> getSetterDelegationClass();
+	public void setPropertyValue(Object wrapper, String property, Object value);
 	
 	/**
 	 * Providing key for this instance of driver which will be used for caching of generated classes.
@@ -90,6 +90,13 @@ public interface IDriver {
 	 * @return true if object can wrapped, false - if driver doesn't support such object seed
 	 */
 	public boolean isSeedClass(Class<?> seedClass);
+	
+	/**
+	 * Extract seed object from specified wrapped object
+	 * @param wrapped wrapped object to extract seed from
+	 * @return seed object which can be used to interact with underling DBs
+	 */
+	public Object toSeed(Object wrapped);
 	
 	/**
 	 * Creates new instance of a DAO object from provided proxy class

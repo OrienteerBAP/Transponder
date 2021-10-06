@@ -115,5 +115,21 @@ public class CoreTest
 		assertEquals(description, otherEntity.getDescription());
 	}
 	
+	@Test
+	public void testAutoUnwrapping() {
+		TestDriver driver = new TestDriver();
+		Transponder transponder = new Transponder(driver);
+		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
+		String name = "Other Name";
+		String description = "Other Description";
+		ISimpleEntity otherEntity = transponder.create(ISimpleEntity.class);
+		otherEntity.setName(name);
+		otherEntity.setDescription(description);
+		entity.setOtherEntity(otherEntity);
+		Map<String, Object> otherEntityMap = (Map<String, Object>)((Map<String, Object>)entity).get("otherEntity");
+		assertNotNull(otherEntityMap);
+		assertEquals(name, otherEntityMap.get("name"));
+		assertEquals(description, otherEntityMap.get("description"));
+	}
 	
 }
