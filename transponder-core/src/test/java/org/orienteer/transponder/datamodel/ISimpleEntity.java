@@ -8,7 +8,7 @@ public interface ISimpleEntity {
 	public static final String defaultValue = "Default Value";
 
 	public String getName();
-	public void setName(String value);
+	public ISimpleEntity setName(String value);
 	
 	public String getDescription();
 	public void setDescription(String value);

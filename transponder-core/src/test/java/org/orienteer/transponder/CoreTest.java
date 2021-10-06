@@ -132,4 +132,12 @@ public class CoreTest
 		assertEquals(description, otherEntityMap.get("description"));
 	}
 	
+	@Test
+	public void testChaining() {
+		ISimpleEntity entity = new Transponder(new TestDriver()).create(ISimpleEntity.class);
+		ISimpleEntity otherEntity = entity.setName("Test Name");
+		assertNotNull(otherEntity);
+		assertEquals(entity, otherEntity);
+	}
+	
 }
