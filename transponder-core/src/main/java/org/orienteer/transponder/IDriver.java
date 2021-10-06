@@ -30,7 +30,7 @@ public interface IDriver {
 	 */
 	public void setupRelationship(String type1Name, String property1Name, String type2Name, String property2Name);
 	
-	public Class<?> getGetterDelegationClass();
+	public Object getPropertyValue(Object wrapper, String property);
 	public Class<?> getSetterDelegationClass();
 	
 	/**
@@ -69,10 +69,27 @@ public interface IDriver {
 	
 	/**
 	 * Try to obtain required main class or interface for provided seed object
-	 * @param object
-	 * @return
+	 * @param object object for which driver should try to find out
+	 * @return most appropriate class for wrapping or null
 	 */
 	public Class<?> getEntityMainClass(Object seed);
+	
+	/**
+	 * Is object a seed? In other word: can it be wrapped by current driver?
+	 * @param seed object to check
+	 * @return true if object can wrapped, false - if driver doesn't support such object seed
+	 */
+	public default boolean isSeed(Object seed) {
+		return seed!=null?isSeedClass(seed.getClass()):false;
+	}
+	
+	/**
+	 * Is objects of this class can be a seed?
+	 * In other word: can instances of this class be wrapped by current driver?
+	 * @param seed seedClass to check
+	 * @return true if object can wrapped, false - if driver doesn't support such object seed
+	 */
+	public boolean isSeedClass(Class<?> seedClass);
 	
 	/**
 	 * Creates new instance of a DAO object from provided proxy class

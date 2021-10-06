@@ -13,6 +13,9 @@ public interface ISimpleEntity {
 	public String getDescription();
 	public void setDescription(String value);
 	
+	public ISimpleEntity getOtherEntity();
+	public void setOtherEntity(ISimpleEntity entity);
+	
 	public default String getDefault() {
 		return defaultValue;
 	}

@@ -8,10 +8,13 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +35,6 @@ import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
-import net.bytebuddy.jar.asm.Type;
 
 public class Transponder {
 	
@@ -74,6 +76,96 @@ public class Transponder {
 	public <T> T provide(Object object, Class<T> mainClass, Class<?>... additionalInterfaces) {
 		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, StackedMutator.ENTITY_MUTATOR, additionalInterfaces);
 		return setTransponder(driver.wrapEntityInstance(proxyClass, object));
+	}
+	
+	public <T> T wrap(Object seed, Type targetType) {
+		if(seed==null) return null;
+		Class<?> requiredClass = CommonUtils.typeToMasterClass(targetType);
+		if(driver.isSeed(seed)) {
+			return (T) provide(seed, requiredClass);
+		} else if(seed instanceof Iterable) {
+			Iterator<?> it = ((Iterable<?>)seed).iterator(); 
+			if(!it.hasNext()) return  CommonUtils.newInstance(requiredClass);
+			Object probe;
+			do {
+				probe = it.next();
+			} while(it.hasNext() && probe == null);
+			if(driver.isSeed(probe)) {
+				return wrapIterable((Iterable<?>)seed, targetType);
+			} else if(Collection.class.isAssignableFrom(requiredClass)) {
+				Collection<Object> collection = CommonUtils.newInstance(requiredClass);
+				if(probe!=null) collection.addAll((Collection<Object>)seed);
+				else {
+					Class<?> elementClass = typeToRequiredClass(targetType, requiredClass);
+					if(elementClass==null 
+							|| elementClass.getAnnotation(EntityType.class)==null) collection.addAll((Collection<Object>)seed);
+				}
+				return (T)collection;
+			}
+			else throw new IllegalStateException("Can't prepare required return class: "+requiredClass +" from "+seed.getClass());
+		} else if(seed instanceof Map) {
+			
+			Map<?, ?> map = (Map<?, ?>)seed;
+			if(map.size()==0) return (T) seed;
+			Iterator<?> it = map.values().iterator();
+			Object probe;
+			do {
+				probe = it.next();
+			} while(it.hasNext() && probe == null);
+			if(driver.isSeed(probe)) {
+				return wrapMap((Map<?, ?>)map, targetType);
+			} else if(Map.class.isAssignableFrom(requiredClass)) {
+				return (T)map;
+			}
+			else throw new IllegalStateException("Can't prepare required return class: "+requiredClass +" from "+seed.getClass());
+		} else if(requiredClass.isInstance(seed)) return (T)seed;
+		return null;
+	}
+	
+	protected <T> T wrapIterable(Iterable<?> seeds, Type targetType) {
+		if(seeds==null) return null;
+		Class<?> requiredSubType = typeToRequiredClass(targetType, null);
+		
+		Iterable<?> ret;
+		if(driver.isSeedClass(requiredSubType)) {
+			ret = seeds;
+		}
+		else {
+			List<Object> inner = new ArrayList<>();
+			for (Object seed : seeds) {
+				inner.add(provide(seed, requiredSubType));
+			}
+			ret = inner;
+		}
+		
+		Class<?> masterClass = CommonUtils.typeToMasterClass(targetType);
+		if(masterClass.isAssignableFrom(ret.getClass())) return (T)ret;
+		else if(Collection.class.isAssignableFrom(masterClass)) {
+			Collection<Object> instance = CommonUtils.newInstance(masterClass);
+			instance.addAll((Collection<Object>)ret);
+			return (T) instance;
+		}
+		else throw new IllegalStateException("Can't prepare required return type: "+targetType);
+	}
+	
+	protected <T> T wrapMap(Map<?, ?> map, Type targetType) {
+		if(map==null) return null;
+		Class<?> requiredSubType = typeToRequiredClass(targetType, null);
+		
+		Map<?, ?> ret;
+		if(driver.isSeedClass(requiredSubType)) {
+			ret = map;
+		}
+		else {
+			Map<Object, Object> inner = new HashMap<>();
+			for (Map.Entry<?, ?> entry : map.entrySet()) {
+				inner.put(entry.getKey(), provide(entry.getValue(), requiredSubType));
+			}
+			ret = inner;
+		}
+		
+		if(CommonUtils.typeToMasterClass(targetType).isAssignableFrom(Map.class)) return (T) ret;
+		else throw new IllegalStateException("Can't prepare required return type: "+targetType);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -206,7 +298,8 @@ public class Transponder {
 		Method[] unsortedMethods = clazz.getDeclaredMethods();
 		Map<String, Method> methodMapping = new HashMap<>();
 		for (Method method : unsortedMethods) {
-			methodMapping.put(method.getName()+Type.getMethodDescriptor(method), method);
+			methodMapping.put(method.getName()
+									+net.bytebuddy.jar.asm.Type.getMethodDescriptor(method), method);
 		}
 		//Sort by line number, but if no info: give priority for methods with DAOField annotation
 		List<Method> sortedMethods = new ArrayList<Method>(unsortedMethods.length);

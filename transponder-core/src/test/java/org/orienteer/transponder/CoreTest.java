@@ -1,6 +1,7 @@
 package org.orienteer.transponder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
@@ -95,6 +96,23 @@ public class CoreTest
 	public void testDAOQuery() {
 		ITestDAO dao = new Transponder(new TestDriver()).dao(ITestDAO.class);
 		assertEquals(ITestDAO.QUERY, dao.queryEcho());
+	}
+	
+	@Test
+	public void testAutoWrapping() {
+		TestDriver driver = new TestDriver();
+		Transponder transponder = new Transponder(driver);
+		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
+		String name = "Other Name";
+		String description = "Other Description";
+		Map<String, Object> otherEntityMap = new HashMap<>();
+		otherEntityMap.put("name", name);
+		otherEntityMap.put("description", description);
+		((Map<String, Object>)entity).put("otherEntity", otherEntityMap);
+		ISimpleEntity otherEntity = entity.getOtherEntity();
+		assertNotNull(otherEntity);
+		assertEquals(name, otherEntity.getName());
+		assertEquals(description, otherEntity.getDescription());
 	}
 	
 	

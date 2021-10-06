@@ -1,11 +1,14 @@
 package org.orienteer.transponder;
 
+import static com.google.common.primitives.Primitives.wrap;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+
 
 import lombok.experimental.UtilityClass;
 
@@ -169,17 +173,39 @@ public class CommonUtils {
     	return null;
     }
     
+    public Class<?> typeToMasterClass(Type type) {
+    	
+    	if(type instanceof Class) return wrap((Class<?>)type);
+    	else if(type instanceof ParameterizedType)
+			return typeToMasterClass(((ParameterizedType)type).getRawType());
+    	return null;
+    }
+    
     public Class<?> typeToRequiredClass(Type type, Class<?> parentClass) {
 		return typeToRequiredClass(type, parentClass==null?false:Map.class.isAssignableFrom(parentClass));
 	}
 	
 	private Class<?> typeToRequiredClass(Type type, boolean isParentMap) {
-		if(type instanceof Class) return (Class<?>) type;
+		if(type instanceof Class) return wrap((Class<?>) type);
 		else if(type instanceof WildcardType) 
 			return typeToRequiredClass(((WildcardType)type).getUpperBounds()[0], false);
 		else if(type instanceof ParameterizedType)
 			return typeToRequiredClass(((ParameterizedType)type).getActualTypeArguments()[isParentMap?1:0], false);
 		return null;
+	}
+	
+	public <T> T newInstance(Class<? super T> clazz) {
+		if(!clazz.isInterface()) {
+			try {
+				return (T) clazz.newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				throw new IllegalArgumentException("Can't instantiate "+clazz.getName(), e);
+			} 
+		}
+		else if(clazz.isAssignableFrom(ArrayList.class)) return (T) new ArrayList<>();
+		else if(clazz.isAssignableFrom(HashSet.class)) return (T) new HashSet<>();
+		else if(clazz.isAssignableFrom(HashMap.class)) return (T) new HashMap<>();
+		else throw new IllegalArgumentException("Can't instantiate "+clazz.getName());
 	}
 
 }
