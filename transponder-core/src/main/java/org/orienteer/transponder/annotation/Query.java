@@ -13,4 +13,5 @@ import java.lang.annotation.Target;
 @Target(METHOD)
 public @interface Query {
 	String value();
+	String language() default "";
 }

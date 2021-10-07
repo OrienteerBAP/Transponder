@@ -123,8 +123,8 @@ public class TestDriver implements IDriver {
 	}
 	
 	@Override
-	public List<Object> query(Query query, Map<String, Object> params) {
-		String pkExpr = query.value();
+	public List<Object> query(String language, String query, Map<String, Object> params) {
+		String pkExpr = query;
 		if(params!=null && !params.isEmpty()) {
 			for (Map.Entry<String, Object> entry : params.entrySet()) {
 				String key = entry.getKey();
@@ -138,6 +138,12 @@ public class TestDriver implements IDriver {
 			if(pattern.matcher(k).matches()) ret.add(v);
 		});
 		return ret;
+	}
+	
+	@Override
+	public void replaceSeed(Object wrapper, Object newSeed) {
+		((Map<Object,Object>)wrapper).clear();
+		((Map<Object,Object>)wrapper).putAll((Map<Object,Object>)newSeed);
 	}
 
 	public TestDriver insertRecord(String pk, Map<String, Object> value) {

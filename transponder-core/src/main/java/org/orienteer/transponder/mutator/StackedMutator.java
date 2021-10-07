@@ -10,9 +10,11 @@ import net.bytebuddy.dynamic.DynamicType.Builder;
 
 public class StackedMutator implements IMutator {
 	
-	public static final IMutator DAO_MUTATOR = new StackedMutator(new QueryMutator());
+	public static final IMutator DAO_MUTATOR 	= new StackedMutator(new LookupMutator(), 
+																     new QueryMutator());
 	public static final IMutator ENTITY_MUTATOR = new StackedMutator(new GetterMutator(),
 																	 new SetterMutator(),
+																	 new LookupMutator(),
 																	 new QueryMutator());
 	
 	private final List<IMutator> stack;

@@ -14,5 +14,5 @@ import java.lang.annotation.Target;
 @Target(METHOD)
 public @interface Script {
 	String value();
-	String language() default "JavaScript";
+	String language() default "";
 }

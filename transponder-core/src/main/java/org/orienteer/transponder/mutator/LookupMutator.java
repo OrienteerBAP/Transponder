@@ -5,7 +5,10 @@ import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
 import org.orienteer.transponder.Transponder.ITransponderEntity;
 import org.orienteer.transponder.Transponder.ITransponderHolder;
+import org.orienteer.transponder.annotation.Lookup;
 import org.orienteer.transponder.annotation.Query;
+
+import com.google.common.primitives.Primitives;
 
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.MethodDelegation;
@@ -20,11 +23,11 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 
-public class QueryMutator implements IMutator {
+public class LookupMutator implements IMutator {
 
 	@Override
 	public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder) {
-		return builder.method(isAnnotatedWith(Query.class).and(isAbstract()))
+		return builder.method(isAnnotatedWith(Lookup.class).and(isAbstract()))
 							.intercept(MethodDelegation
 										.withDefaultConfiguration()
 										.to(QueryDelegate.class));
@@ -33,19 +36,23 @@ public class QueryMutator implements IMutator {
 	public static class QueryDelegate {
 		@RuntimeType
 		public static Object query(@Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
-			try {
-				Query query = origin.getAnnotation(Query.class);
-				Map<String, Object> params = toArguments(origin, args);
-				if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
-				Transponder transponder = Transponder.getTransponder(thisObject);
-				Object ret = Collection.class.isAssignableFrom(origin.getReturnType())
-									?transponder.getDriver().query(query.language(), query.value(), params)
-									:transponder.getDriver().querySingle(query.language(), query.value(), params);
-				return transponder.wrap(ret, origin.getGenericReturnType());
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
+			Lookup lookup = origin.getAnnotation(Lookup.class);
+			Map<String, Object> params = toArguments(origin, args);
+			if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
+			Transponder transponder = Transponder.getTransponder(thisObject);
+			Object newSeed = transponder.getDriver().querySingle(lookup.language(), lookup.value(), params);
+			if(newSeed!=null) {
+				if(transponder.getDriver().isSeed(newSeed)) {
+					if(thisObject instanceof ITransponderEntity)
+						transponder.getDriver().replaceSeed(thisObject, newSeed);
+				} else
+					throw new IllegalStateException("Result of a lookup can't be used as new seed object. Looked up object: "+newSeed);
 			}
+			if(Primitives.wrap(origin.getReturnType()).equals(Boolean.class)) 
+				return newSeed!=null;
+			else if(newSeed==null) return null;
+			else if(thisObject instanceof ITransponderEntity) return thisObject;
+			else return transponder.wrap(newSeed, origin.getGenericReturnType());
 		}
 	}
 

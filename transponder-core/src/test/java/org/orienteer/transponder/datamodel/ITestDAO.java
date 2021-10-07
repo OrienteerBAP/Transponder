@@ -2,6 +2,7 @@ package org.orienteer.transponder.datamodel;
 
 import java.util.List;
 
+import org.orienteer.transponder.annotation.Lookup;
 import org.orienteer.transponder.annotation.Query;
 
 public interface ITestDAO {
@@ -16,4 +17,10 @@ public interface ITestDAO {
 	
 	@Query("${ch}{${count}}")
 	public ISimpleEntity getWithCharacter(char ch, int count);
+	
+	@Lookup("${pk}")
+	public ISimpleEntity lookupByPk(String pk);
+	
+	@Lookup("${pk}")
+	public boolean checkPresenseByPk(String pk);
 }

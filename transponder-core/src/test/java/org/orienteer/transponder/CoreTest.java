@@ -1,9 +1,6 @@
 package org.orienteer.transponder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -118,6 +115,46 @@ public class CoreTest
 		ret = dao.getWithCharacter('a', 3);
 		assertNotNull(ret);
 		assertEquals("Triple A", ret.getName());
+	}
+	
+	@Test
+	public void testLookupInDAO() {
+		TestDriver driver = new TestDriver();
+		driver.insertRecord("dao1", "name",  "DAO1");
+		driver.insertRecord("dao2", "name",  "DAO2");
+		ITestDAO dao = new Transponder(driver).dao(ITestDAO.class);
+		ISimpleEntity entity = dao.lookupByPk("dao1");
+		assertNotNull(entity);
+		assertEquals("DAO1", entity.getName());
+		entity = dao.lookupByPk("dao2");
+		assertNotNull(entity);
+		assertEquals("DAO2", entity.getName());
+		entity = dao.lookupByPk("dao3");
+		assertNull(entity);
+		assertTrue(dao.checkPresenseByPk("dao1"));
+		assertTrue(dao.checkPresenseByPk("dao2"));
+		assertFalse(dao.checkPresenseByPk("dao3"));
+	}
+	
+	@Test
+	public void testLookupInEntity() {
+		TestDriver driver = new TestDriver();
+		driver.insertRecord("dao1", "name",  "DAO1");
+		driver.insertRecord("dao2", "name",  "DAO2");
+		ISimpleEntity entity = new Transponder(driver).create(ISimpleEntity.class);
+		assertNotNull(entity.lookupByPk("dao1"));
+		assertEquals("DAO1", entity.getName());
+		assertNotNull(entity.lookupByPk("dao2"));
+		assertEquals("DAO2", entity.getName());
+		assertNull(entity.lookupByPk("dao3"));
+		assertEquals("DAO2", entity.getName()); //Should stay the same
+		
+		assertTrue(entity.checkPresenseByPk("dao1"));
+		assertEquals("DAO1", entity.getName());
+		assertTrue(entity.checkPresenseByPk("dao2"));
+		assertEquals("DAO2", entity.getName());
+		assertFalse(entity.checkPresenseByPk("dao3"));
+		assertEquals("DAO2", entity.getName()); //Should stay the same
 	}
 	
 	@Test

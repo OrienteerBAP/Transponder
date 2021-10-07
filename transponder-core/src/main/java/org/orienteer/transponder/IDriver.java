@@ -3,7 +3,6 @@ package org.orienteer.transponder;
 import java.util.List;
 import java.util.Map;
 
-import org.orienteer.transponder.annotation.Query;
 
 /**
  * Interface for drivers to some data sources/DBs with which Transponder can work
@@ -55,6 +54,15 @@ public interface IDriver {
 	 * @return wrapped just created instance of requested type
 	 */
 	public <T> T newEntityInstance(Class<T> proxyClass, String type);
+	
+	/**
+	 * Try to replace seed object for provided wrapper object. Useful for Lookup operations.
+	 * @param wrapper wrapper to replace seed in 
+	 * @param newSeed new seed object
+	 */
+	public default void replaceSeed(Object wrapper, Object newSeed) {
+		throw new UnsupportedOperationException("Replacing of seeds is not supported by current driver");
+	}
 	
 	/**
 	 * Wrap provided original object into provided proxy class
@@ -109,10 +117,10 @@ public interface IDriver {
 	 * @param params unwrapped parameters to be used to query data
 	 * @return list of unwrapped objects
 	 */
-	public List<Object> query(Query query, Map<String, Object> params);
+	public List<Object> query(String language, String query, Map<String, Object> params);
 	
-	public default Object querySingle(Query query, Map<String, Object> params) {
-		List<Object> results = query(query, params);
+	public default Object querySingle(String language, String query, Map<String, Object> params) {
+		List<Object> results = query(language, query, params);
 		return results==null || results.isEmpty()?null:results.get(0);
 	}
 	
