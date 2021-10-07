@@ -14,4 +14,5 @@ import java.lang.annotation.Target;
 @Target(METHOD)
 public @interface Command {
 	String value();
+	String language() default "";
 }

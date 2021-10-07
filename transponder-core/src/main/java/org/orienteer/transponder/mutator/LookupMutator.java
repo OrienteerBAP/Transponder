@@ -30,10 +30,10 @@ public class LookupMutator implements IMutator {
 		return builder.method(isAnnotatedWith(Lookup.class).and(isAbstract()))
 							.intercept(MethodDelegation
 										.withDefaultConfiguration()
-										.to(QueryDelegate.class));
+										.to(LookupDelegate.class));
 	}
 	
-	public static class QueryDelegate {
+	public static class LookupDelegate {
 		@RuntimeType
 		public static Object query(@Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
 			Lookup lookup = origin.getAnnotation(Lookup.class);

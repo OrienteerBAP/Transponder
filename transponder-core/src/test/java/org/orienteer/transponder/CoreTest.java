@@ -158,6 +158,20 @@ public class CoreTest
 	}
 	
 	@Test
+	public void testCommand() {
+		TestDriver driver = new TestDriver();
+		driver.insertRecord("dao1", "name",  "DAO1");
+		driver.insertRecord("dao2", "name",  "DAO2");
+		ITestDAO dao = new Transponder(driver).dao(ITestDAO.class);
+		ISimpleEntity entity = dao.removeByPk("dao1");
+		assertNotNull(entity);
+		assertEquals("DAO1", entity.getName());
+		assertNull(dao.removeByPk("dao1"));
+		assertNotNull(dao.removeByPk("dao2"));
+		assertNull(dao.removeByPk("dao2"));
+	}
+	
+	@Test
 	public void testAutoWrapping() {
 		TestDriver driver = new TestDriver();
 		Transponder transponder = new Transponder(driver);

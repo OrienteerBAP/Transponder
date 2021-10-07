@@ -112,16 +112,28 @@ public interface IDriver {
 	public Object toSeed(Object wrapped);
 	
 	/**
-	 * Query driver for data. Should return unwrapped list of seeds
+	 * Query driver for data. Should return unwrapped list
+	 * @param language language for the query
 	 * @param query query to be used
 	 * @param params unwrapped parameters to be used to query data
 	 * @return list of unwrapped objects
 	 */
 	public List<Object> query(String language, String query, Map<String, Object> params);
 	
+	/**
+	 * Query driver for single record from data. Should return unwrapped object or null
+	 * @param language language for the query
+	 * @param query query to be used
+	 * @param params unwrapped parameters to be used to query data
+	 * @return single data element
+	 */
 	public default Object querySingle(String language, String query, Map<String, Object> params) {
 		List<Object> results = query(language, query, params);
 		return results==null || results.isEmpty()?null:results.get(0);
+	}
+	
+	public default Object command(String language, String command, Map<String, Object> params) {
+		return query(language, command, params);
 	}
 	
 	/**

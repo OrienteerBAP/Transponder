@@ -1,6 +1,7 @@
 package org.orienteer.transponder;
 
 import static org.junit.Assert.assertTrue;
+import static org.orienteer.transponder.CommonUtils.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -124,20 +125,18 @@ public class TestDriver implements IDriver {
 	
 	@Override
 	public List<Object> query(String language, String query, Map<String, Object> params) {
-		String pkExpr = query;
-		if(params!=null && !params.isEmpty()) {
-			for (Map.Entry<String, Object> entry : params.entrySet()) {
-				String key = entry.getKey();
-				Object val = entry.getValue();
-				pkExpr = pkExpr.replace("${"+key+"}", Objects.toString(val, ""));
-			}
-		}
-		Pattern pattern = Pattern.compile(pkExpr);
+		Pattern pattern = Pattern.compile(interpolate(query, params));
 		List<Object> ret = new ArrayList<>();
 		db.forEach((k, v) -> {
 			if(pattern.matcher(k).matches()) ret.add(v);
 		});
 		return ret;
+	}
+	
+	@Override
+	public Object command(String language, String query, Map<String, Object> params) {
+		String pkToDelete = interpolate(query, params);
+		return db.remove(pkToDelete);
 	}
 	
 	@Override

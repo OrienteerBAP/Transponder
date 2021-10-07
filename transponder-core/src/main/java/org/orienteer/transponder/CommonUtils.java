@@ -258,4 +258,16 @@ public class CommonUtils {
 		return args;
 	}
 	
+	public String interpolate(String pattern, Map<String, Object> params) {
+		String ret = pattern;
+		if(params!=null && !params.isEmpty()) {
+			for (Map.Entry<String, Object> entry : params.entrySet()) {
+				String key = entry.getKey();
+				Object val = entry.getValue();
+				ret = ret.replace("${"+key+"}", Objects.toString(val, ""));
+			}
+		}
+		return ret;
+	}
+	
 }

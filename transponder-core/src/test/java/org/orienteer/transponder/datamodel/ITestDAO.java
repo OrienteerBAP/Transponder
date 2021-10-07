@@ -2,6 +2,7 @@ package org.orienteer.transponder.datamodel;
 
 import java.util.List;
 
+import org.orienteer.transponder.annotation.Command;
 import org.orienteer.transponder.annotation.Lookup;
 import org.orienteer.transponder.annotation.Query;
 
@@ -23,4 +24,7 @@ public interface ITestDAO {
 	
 	@Lookup("${pk}")
 	public boolean checkPresenseByPk(String pk);
+	
+	@Command("${pk}")
+	public ISimpleEntity removeByPk(String pk);
 }
