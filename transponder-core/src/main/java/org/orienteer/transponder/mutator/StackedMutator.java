@@ -34,5 +34,9 @@ public class StackedMutator implements IMutator {
 		return ret;
 	}
 	
+	public static IMutator resolveRootMutator(boolean entity) {
+		return entity?ENTITY_MUTATOR:DAO_MUTATOR;
+	}
+	
 	
 }

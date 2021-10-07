@@ -1,6 +1,7 @@
 package org.orienteer.transponder;
 
 import static com.google.common.primitives.Primitives.wrap;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -21,8 +22,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.orienteer.transponder.Transponder.ITransponderHolder;
 
 import lombok.experimental.UtilityClass;
+import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.implementation.FieldAccessor;
+import net.bytebuddy.jar.asm.Opcodes;
 
 /**
  * Common for utility methods
@@ -252,5 +257,5 @@ public class CommonUtils {
 		}
 		return args;
 	}
-
+	
 }
