@@ -2,15 +2,17 @@ package org.orienteer.transponder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import org.junit.Test;
-import org.orienteer.transponder.Transponder.ITransponderEntity;
+import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
 import org.orienteer.transponder.datamodel.ITestDAO;
@@ -77,8 +79,8 @@ public class CoreTest
 	public void testTransponderPreserving() throws Exception {
 		Transponder transponder = new Transponder(new TestDriver());
 		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
-		assertTrue(entity instanceof ITransponderEntity);
-		assertEquals(transponder, ((ITransponderEntity)entity).get$transponder());
+		assertTrue(entity instanceof ITransponderHolder);
+		assertEquals(transponder, ((ITransponderHolder)entity).get$transponder());
 		Field field = entity.getClass().getDeclaredField("$transponder");
 		field.setAccessible(true);
 		assertEquals(transponder, field.get(entity));
@@ -94,8 +96,28 @@ public class CoreTest
 	
 	@Test
 	public void testDAOQuery() {
-		ITestDAO dao = new Transponder(new TestDriver()).dao(ITestDAO.class);
-		assertEquals(ITestDAO.QUERY, dao.queryEcho());
+		TestDriver driver = new TestDriver();
+		driver.insertRecord("a", "name",   "Single A");
+		driver.insertRecord("aa", "name",  "Two A");
+		driver.insertRecord("aaa", "name", "Triple A");
+		ITestDAO dao = new Transponder(driver).dao(ITestDAO.class);
+		List<ISimpleEntity> all = dao.getAll();
+		assertNotNull(all);
+		assertEquals(3, all.size());
+		
+		ISimpleEntity ret = dao.getWithCharacter('b', 1);
+		assertNull(ret);
+		ret = dao.getWithCharacter('a', 1);
+		assertNotNull(ret);
+		assertEquals("Single A", ret.getName());
+		
+		ret = dao.getWithCharacter('a', 2);
+		assertNotNull(ret);
+		assertEquals("Two A", ret.getName());
+		
+		ret = dao.getWithCharacter('a', 3);
+		assertNotNull(ret);
+		assertEquals("Triple A", ret.getName());
 	}
 	
 	@Test

@@ -5,6 +5,7 @@ import static com.google.common.primitives.Primitives.wrap;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
@@ -210,30 +211,46 @@ public class CommonUtils {
 	}
 	
 	public boolean isSimpleType(final Object iObject) {
-	    if (iObject == null) return false;
+		if (iObject == null)
+			return false;
 
-	    final Class<? extends Object> iType = iObject.getClass();
+		final Class<? extends Object> iType = iObject.getClass();
 
-	    if (iType.isPrimitive()
-	        || Number.class.isAssignableFrom(iType)
-	        || String.class.isAssignableFrom(iType)
-	        || Boolean.class.isAssignableFrom(iType)
-	        || Date.class.isAssignableFrom(iType)
-	        || (iType.isArray()
-	            && (iType.equals(byte[].class)
-	                || iType.equals(char[].class)
-	                || iType.equals(int[].class)
-	                || iType.equals(long[].class)
-	                || iType.equals(double[].class)
-	                || iType.equals(float[].class)
-	                || iType.equals(short[].class)
-	                || iType.equals(Integer[].class)
-	                || iType.equals(String[].class)
-	                || iType.equals(Long[].class)
-	                || iType.equals(Short[].class)
-	                || iType.equals(Double[].class)))) return true;
+		if (iType.isPrimitive() || Number.class.isAssignableFrom(iType) || String.class.isAssignableFrom(iType)
+				|| Boolean.class.isAssignableFrom(iType) || Date.class.isAssignableFrom(iType)
+				|| (iType.isArray() && (iType.equals(byte[].class) || iType.equals(char[].class)
+						|| iType.equals(int[].class) || iType.equals(long[].class) || iType.equals(double[].class)
+						|| iType.equals(float[].class) || iType.equals(short[].class) || iType.equals(Integer[].class)
+						|| iType.equals(String[].class) || iType.equals(Long[].class) || iType.equals(Short[].class)
+						|| iType.equals(Double[].class))))
+			return true;
 
-	    return false;
-	  }
+		return false;
+	}
+	
+	public Map<String, Object> toArguments(Method method, Object[] values) {
+		return toArguments(null, true, method, values);
+	}
+	
+	public Map<String, Object> toArguments(Map<String, Object> args, boolean override, Method method, Object[] values) {
+		if(args==null) {
+			args = new HashMap<>();
+			override = true;
+		}
+		
+		Parameter[] params = method.getParameters();
+		for (int i = 0; i < params.length; i++) {
+			Object value = Transponder.unwrap(values[i]);
+			if(override) {
+				args.put(params[i].getName(), value);
+				args.put("arg"+i, value);
+			}
+			else {
+				args.putIfAbsent(params[i].getName(), value);
+				args.putIfAbsent("arg"+i, value);
+			}
+		}
+		return args;
+	}
 
 }

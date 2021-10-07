@@ -45,9 +45,19 @@ public class Transponder {
 	
 	private static final TypeCache<Integer> DAO_CACHE = new TypeCache<Integer>(TypeCache.Sort.SOFT);
 	
-	public static interface ITransponderEntity {
+	public static interface ITransponderHolder {
 		public Transponder get$transponder();
 		public void set$transponder(Transponder transponder);
+		public boolean is$entity();
+		public void set$entity(boolean entity);
+		
+		static <T> DynamicType.Builder<T> bindField(DynamicType.Builder<T> builder, String fieldName, Type fieldType) {
+			return builder.defineField(fieldName, fieldType, Opcodes.ACC_PRIVATE)
+								.method(isDeclaredBy(ITransponderHolder.class)
+											.and(isAbstract())
+											.and(nameContains(fieldName)))
+								.intercept(FieldAccessor.ofField(fieldName));
+		}
 	}
 	
 	public Transponder(IDriver driver) {
@@ -66,7 +76,7 @@ public class Transponder {
 	public <T> T create(Class<T> mainClass, String className, Class<?>... additionalInterfaces) {
 		if(className==null) throw new NullPointerException("ClassName for Transponder.create(...) should not be null");
 		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, StackedMutator.ENTITY_MUTATOR, additionalInterfaces);
-		return setTransponder(driver.newEntityInstance(proxyClass, className));
+		return setTransponder(driver.newEntityInstance(proxyClass, className), true);
 	}
 	
 	public <T> T provide(Object object) {
@@ -76,13 +86,13 @@ public class Transponder {
 	
 	public <T> T provide(Object object, Class<T> mainClass, Class<?>... additionalInterfaces) {
 		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, StackedMutator.ENTITY_MUTATOR, additionalInterfaces);
-		return setTransponder(driver.wrapEntityInstance(proxyClass, object));
+		return setTransponder(driver.wrapEntityInstance(proxyClass, object), true);
 	}
 	
 	public <T> T wrap(Object seed, Type targetType) {
 		if(seed==null) return null;
 		Class<?> requiredClass = CommonUtils.typeToMasterClass(targetType);
-		if(seed instanceof ITransponderEntity) {
+		if(seed instanceof ITransponderHolder) {
 			return (T) seed;
 		} else if(driver.isSeed(seed)) {
 			return (T) provide(seed, requiredClass);
@@ -171,12 +181,14 @@ public class Transponder {
 		else throw new IllegalStateException("Can't prepare required return type: "+targetType);
 	}
 	
-	public Object unwrap(Object arg) {
+	public static Object unwrap(Object arg) {
 		if(arg==null) return null;
 		if(isSimpleType(arg)) return arg;
-		else if (arg instanceof ITransponderEntity) {
-			Transponder otherTransponder = ((ITransponderEntity)arg).get$transponder();
-			return otherTransponder.getDriver().toSeed(arg);
+		else if (arg instanceof ITransponderHolder) {
+			if(((ITransponderHolder)arg).is$entity()) {
+				Transponder otherTransponder = ((ITransponderHolder)arg).get$transponder();
+				return otherTransponder.getDriver().toSeed(arg);
+			} else return arg;
 		}
 		else if (arg instanceof Collection<?>) {
 			Collection<?> col = (Collection<?>)arg;
@@ -215,15 +227,14 @@ public class Transponder {
 				builder = byteBuddy.subclass(baseClass);
 				classesToImplement.add(mainClass);
 			}
-			classesToImplement.add(ITransponderEntity.class);
+			classesToImplement.add(ITransponderHolder.class);
 			if(additionalInterfaces!=null && additionalInterfaces.length>0) {
 				classesToImplement.addAll(Arrays.asList(additionalInterfaces));
 			}
 			builder = builder.implement(classesToImplement);
 			if(rootMutator!=null) builder = rootMutator.mutate(this, builder);
-			builder = builder.defineField("$transponder", Transponder.class, Opcodes.ACC_PRIVATE)
-					.method(isDeclaredBy(ITransponderEntity.class).and(isAbstract()))
-					.intercept(FieldAccessor.ofField("$transponder"));
+			builder = ITransponderHolder.bindField(builder, "$transponder", Transponder.class);
+			builder = ITransponderHolder.bindField(builder, "$entity", boolean.class);
 			return builder.make()
 					  .load(mainClass.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
 					  .getLoaded();
@@ -232,7 +243,7 @@ public class Transponder {
 	
 	@SuppressWarnings("unchecked")
 	public <T> T dao(Class<T> mainClass, final Class<?>... additionalInterfaces) {
-		return driver.newDAOInstance(getProxyClass(Object.class, mainClass, StackedMutator.DAO_MUTATOR, additionalInterfaces));
+		return setTransponder(driver.newDAOInstance(getProxyClass(Object.class, mainClass, StackedMutator.DAO_MUTATOR, additionalInterfaces)), false);
 	}
 	
 	public Transponder describe(Class<?>... classes) {
@@ -353,19 +364,20 @@ public class Transponder {
 		
 	}
 	
-	public <T> T setTransponder(T object) {
-		return setTransponder(object, this);
+	private <T> T setTransponder(T object, boolean isEntity) {
+		return setTransponder(object, this, isEntity);
 	}
 	
-	public static <T> T setTransponder(T object, Transponder transponder) {
-		if(!(object instanceof ITransponderEntity)) throw new IllegalArgumentException("Object has not been provided by Transponder");
-		((ITransponderEntity)object).set$transponder(transponder);
+	private static <T> T setTransponder(T object, Transponder transponder, boolean isEntity) {
+		if(!(object instanceof ITransponderHolder)) throw new IllegalArgumentException("Object has not been provided by Transponder");
+		((ITransponderHolder)object).set$transponder(transponder);
+		((ITransponderHolder)object).set$entity(isEntity);
 		return object;
 	}
 	
 	public static Transponder getTransponder(Object object) {
-		if(!(object instanceof ITransponderEntity)) throw new IllegalArgumentException("Object has not been provided by Transponder");
-		return ((ITransponderEntity)object).get$transponder();
+		if(!(object instanceof ITransponderHolder)) throw new IllegalArgumentException("Object has not been provided by Transponder");
+		return ((ITransponderHolder)object).get$transponder();
 	}
 	
 }

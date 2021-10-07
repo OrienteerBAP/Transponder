@@ -3,9 +3,14 @@ package org.orienteer.transponder;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Pattern;
 
+import org.orienteer.transponder.annotation.Query;
 import org.orienteer.transponder.annotation.binder.PropertyName;
 
 import lombok.AllArgsConstructor;
@@ -44,7 +49,7 @@ public class TestDriver implements IDriver {
 	
 	private Map<String, TypeRecord> typeRecords = new HashMap<String, TestDriver.TypeRecord>();
 	
-	private Map<Integer, Map<String, Object>> db = new HashMap<Integer, Map<String,Object>>();
+	private Map<String, Map<String, Object>> db = new HashMap<String, Map<String,Object>>();
 
 	@Override
 	public void createType(String typeName, boolean isAbstract, String... superTypes) {
@@ -116,13 +121,31 @@ public class TestDriver implements IDriver {
 	public Object toSeed(Object wrapped) {
 		return new HashMap<>((Map<String, Object>)wrapped);
 	}
+	
+	@Override
+	public List<Object> query(Query query, Map<String, Object> params) {
+		String pkExpr = query.value();
+		if(params!=null && !params.isEmpty()) {
+			for (Map.Entry<String, Object> entry : params.entrySet()) {
+				String key = entry.getKey();
+				Object val = entry.getValue();
+				pkExpr = pkExpr.replace("${"+key+"}", Objects.toString(val, ""));
+			}
+		}
+		Pattern pattern = Pattern.compile(pkExpr);
+		List<Object> ret = new ArrayList<>();
+		db.forEach((k, v) -> {
+			if(pattern.matcher(k).matches()) ret.add(v);
+		});
+		return ret;
+	}
 
-	public TestDriver insertRecord(Integer pk, Map<String, Object> value) {
+	public TestDriver insertRecord(String pk, Map<String, Object> value) {
 		db.put(pk, value);
 		return this;
 	}
 	
-	public TestDriver insertRecord(Integer pk, Object... objects) {
+	public TestDriver insertRecord(String pk, Object... objects) {
 		return insertRecord(pk, CommonUtils.toMap(objects));
 	}
 

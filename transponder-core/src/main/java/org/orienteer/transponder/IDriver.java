@@ -1,5 +1,10 @@
 package org.orienteer.transponder;
 
+import java.util.List;
+import java.util.Map;
+
+import org.orienteer.transponder.annotation.Query;
+
 /**
  * Interface for drivers to some data sources/DBs with which Transponder can work
  */
@@ -97,6 +102,19 @@ public interface IDriver {
 	 * @return seed object which can be used to interact with underling DBs
 	 */
 	public Object toSeed(Object wrapped);
+	
+	/**
+	 * Query driver for data. Should return unwrapped list of seeds
+	 * @param query query to be used
+	 * @param params unwrapped parameters to be used to query data
+	 * @return list of unwrapped objects
+	 */
+	public List<Object> query(Query query, Map<String, Object> params);
+	
+	public default Object querySingle(Query query, Map<String, Object> params) {
+		List<Object> results = query(query, params);
+		return results==null || results.isEmpty()?null:results.get(0);
+	}
 	
 	/**
 	 * Creates new instance of a DAO object from provided proxy class
