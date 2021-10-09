@@ -62,6 +62,7 @@ public class TestDriver implements IDriver {
 	@Override
 	public void createProperty(String typeName, String propertyName, Type propertyType, String linkedType, int order, AnnotatedElement annotations) {
 		assertHasType(typeName);
+		if(linkedType!=null) assertHasType(linkedType);
 		TypeRecord type = typeRecords.get(typeName);
 		type.getProperties().put(propertyName, new PropertyRecord(propertyName, linkedType, order));
 	}

@@ -17,6 +17,12 @@ public interface ISimpleEntity {
 	public ISimpleEntity getOtherEntity();
 	public void setOtherEntity(ISimpleEntity entity);
 	
+	public IRemoteEntity getRemoteEntity();
+	public void setRemoteEntity(IRemoteEntity entity);
+	
+	public IParametrizedEntity<ISimpleEntity> getParametrizedEntity();
+	public void setParametrizedEntity(IParametrizedEntity<ISimpleEntity> entity);
+	
 	@Lookup("${pk}")
 	public ISimpleEntity lookupByPk(String pk);
 	

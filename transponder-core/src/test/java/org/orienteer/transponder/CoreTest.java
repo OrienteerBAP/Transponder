@@ -47,6 +47,11 @@ public class CoreTest
 		testDriver.assertHasType("Simple");
 		testDriver.assertHasProperty("Simple", "name");
 		testDriver.assertHasProperty("Simple", "description");
+		
+		testDriver.assertHasType("Remote");
+		testDriver.assertHasProperty("Remote", "remoteName");
+		
+		testDriver.assertHasType("Parametrized");
 	}
 	
 	@Test

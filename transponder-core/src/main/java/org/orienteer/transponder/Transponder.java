@@ -296,7 +296,8 @@ public class Transponder {
 			//Skip second+ attempt to create a property, except if @EntityProperty is present
 			if(wasPreviouslyScheduled /*&& canSkipIfAlreadyScheduled(property)*/) continue;
 			
-			String linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(typeToRequiredClass(fieldType, null));
+			String linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(typeToMasterClass(fieldType));
+			if(linkedTypeCandidate==null) linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(typeToRequiredClass(fieldType, null));
 			if(linkedTypeCandidate==null && property!=null && !Strings.isNullOrEmpty(property.linkedType())) linkedTypeCandidate = property.linkedType();
 			
 			final String fieldName = fieldNameCandidate;
