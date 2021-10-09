@@ -2,6 +2,7 @@ package org.orienteer.transponder;
 
 import static org.junit.Assert.*;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,8 @@ import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
 import org.orienteer.transponder.datamodel.ITestDAO;
+
+import net.bytebuddy.dynamic.DynamicType.Builder;
 
 public class CoreTest 
 {
@@ -216,6 +219,30 @@ public class CoreTest
 		ISimpleEntity otherEntity = entity.setName("Test Name");
 		assertNotNull(otherEntity);
 		assertEquals(entity, otherEntity);
+	}
+	
+	@Test
+	public void testDriverSpecificMutators() {
+		ISimpleEntity entity = new Transponder(new TestDriver()).create(ISimpleEntity.class);
+		assertFalse(entity instanceof IMarker);
+		
+		entity = new Transponder(new TestDriver() {
+			@Override
+			public IMutator getMutator() {
+				return new IMutator() {
+					
+					@Override
+					public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder) {
+						return builder.implement(IMarker.class);
+					}
+				};
+			}
+		}).create(ISimpleEntity.class);
+		assertTrue(entity instanceof IMarker);
+	}
+	
+	public static interface IMarker {
+		
 	}
 	
 }

@@ -60,4 +60,31 @@ public class ByteBuddyTest {
 		public String getName();
 		public void setName(String name);
 	}
+	
+	//-----------------------------------------------
+	
+	public static class MyClass {
+		public <V> V echo(V value) {
+			return value;
+		}
+	}
+	
+	public static interface MyInterface {
+		public <V> V echo(V value);
+	}
+	
+	public static interface MyChildInterface extends MyInterface {
+		
+	}
+	
+	@Test
+	public void testMethodsMirroring() throws Exception {
+		 DynamicType.Loaded<?> loaded = new ByteBuddy()
+	                .subclass(MyClass.class)
+	                .implement(MyChildInterface.class)
+	                .make()
+	                .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.WRAPPER);
+		 MyInterface obj =  (MyInterface)loaded.getLoaded().newInstance();
+		 assertEquals("Test", obj.echo("Test"));
+	}
 }

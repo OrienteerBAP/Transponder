@@ -80,6 +80,8 @@ public class Transponder {
 	}
 	
 	public <T> T provide(Object object, Class<T> mainClass, Class<?>... additionalInterfaces) {
+		Class<T> expectedMainClass = (Class<T>)driver.getEntityMainClass(object);
+		if(expectedMainClass!=null && mainClass.isAssignableFrom(expectedMainClass)) mainClass = expectedMainClass;
 		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, true, additionalInterfaces);
 		return setTransponder(driver.wrapEntityInstance(proxyClass, object));
 	}
@@ -228,6 +230,9 @@ public class Transponder {
 			}
 			builder = builder.implement(classesToImplement);
 			builder = StackedMutator.resolveRootMutator(entity).mutate(this, builder);
+			
+			IMutator driverMutator = driver.getMutator();
+			if(driverMutator!=null) builder = driverMutator.mutate(this, builder);
 			
 			builder = builder.defineField("$transponder", Transponder.class, Opcodes.ACC_PRIVATE)
 									.method(isDeclaredBy(ITransponderHolder.class)

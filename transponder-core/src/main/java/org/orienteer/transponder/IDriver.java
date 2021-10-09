@@ -154,4 +154,12 @@ public interface IDriver {
 			throw new IllegalArgumentException("Can't instanciate DAO for "+proxyClass, e);
 		} 
 	}
+	
+	/**
+	 * Provide driver specific mutator for building a proxy class
+	 * @return mutator to be used during building a class
+	 */
+	public default IMutator getMutator() {
+		return null;
+	}
 }
