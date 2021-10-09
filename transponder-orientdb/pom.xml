@@ -12,6 +12,18 @@
   <name>transponder-orientdb</name>
 
   <dependencies>
+  	<dependency>
+      <groupId>org.orienteer.transponder</groupId>
+      <artifactId>transponder-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+		<groupId>com.orientechnologies</groupId>
+		<artifactId>orientdb-core</artifactId>
+		<version>3.1.10</version>
+		<scope>provided</scope>
+		<type>bundle</type>
+	</dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

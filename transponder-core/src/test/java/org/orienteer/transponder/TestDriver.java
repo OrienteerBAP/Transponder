@@ -3,7 +3,9 @@ package org.orienteer.transponder;
 import static org.junit.Assert.assertTrue;
 import static org.orienteer.transponder.CommonUtils.*;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,12 +55,12 @@ public class TestDriver implements IDriver {
 	private Map<String, Map<String, Object>> db = new HashMap<String, Map<String,Object>>();
 
 	@Override
-	public void createType(String typeName, boolean isAbstract, String... superTypes) {
+	public void createType(String typeName, boolean isAbstract, Class<?> mainWrapperClass, String... superTypes) {
 		typeRecords.put(typeName, new TypeRecord(typeName, isAbstract, superTypes));
 	}
 
 	@Override
-	public void createProperty(String typeName, String propertyName, String linkedType, int order) {
+	public void createProperty(String typeName, String propertyName, Type propertyType, String linkedType, int order, AnnotatedElement annotations) {
 		assertHasType(typeName);
 		TypeRecord type = typeRecords.get(typeName);
 		type.getProperties().put(propertyName, new PropertyRecord(propertyName, linkedType, order));

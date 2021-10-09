@@ -24,6 +24,8 @@ import java.util.function.Supplier;
 
 import org.orienteer.transponder.Transponder.ITransponderHolder;
 
+import com.google.common.base.Strings;
+
 import lombok.experimental.UtilityClass;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.FieldAccessor;
@@ -76,6 +78,16 @@ public class CommonUtils {
 	 */
 	public <T> T defaultIfNull(T object, T def) {
 		return object!=null?object:def;
+	}
+	
+	/**
+	 * Returns defaultValue if actual value is null or empty.
+	 * @param value value to check
+	 * @param defaultValue value to return if main value is null or empty
+	 * @return value if it's not null or empty or defaultValue
+	 */
+	public String defaultIfNullOrEmpty(String value, String defaultValue) {
+		return !Strings.isNullOrEmpty(value)?value:defaultValue;
 	}
 	
 	/**

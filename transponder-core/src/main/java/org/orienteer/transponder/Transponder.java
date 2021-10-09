@@ -6,6 +6,7 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -278,41 +279,33 @@ public class Transponder {
 			String methodName = method.getName();
 			Parameter[] params =  method.getParameters();
 			String fieldNameCandidate = null;
-			final Class<?> javaType;
-			Class<?> subJavaTypeCandidate = null;
+			final Type fieldType;
 			if(methodName.startsWith("set") && params.length==1) {
 				fieldNameCandidate = decapitalize(methodName.substring(3));
-				javaType = params[0].getType();
-				subJavaTypeCandidate = typeToRequiredClass(params[0].getParameterizedType(), javaType);
+				fieldType = params[0].getParameterizedType();
 			} else if(methodName.startsWith("get") && params.length==0) {
 				fieldNameCandidate = decapitalize(methodName.substring(3));
-				javaType = method.getReturnType();
-				subJavaTypeCandidate = typeToRequiredClass(method.getGenericReturnType(), javaType);
+				fieldType = method.getGenericReturnType();
 			} else if(methodName.startsWith("is") && params.length==0) {
 				fieldNameCandidate = decapitalize(methodName.substring(2));
-				javaType = method.getReturnType();
-				subJavaTypeCandidate = typeToRequiredClass(method.getGenericReturnType(), javaType);
+				fieldType = method.getGenericReturnType();
 			} else continue;
-			if(subJavaTypeCandidate!=null && subJavaTypeCandidate.equals(javaType)) subJavaTypeCandidate = null;
-			final Class<?> subJavaType = subJavaTypeCandidate;
 			final EntityProperty property = method.getAnnotation(EntityProperty.class);
 			if(property!=null && !Strings.isNullOrEmpty(property.value())) fieldNameCandidate = property.value();
 			final boolean wasPreviouslyScheduled = ctx.isPropertyCreationScheduled(fieldNameCandidate);
 			//Skip second+ attempt to create a property, except if @EntityProperty is present
 			if(wasPreviouslyScheduled /*&& canSkipIfAlreadyScheduled(property)*/) continue;
 			
-			String linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(javaType);
-			if(linkedTypeCandidate==null) linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(subJavaType);
-			/*String linkedClassCandidate = ctx.resolveOrDescribeOClass(helper, subJavaType);
-			if(linkedClassCandidate==null) linkedClassCandidate = ctx.resolveOrDescribeOClass(helper, javaType);*/
+			String linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(typeToRequiredClass(fieldType, null));
 			if(linkedTypeCandidate==null && property!=null && !Strings.isNullOrEmpty(property.linkedType())) linkedTypeCandidate = property.linkedType();
 			
 			final String fieldName = fieldNameCandidate;
 			final String linkedType = linkedTypeCandidate;
 			final int order = currentOrder++;
+			final AnnotatedElement annotations = method;
 			
 			ctx.postponeTillExit(fieldName, () -> {
-				driver.createProperty(type.value(), fieldName, linkedType, order);
+				driver.createProperty(type.value(), fieldName, fieldType, linkedType, order, annotations);
 			});
 			if(linkedType!=null && !wasPreviouslyScheduled) ctx.postponeTillDefined(linkedType, () -> {
 				String inverse = property!=null?Strings.emptyToNull(property.inverse()):null;
@@ -320,7 +313,7 @@ public class Transponder {
 			});
 		}
 		
-		driver.createType(type.value(), type.isAbstract(), superClasses.toArray(new String[superClasses.size()]));
+		driver.createType(type.value(), type.isAbstract(), clazz, superClasses.toArray(new String[superClasses.size()]));
 		
 		ctx.exiting(clazz, type.value());
 		return type.value();

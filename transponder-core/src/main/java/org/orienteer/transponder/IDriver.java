@@ -1,5 +1,7 @@
 package org.orienteer.transponder;
 
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
@@ -12,18 +14,21 @@ public interface IDriver {
 	 * Creates Type in underling data source. It might be OClass(OrientDB), DocumentType(ArcadeDB), etc.
 	 * @param typeName name of a type to be created
 	 * @param isAbstract is type should be marked as abstract?
+	 * @param mainWrapperClass TODO
 	 * @param superTypes array of super types
 	 */
-	public void createType(String typeName, boolean isAbstract, String... superTypes);
+	public void createType(String typeName, boolean isAbstract, Class<?> mainWrapperClass, String... superTypes);
 	
 	/**
 	 * Creates property for a type.
 	 * @param typeName name of a type for which new property should be created
 	 * @param propertyName name of a property
+	 * @param propertyType TODO
 	 * @param linkedType type to which this property might reference to
 	 * @param order order of this property
+	 * @param annotations TODO
 	 */
-	public void createProperty(String typeName, String propertyName, String linkedType, int order);
+	public void createProperty(String typeName, String propertyName, Type propertyType, String referencedType, int order, AnnotatedElement annotations);
 	
 	/**
 	 * Establish relationship between 2 properties from 2 types
