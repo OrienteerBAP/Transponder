@@ -48,34 +48,6 @@ public class ODriver implements IDriver {
 																		 OType.EMBEDDEDSET, OType.LINKSET,
 																		 OType.EMBEDDEDMAP, OType.LINKMAP);
 	
-	private static final IMutator ODRIVER_MUTATOR = new IMutator() {
-		
-		@Override
-		public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder) {
-			return builder.method(returns(IODocumentWrapper.class))
-					.intercept(MethodDelegation.to(MirrorDelegator.class));
-		}
-	};
-	
-	public static class MirrorDelegator {
-		@RuntimeType
-		public static Object invoke(@Origin Method method, @This Object wrapper, @AllArguments Object[] args) {
-			try {
-//				System.out.println("Mirror method: "+method);
-				Method destination = ODocumentWrapper.class.getMethod(method.getName(), method.getParameterTypes());
-//				System.out.println("Origin method: "+destination);
-//				System.out.println("Wrapper: "+wrapper);
-//				System.out.println("Class: "+wrapper.getClass());
-//				System.out.println("Is ODocumentWrapper: "+(wrapper instanceof ODocumentWrapper));
-				return destination.invoke(wrapper, args);
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new IllegalStateException("Mirror method can't be invoked:"+method, e);
-			}
-		}
-		
-	}
-	
 	private final boolean overrideSchema;
 	
 	public ODriver() {
@@ -114,12 +86,10 @@ public class ODriver implements IDriver {
 				oClass.setCustom(OCLASS_CUSTOM_TRANSPONDER_WRAPPER, transponderWrapperName);
 			}
 		}
-		System.out.println("New Class has been created: "+oClass);
 	}
 
 	@Override
 	public void createProperty(String typeName, String propertyName, Type propertyType, String linkedClassName, int order, AnnotatedElement annotations) {
-		System.out.println("Definging: "+typeName+"."+propertyName);
 		OrientDBProperty annotation = annotations.getAnnotation(OrientDBProperty.class);
 		
 		if(annotation!=null) linkedClassName = defaultIfNullOrEmpty(annotation.linkedClass(), linkedClassName);
@@ -172,7 +142,6 @@ public class ODriver implements IDriver {
 		if(annotation==null)
 			if(!Objects.equals(property.isNotNull(), shouldBeNotNull | property.isNotNull())) property.setNotNull(shouldBeNotNull | property.isNotNull());
 		
-		System.out.println("New Property has been created: "+property);
 	}
 
 	@Override
@@ -185,7 +154,6 @@ public class ODriver implements IDriver {
 		if(!Objects.equals(property1.getLinkedClass(), class2)) property1.setLinkedClass(class2);
 		if(property2!=null 
 				&& !Objects.equals(property2.getLinkedClass(), class1)) property2.setLinkedClass(class1);
-		System.out.format("Setup Relationship: %s.%s<->%s.%s\n", type1Name, property1Name, type2Name, property2Name);
 	}
 
 	@Override
@@ -270,11 +238,6 @@ public class ODriver implements IDriver {
 	@Override
 	public void replaceSeed(Object wrapper, Object newSeed) {
 		((ODocumentWrapper)wrapper).fromStream(((OIdentifiable)newSeed).getRecord());
-	}
-	
-	@Override
-	public IMutator getMutator() {
-		return ODRIVER_MUTATOR;
 	}
 	
 	protected ODatabaseSession getSession() {
