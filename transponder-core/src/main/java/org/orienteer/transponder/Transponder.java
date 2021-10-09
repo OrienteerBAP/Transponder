@@ -82,6 +82,18 @@ public class Transponder {
 	public <T> T provide(Object object, Class<T> mainClass, Class<?>... additionalInterfaces) {
 		Class<T> expectedMainClass = (Class<T>)driver.getEntityMainClass(object);
 		if(expectedMainClass!=null && mainClass.isAssignableFrom(expectedMainClass)) mainClass = expectedMainClass;
+		if(mainClass.isInstance(object)) {
+			boolean compatible = true;
+			if(additionalInterfaces!=null) {
+				for (Class<?> addon : additionalInterfaces) {
+					if(!addon.isInstance(object)) {
+						compatible = false;
+						break;
+					}
+				}
+			}
+			if(compatible) return (T) object;
+		}
 		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, true, additionalInterfaces);
 		return setTransponder(driver.wrapEntityInstance(proxyClass, object));
 	}
@@ -106,7 +118,7 @@ public class Transponder {
 				Collection<Object> collection = (Collection<Object>)newInstance(requiredClass);
 				if(probe!=null) collection.addAll((Collection<Object>)seed);
 				else {
-					Class<?> elementClass = typeToRequiredClass(targetType, requiredClass);
+					Class<?> elementClass = typeToRequiredClass(targetType);
 					if(elementClass==null 
 							|| elementClass.getAnnotation(EntityType.class)==null) collection.addAll((Collection<Object>)seed);
 				}
@@ -134,7 +146,7 @@ public class Transponder {
 	
 	protected <T> T wrapIterable(Iterable<?> seeds, Type targetType) {
 		if(seeds==null) return null;
-		Class<?> requiredSubType = typeToRequiredClass(targetType, null);
+		Class<?> requiredSubType = typeToRequiredClass(targetType);
 		
 		Iterable<?> ret;
 		if(driver.isSeedClass(requiredSubType)) {
@@ -160,7 +172,7 @@ public class Transponder {
 	
 	protected <T> T wrapMap(Map<?, ?> map, Type targetType) {
 		if(map==null) return null;
-		Class<?> requiredSubType = typeToRequiredClass(targetType, null);
+		Class<?> requiredSubType = typeToRequiredClass(targetType);
 		
 		Map<?, ?> ret;
 		if(driver.isSeedClass(requiredSubType)) {
@@ -302,7 +314,7 @@ public class Transponder {
 			if(wasPreviouslyScheduled /*&& canSkipIfAlreadyScheduled(property)*/) continue;
 			
 			String linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(typeToMasterClass(fieldType));
-			if(linkedTypeCandidate==null) linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(typeToRequiredClass(fieldType, null));
+			if(linkedTypeCandidate==null) linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(typeToRequiredClass(fieldType));
 			if(linkedTypeCandidate==null && property!=null && !Strings.isNullOrEmpty(property.linkedType())) linkedTypeCandidate = property.linkedType();
 			
 			final String fieldName = fieldNameCandidate;

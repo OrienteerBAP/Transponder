@@ -2,6 +2,8 @@ package org.orienteer.transponder.orientdb;
 
 import java.io.Serializable;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
@@ -11,10 +13,14 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static org.orienteer.transponder.CommonUtils.*;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import org.orienteer.transponder.IDriver;
+import org.orienteer.transponder.IMutator;
+import org.orienteer.transponder.Transponder;
 
 import com.google.common.base.Strings;
+import com.google.common.primitives.Primitives;
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
@@ -26,6 +32,13 @@ import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.executor.OResultSet;
 import com.orientechnologies.orient.core.type.ODocumentWrapper;
 
+import net.bytebuddy.dynamic.DynamicType.Builder;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.bind.annotation.AllArguments;
+import net.bytebuddy.implementation.bind.annotation.Origin;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import net.bytebuddy.implementation.bind.annotation.This;
+
 public class ODriver implements IDriver {
 	
 	public static final String OCLASS_CUSTOM_TRANSPONDER_WRAPPER = "transponder.wrapper";
@@ -34,6 +47,34 @@ public class ODriver implements IDriver {
 																		 OType.EMBEDDEDLIST, OType.LINKLIST,
 																		 OType.EMBEDDEDSET, OType.LINKSET,
 																		 OType.EMBEDDEDMAP, OType.LINKMAP);
+	
+	private static final IMutator ODRIVER_MUTATOR = new IMutator() {
+		
+		@Override
+		public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder) {
+			return builder.method(returns(IODocumentWrapper.class))
+					.intercept(MethodDelegation.to(MirrorDelegator.class));
+		}
+	};
+	
+	public static class MirrorDelegator {
+		@RuntimeType
+		public static Object invoke(@Origin Method method, @This Object wrapper, @AllArguments Object[] args) {
+			try {
+//				System.out.println("Mirror method: "+method);
+				Method destination = ODocumentWrapper.class.getMethod(method.getName(), method.getParameterTypes());
+//				System.out.println("Origin method: "+destination);
+//				System.out.println("Wrapper: "+wrapper);
+//				System.out.println("Class: "+wrapper.getClass());
+//				System.out.println("Is ODocumentWrapper: "+(wrapper instanceof ODocumentWrapper));
+				return destination.invoke(wrapper, args);
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new IllegalStateException("Mirror method can't be invoked:"+method, e);
+			}
+		}
+		
+	}
 	
 	private final boolean overrideSchema;
 	
@@ -73,44 +114,49 @@ public class ODriver implements IDriver {
 				oClass.setCustom(OCLASS_CUSTOM_TRANSPONDER_WRAPPER, transponderWrapperName);
 			}
 		}
-		
+		System.out.println("New Class has been created: "+oClass);
 	}
 
 	@Override
-	public void createProperty(String typeName, String propertyName, Type propertyType, String referencedType, int order, AnnotatedElement annotations) {
+	public void createProperty(String typeName, String propertyName, Type propertyType, String linkedClassName, int order, AnnotatedElement annotations) {
+		System.out.println("Definging: "+typeName+"."+propertyName);
 		OrientDBProperty annotation = annotations.getAnnotation(OrientDBProperty.class);
 		
-		if(annotation!=null) referencedType = defaultIfNullOrEmpty(annotation.linkedClass(), referencedType);
+		if(annotation!=null) linkedClassName = defaultIfNullOrEmpty(annotation.linkedClass(), linkedClassName);
 		
 		OSchema schema = getSchema();
 		OClass oClass = schema.getClass(typeName);
-		OClass linkedClass = referencedType!=null?schema.getClass(referencedType):null;
 		Class<?> masterClass = typeToMasterClass(propertyType);
-		Class<?> requiredClass = typeToRequiredClass(propertyType, null);
+		Class<?> requiredClass = typeToRequiredClass(propertyType);
 		if(masterClass.equals(requiredClass)) requiredClass=null;
 		OType type = getTypeByClass(masterClass);
 		if(annotation!=null && !OType.ANY.equals(annotation.type())) type = annotation.type();
-		OType linkedType = requiredClass==null || linkedClass!=null? null : getTypeByClass(requiredClass);
+		OType linkedType = requiredClass==null || linkedClassName!=null? null : getTypeByClass(requiredClass);
 		if(annotation!=null && !OType.ANY.equals(annotation.linkedType())) linkedType = annotation.linkedType();
 		
-		if(type==null && linkedClass!=null) {
+		if(type==null && linkedClassName!=null) {
 			type = OType.EMBEDDED;
 		}
-		if(linkedClass!=null && EMBEDDED_TO_LINKS_MAP.containsKey(type) &&(annotation==null || !annotation.embedded())) {
+		if(linkedClassName!=null && EMBEDDED_TO_LINKS_MAP.containsKey(type) &&(annotation==null || !annotation.embedded())) {
 			type = EMBEDDED_TO_LINKS_MAP.get(type);
 		}
-		
+		if(type==null) type=OType.ANY;
 		OProperty property = oClass.getProperty(propertyName);
 		boolean justCreated = property==null;
+		OClass linkedClass = linkedClassName!=null?schema.getClass(linkedClassName):null; //Might be null even if linkedClassName is not
 		if(justCreated) {
-			property = linkedClass!=null?oClass.createProperty(propertyName, type, linkedClass)
+			property = linkedClassName!=null?oClass.createProperty(propertyName, type, linkedClass)
 										:oClass.createProperty(propertyName, type, linkedType);
 		} else if (overrideSchema){
 			if(!Objects.equals(property.getType(), type)) property.setType(type);
 			if(!Objects.equals(property.getLinkedType(), linkedType)) property.setLinkedType(linkedType);
-			if(!Objects.equals(property.getLinkedClass(), linkedClass)) property.setLinkedClass(linkedClass);
+			if(!Objects.equals(property.getLinkedClass(), linkedClass)
+					&& ((linkedClass!=null && linkedClassName!=null)
+						|| (linkedClass==null && linkedClassName==null))) property.setLinkedClass(linkedClass);
 		}
+		boolean shouldBeNotNull = propertyType instanceof Class && ((Class<?>)propertyType).isPrimitive();
 		if(annotation!=null && (justCreated || overrideSchema)) {
+			if(!Objects.equals(property.isNotNull(), shouldBeNotNull | annotation.notNull())) property.setNotNull(shouldBeNotNull | annotation.notNull());
 			if(!Objects.equals(property.isMandatory(), annotation.mandatory())) property.setMandatory(annotation.mandatory());
 			if(!Objects.equals(property.isReadonly(), annotation.readOnly())) property.setReadonly(annotation.readOnly());
 			if(!Objects.equals(property.getMin(), emptyToNull(annotation.min())))
@@ -123,11 +169,23 @@ public class ODriver implements IDriver {
 			if(!Objects.equals(property.getDefaultValue(), emptyToNull(annotation.defaultValue())))
 										property.setDefaultValue(emptyToNull(annotation.defaultValue()));
 		}
+		if(annotation==null)
+			if(!Objects.equals(property.isNotNull(), shouldBeNotNull | property.isNotNull())) property.setNotNull(shouldBeNotNull | property.isNotNull());
+		
+		System.out.println("New Property has been created: "+property);
 	}
 
 	@Override
 	public void setupRelationship(String type1Name, String property1Name, String type2Name, String property2Name) {
-		
+		OSchema schema = getSchema();
+		OClass class1 = schema.getClass(type1Name);
+		OProperty property1 = class1.getProperty(property1Name);
+		OClass class2 = schema.getClass(type2Name);
+		OProperty property2 = property2Name!=null?class1.getProperty(property2Name):null;
+		if(!Objects.equals(property1.getLinkedClass(), class2)) property1.setLinkedClass(class2);
+		if(property2!=null 
+				&& !Objects.equals(property2.getLinkedClass(), class1)) property2.setLinkedClass(class1);
+		System.out.format("Setup Relationship: %s.%s<->%s.%s\n", type1Name, property1Name, type2Name, property2Name);
 	}
 
 	@Override
@@ -207,6 +265,16 @@ public class ODriver implements IDriver {
 						else return doc.field("value");
 					}).collect(Collectors.toList());
 		}
+	}
+	
+	@Override
+	public void replaceSeed(Object wrapper, Object newSeed) {
+		((ODocumentWrapper)wrapper).fromStream(((OIdentifiable)newSeed).getRecord());
+	}
+	
+	@Override
+	public IMutator getMutator() {
+		return ODRIVER_MUTATOR;
 	}
 	
 	protected ODatabaseSession getSession() {

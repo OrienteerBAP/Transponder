@@ -31,10 +31,10 @@ public class UtilsTest {
 	
 	@Test
 	public void testGetRequiredClass() throws Exception {
-		assertEquals(Integer.class, CommonUtils.typeToRequiredClass(getType("integer"), null));
-		assertEquals(Integer.class, CommonUtils.typeToRequiredClass(getType("simpleInt"), null));
-		assertEquals(Integer.class, CommonUtils.typeToRequiredClass(getType("list"), null));
-		assertEquals(String.class, CommonUtils.typeToRequiredClass(getType("map"), Map.class));
+		assertEquals(Integer.class, CommonUtils.typeToRequiredClass(getType("integer")));
+		assertEquals(Integer.class, CommonUtils.typeToRequiredClass(getType("simpleInt")));
+		assertEquals(Integer.class, CommonUtils.typeToRequiredClass(getType("list")));
+		assertEquals(String.class, CommonUtils.typeToRequiredClass(getType("map")));
 	}
 
 }

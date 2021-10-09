@@ -67,24 +67,32 @@ public class ByteBuddyTest {
 		public <V> V echo(V value) {
 			return value;
 		}
+		
+		public <T extends MyClass> T getThis() {
+			return (T) this;
+		}
 	}
 	
 	public static interface MyInterface {
 		public <V> V echo(V value);
+		public default <T extends MyInterface> T getThis() {
+			return (T) this;
+		}
 	}
 	
-	public static interface MyChildInterface extends MyInterface {
-		
+	public static class JointMyClass extends MyClass implements MyInterface {
+
 	}
 	
 	@Test
 	public void testMethodsMirroring() throws Exception {
 		 DynamicType.Loaded<?> loaded = new ByteBuddy()
 	                .subclass(MyClass.class)
-	                .implement(MyChildInterface.class)
+	                .implement(MyInterface.class)
 	                .make()
 	                .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.WRAPPER);
 		 MyInterface obj =  (MyInterface)loaded.getLoaded().newInstance();
 		 assertEquals("Test", obj.echo("Test"));
+		 assertEquals(obj, obj.getThis());
 	}
 }

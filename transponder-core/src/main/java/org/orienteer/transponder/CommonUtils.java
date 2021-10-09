@@ -200,16 +200,14 @@ public class CommonUtils {
     	return null;
     }
     
-    public Class<?> typeToRequiredClass(Type type, Class<?> parentClass) {
-		return typeToRequiredClass(type, parentClass==null?false:Map.class.isAssignableFrom(parentClass));
-	}
-	
-	private Class<?> typeToRequiredClass(Type type, boolean isParentMap) {
+	public Class<?> typeToRequiredClass(Type type) {
 		if(type instanceof Class) return wrap((Class<?>) type);
 		else if(type instanceof WildcardType) 
-			return typeToRequiredClass(((WildcardType)type).getUpperBounds()[0], false);
-		else if(type instanceof ParameterizedType)
-			return typeToRequiredClass(((ParameterizedType)type).getActualTypeArguments()[isParentMap?1:0], false);
+			return typeToRequiredClass(((WildcardType)type).getUpperBounds()[0]);
+		else if(type instanceof ParameterizedType) {
+			boolean isParentMap = Map.class.isAssignableFrom(typeToMasterClass(type));
+			return typeToRequiredClass(((ParameterizedType)type).getActualTypeArguments()[isParentMap?1:0]);
+		}
 		return null;
 	}
 	

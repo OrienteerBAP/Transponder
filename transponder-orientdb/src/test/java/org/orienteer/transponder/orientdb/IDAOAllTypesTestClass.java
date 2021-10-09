@@ -6,6 +6,7 @@ import com.orientechnologies.orient.core.record.impl.ODocument;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -206,6 +207,6 @@ public interface IDAOAllTypesTestClass {
 	public Object getAny();
 	public void setAny(Object val);
 	
-//	public OrientPermission getEnum();
-//	public void setEnum(OrientPermission value);
+	public DayOfWeek getEnum();
+	public void setEnum(DayOfWeek value);
 }
