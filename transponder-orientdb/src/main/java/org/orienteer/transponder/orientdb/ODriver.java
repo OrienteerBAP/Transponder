@@ -52,7 +52,7 @@ public class ODriver implements IDriver {
 	public static final String OINDEX_UNIQUE_HASH_INDEX = "UNIQUE_HASH_INDEX";
 	public static final String OINDEX_NOTUNIQUE_HASH_INDEX = "NOTUNIQUE_HASH_INDEX";
 	public static final String OINDEX_DICTIONARY_HASH_INDEX = "DICTIONARY_HASH_INDEX";
-	public static final String OINDEX_SPATIAL = "SPATIAL";
+	public static final String OINDEX_SPATIAL = OClass.INDEX_TYPE.SPATIAL.name();
 	
 	private static final Map<OType, OType> EMBEDDED_TO_LINKS_MAP = toMap(OType.EMBEDDED, OType.LINK,
 																		 OType.EMBEDDEDLIST, OType.LINKLIST,
@@ -161,7 +161,7 @@ public class ODriver implements IDriver {
 		OSchema schema = getSchema();
 		OClass oClass = schema.getClass(typeName);
 		if(oClass.getClassIndex(indexName)==null)
-			oClass.createIndex(indexName, indexType, properties);
+			oClass.createIndex(indexName, defaultIfNullOrEmpty(indexType, OINDEX_NOTUNIQUE), properties);
 	}
 
 	@Override

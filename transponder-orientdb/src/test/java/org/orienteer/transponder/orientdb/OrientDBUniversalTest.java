@@ -1,0 +1,39 @@
+package org.orienteer.transponder.orientdb;
+
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.orienteer.transponder.AbstractUniversalTest;
+
+import com.orientechnologies.orient.core.db.ODatabaseSession;
+import com.orientechnologies.orient.core.db.ODatabaseType;
+import com.orientechnologies.orient.core.db.OrientDB;
+import com.orientechnologies.orient.core.db.OrientDBConfig;
+
+public class OrientDBUniversalTest extends AbstractUniversalTest {
+	
+	private static final String DB_NAME = "TestDB";
+	private static OrientDB orientDB = new OrientDB("embedded:target/",OrientDBConfig.defaultConfig());
+	private static ODatabaseSession db;
+	
+	@BeforeClass
+	public static void beforeDAOTest() {
+		orientDB.createIfNotExists(DB_NAME, ODatabaseType.MEMORY);
+	}
+	
+	@Before
+	public void makeSureThatDBInThecurrentThread() {
+		getODatabaseSession().activateOnCurrentThread();
+	}
+	
+	public OrientDBUniversalTest() {
+		super(new OTestDriver());
+	}
+	
+	public static ODatabaseSession getODatabaseSession() {
+		if(db==null) {
+			db = orientDB.open(DB_NAME,"admin","admin");
+		}
+		return db;
+	}
+
+}
