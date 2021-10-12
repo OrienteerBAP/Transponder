@@ -294,7 +294,7 @@ public class DAOTest {
 	public void testProperMethodListOrder() throws Exception {
 		Class<?> type = IDAOTestClassA.class;
 		
-		List<Method> methods = CommonUtils.getMethodList(type);
+		List<Method> methods = CommonUtils.listDeclaredMethods(type);
 		assertEquals("getName", methods.get(0).getName());
 		assertEquals("setName", methods.get(1).getName());
 	}
