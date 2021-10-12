@@ -199,6 +199,11 @@ public class ODriver implements IDriver {
 			throw new IllegalArgumentException("Can't create new entityInstance for class "+proxyClass+" with OClass "+type, e);
 		} 
 	}
+	
+	@Override
+	public void saveEntityInstance(Object wrapper) {
+		asWrapper(wrapper).save();
+	}
 
 	@Override
 	public <T> T wrapEntityInstance(Class<T> proxyClass, Object seed) {

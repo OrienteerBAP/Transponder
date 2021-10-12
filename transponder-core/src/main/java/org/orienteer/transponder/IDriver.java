@@ -71,6 +71,12 @@ public interface IDriver {
 	public <T> T newEntityInstance(Class<T> proxyClass, String type);
 	
 	/**
+	 * Persist object in an DB
+	 * @param wrapper entity to persist
+	 */
+	public void saveEntityInstance(Object wrapper);
+	
+	/**
 	 * Try to replace seed object for provided wrapper object. Useful for Lookup operations.
 	 * @param wrapper wrapper to replace seed in 
 	 * @param newSeed new seed object

@@ -16,59 +16,9 @@ import org.orienteer.transponder.datamodel.ITestDAO;
 
 import net.bytebuddy.dynamic.DynamicType.Builder;
 
-public class CoreTest 
+public class CoreSpecificTest 
 {
 	public static final Random RANDOM = new Random();
-	
-	@Test
-	public void testInterfaceDAO() {
-		ITestDAO dao = new Transponder(new TestDriver()).dao(ITestDAO.class);
-		Integer checkInt = RANDOM.nextInt();
-		assertEquals(checkInt, dao.echoDAO(checkInt));
-	}
-	
-	@Test
-	public void testClassDAO() {
-		ClassTestDAO dao = new Transponder(new TestDriver()).dao(ClassTestDAO.class);
-		Integer checkInt = RANDOM.nextInt();
-		assertEquals(checkInt, dao.echoNumberDAO(checkInt));
-	}
-	
-	@Test
-	public void testJointDAO() {
-		ClassTestDAO dao = new Transponder(new TestDriver()).dao(ClassTestDAO.class, ITestDAO.class);
-		Integer checkInt = RANDOM.nextInt();
-		assertEquals(checkInt, dao.echoNumberDAO(checkInt));
-		assertEquals(checkInt, ((ITestDAO)dao).echoDAO(checkInt));
-	}
-	
-	@Test
-	public void testEntityDescription() {
-		TestDriver testDriver = new TestDriver();
-		new Transponder(testDriver).describe(ISimpleEntity.class);
-		testDriver.assertHasType("Simple");
-		testDriver.assertHasProperty("Simple", "name");
-		testDriver.assertHasProperty("Simple", "description");
-		testDriver.assertHasIndex("Simple", "nameDescription");
-		testDriver.assertHasIndex("Simple", "nameValue");
-		testDriver.assertHasIndex("Simple", "Simple.value");
-		
-		testDriver.assertHasType("Remote");
-		testDriver.assertHasProperty("Remote", "remoteName");
-		
-		testDriver.assertHasType("Parametrized");
-	}
-	
-	@Test
-	public void testEntityCreation() {
-		ISimpleEntity entity = new Transponder(new TestDriver()).create(ISimpleEntity.class);
-		String name = "Name"+RANDOM.nextInt();
-		String description = "Description"+RANDOM.nextInt();
-		entity.setName(name);
-		entity.setDescription(description);
-		assertEquals(name, entity.getName());
-		assertEquals(description, entity.getDescription());
-	}
 	
 	@Test
 	public void testEntityProviding() {
@@ -80,25 +30,6 @@ public class CoreTest
 		ISimpleEntity entity = new Transponder(new TestDriver()).provide(map, ISimpleEntity.class);
 		assertEquals(name, entity.getName());
 		assertEquals(description, entity.getDescription());
-	}
-	
-	@Test
-	public void testTransponderPreserving() throws Exception {
-		Transponder transponder = new Transponder(new TestDriver());
-		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
-		assertTrue(entity instanceof ITransponderHolder);
-		assertEquals(transponder, ((ITransponderHolder)entity).get$transponder());
-		Field field = entity.getClass().getDeclaredField("$transponder");
-		field.setAccessible(true);
-		assertEquals(transponder, field.get(entity));
-	}
-	
-	@Test
-	public void testIgnoringDefaultGettersAndSetters() throws Exception {
-		ISimpleEntity entity = new Transponder(new TestDriver()).create(ISimpleEntity.class);
-		assertEquals(ISimpleEntity.defaultValue, entity.getDefault());
-		String echoDefaultValue = "Echo Default Value";
-		assertEquals(echoDefaultValue, entity.setDefault(echoDefaultValue));
 	}
 	
 	@Test
@@ -213,51 +144,6 @@ public class CoreTest
 		assertNotNull(otherEntityMap);
 		assertEquals(name, otherEntityMap.get("name"));
 		assertEquals(description, otherEntityMap.get("description"));
-	}
-	
-	@Test
-	public void testChaining() {
-		ISimpleEntity entity = new Transponder(new TestDriver()).create(ISimpleEntity.class);
-		ISimpleEntity otherEntity = entity.setName("Test Name");
-		assertNotNull(otherEntity);
-		assertEquals(entity, otherEntity);
-	}
-	
-	@Test
-	public void testDriverSpecificMutators() {
-		ISimpleEntity entity = new Transponder(new TestDriver()).create(ISimpleEntity.class);
-		assertFalse(entity instanceof IMarker);
-		
-		entity = new Transponder(new TestDriver() {
-			@Override
-			public IMutator getMutator() {
-				return new IMutator() {
-					
-					@Override
-					public <T> Builder<T> mutate(Builder<T> builder, BuilderScheduler scheduler) {
-						return builder.implement(IMarker.class);
-					}
-				};
-			}
-		}).create(ISimpleEntity.class);
-		assertTrue(entity instanceof IMarker);
-	}
-	
-	public static interface IMarker {
-		
-	}
-	
-	@Test
-	public void testDefaultValue() {
-		Transponder transponder = new Transponder(new TestDriver());
-		ITestDAO dao = transponder.dao(ITestDAO.class);
-		assertEquals((Integer)10, dao.getDefaultValue(10));
-		assertEquals((Integer)1, dao.getDefaultValue(null));
-	
-		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
-		assertEquals("EMPTY", entity.getValue());
-		entity.setValue("NOT EMPTY");
-		assertEquals("NOT EMPTY", entity.getValue());
 	}
 	
 }

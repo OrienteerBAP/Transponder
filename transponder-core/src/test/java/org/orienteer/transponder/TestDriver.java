@@ -25,7 +25,7 @@ import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.This;
 
-public class TestDriver implements IDriver {
+public class TestDriver implements ITestDriver {
 	
 	@Data
 	@Accessors(chain = true)
@@ -96,22 +96,21 @@ public class TestDriver implements IDriver {
 		// TODO Auto-generated method stub
 	}
 	
-	public void assertHasType(String typeName) {
-		assertTrue("Driver has not created '"+typeName+"' yet", typeRecords.containsKey(typeName));
+	@Override
+	public boolean hasType(String typeName) {
+		return typeRecords.containsKey(typeName);
 	}
 	
-	public void assertHasProperty(String typeName, String propertyName) {
-		assertHasType(typeName);
-		assertTrue("Driver has not created '"+typeName+"."+propertyName+"' yet", 
-								typeRecords.get(typeName).getProperties().containsKey(propertyName));
+	@Override
+	public boolean hasProperty(String typeName, String propertyName) {
+		return hasType(typeName) && typeRecords.get(typeName).getProperties().containsKey(propertyName);
 	}
 	
-	public void assertHasIndex(String typeName, String indexName) {
-		assertHasType(typeName);
-		assertTrue("Driver has not created '"+typeName+"."+indexName+"' yet", 
-								typeRecords.get(typeName).getIndexes().containsKey(indexName));
+	@Override
+	public boolean hasIndex(String typeName, String indexName) {
+		return hasType(typeName) && typeRecords.get(typeName).getIndexes().containsKey(indexName);
 	}
-
+	
 	@Override
 	public Object getPropertyValue(Object wrapper, String property) {
 		return ((Map<Object, Object>)wrapper).get(property);
@@ -125,6 +124,13 @@ public class TestDriver implements IDriver {
 	@Override
 	public <T> T newEntityInstance(Class<T> proxyClass, String type) {
 		return newDAOInstance(proxyClass);
+	}
+	
+	@Override
+	public void saveEntityInstance(Object wrapper) {
+		Map<String, Object> seed = toSeed(wrapper);
+		String pk = seed.get("pk").toString();
+		db.put(pk, seed);
 	}
 	
 	@Override
@@ -152,7 +158,7 @@ public class TestDriver implements IDriver {
 	}
 	
 	@Override
-	public Object toSeed(Object wrapped) {
+	public Map<String, Object> toSeed(Object wrapped) {
 		return new HashMap<>((Map<String, Object>)wrapped);
 	}
 	
