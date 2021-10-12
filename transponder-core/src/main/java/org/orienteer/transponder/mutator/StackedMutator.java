@@ -6,15 +6,18 @@ import java.util.List;
 import org.orienteer.transponder.BuilderScheduler;
 import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
+import org.orienteer.transponder.annotation.DefaultValue;
 
 import net.bytebuddy.dynamic.DynamicType.Builder;
 
 public class StackedMutator implements IMutator {
 	
-	public static final IMutator DAO_MUTATOR 	= new StackedMutator(new CommandMutator(),
+	public static final IMutator DAO_MUTATOR 	= new StackedMutator(new AnnotationMutator(DefaultValue.class),
+																	 new CommandMutator(),
 			 														 new LookupMutator(), 
 																     new QueryMutator());
-	public static final IMutator ENTITY_MUTATOR = new StackedMutator(new CommandMutator(),
+	public static final IMutator ENTITY_MUTATOR = new StackedMutator(new AnnotationMutator(DefaultValue.class),
+																	 new CommandMutator(),
 																	 new GetterMutator(),
 																	 new SetterMutator(),
 																	 new LookupMutator(),

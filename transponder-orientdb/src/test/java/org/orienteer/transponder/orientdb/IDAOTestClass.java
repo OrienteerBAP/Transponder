@@ -3,6 +3,7 @@ package org.orienteer.transponder.orientdb;
 import java.util.List;
 import java.util.Map;
 
+import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.annotation.Lookup;
@@ -59,7 +60,7 @@ public interface IDAOTestClass extends IODocumentWrapper {
 	@Query("select expand(child) from DAOTestClass where @rid = :target")
 	public List<ODocument> listAllChild();
 	
-//	@DAODefaultValue("-100")
+	@DefaultValue("-100")
 	public default Integer returnDefaultValue() {
 		return null;
 	}

@@ -153,12 +153,6 @@ public class DAOTest {
 		assertTrue(reloadRet == doc);
 	}
 	
-	/*@Test
-	public void testInterceptors() {
-		IDAOTestClass doc = tester.getApplication().getServiceInstance(IDAOTestClass.class);
-		assertEquals(TestDAOMethodHandler.RETURN, doc.interceptedInvocation());
-	}*/
-	
 	@Test
 	public void testParentChildDefaultMethods() {
 		IDAOChild obj = transponder.dao(IDAOChild.class);
@@ -183,7 +177,7 @@ public class DAOTest {
 		assertEquals(doc.field("name"), root.getName());
 		root.setPrimitiveSupported(true);
 		assertEquals(true, root.isPrimitiveSupported()); 
-//		assertEquals(-100, (int)root.returnDefaultValue());
+		assertEquals(-100, (int)root.returnDefaultValue());
 		
 		List<ODocument> listDocs = dao.findAllAsDocument();
 		List<IDAOTestClass> listObjs = dao.findAllAsDAO();

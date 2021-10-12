@@ -3,6 +3,7 @@ package org.orienteer.transponder.datamodel;
 import java.util.List;
 
 import org.orienteer.transponder.annotation.Command;
+import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.Lookup;
 import org.orienteer.transponder.annotation.Query;
 
@@ -27,4 +28,12 @@ public interface ITestDAO {
 	
 	@Command("${pk}")
 	public ISimpleEntity removeByPk(String pk);
+	
+	@DefaultValue("1")
+	public default Integer getDefaultValue(Integer value) {
+		return value;
+	}
+	
+//	@DefaultValue("2")
+//	public Integer getDefaultValue2();
 }

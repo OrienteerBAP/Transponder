@@ -1,8 +1,12 @@
 package org.orienteer.transponder;
 
+import java.lang.annotation.Annotation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.orienteer.transponder.annotation.AdviceAnnotation;
+import org.orienteer.transponder.annotation.DelegateAnnotation;
 
 import lombok.Value;
 import net.bytebuddy.asm.Advice;
@@ -34,6 +38,19 @@ public class BuilderScheduler {
 		return this;
 	}
 	
+	public BuilderScheduler schedule(Class<? extends Annotation> annotationClass) {
+		DelegateAnnotation delegateAnnotation = annotationClass.getAnnotation(DelegateAnnotation.class);
+		if(delegateAnnotation!=null) {
+			return scheduleDelegate(annotationClass, delegateAnnotation.value());
+		}
+		AdviceAnnotation adviceAnnotation = annotationClass.getAnnotation(AdviceAnnotation.class);
+		if(adviceAnnotation!=null) {
+			return scheduleAdvice(annotationClass, adviceAnnotation.value());
+		}
+		throw new IllegalStateException("Annotation '"+annotationClass.getName()
+											+"' is not providing information about delegate to advice");
+	}
+	
 	public BuilderScheduler scheduleDelegate(ElementMatcher<? super MethodDescription> matcher, Class<?> delegate) {
 		cases.add(new Case(matcher, MethodDelegation.to(delegate)));
 		return this;
@@ -42,6 +59,19 @@ public class BuilderScheduler {
 	public BuilderScheduler scheduleDelegate(ElementMatcher<? super MethodDescription> matcher, Class<?> delegate, TargetMethodAnnotationDrivenBinder.ParameterBinder<?>... parameterBinders) {
 		cases.add(new Case(matcher, MethodDelegation.withDefaultConfiguration().withBinders(parameterBinders).to(delegate)));
 		return this;
+	}
+	
+	public BuilderScheduler scheduleDelegate(Class<? extends Annotation> annotationClass, Class<?> delegate) {
+		return scheduleDelegate(isAnnotatedWith(annotationClass), delegate);
+	}
+	
+	public BuilderScheduler scheduleAdvice(ElementMatcher<? super MethodDescription> matcher, Class<?> advice) {
+		cases.add(new Case(matcher, Advice.to(advice)));
+		return this;
+	}
+	
+	public BuilderScheduler scheduleAdvice(Class<? extends Annotation> annotationClass, Class<?> advice) {
+		return scheduleAdvice(isAnnotatedWith(annotationClass), advice);
 	}
 	
 	public <T> DynamicType.Builder<T> apply(DynamicType.Builder<T> builder) {
@@ -72,8 +102,8 @@ public class BuilderScheduler {
 				Case c = cases[i];
 				ElementMatcher<? super MethodDescription> thisMatcher = c.getMatcher();
 				if(!currentPermutation.testBit(i)) thisMatcher = not(thisMatcher);
-				matcher = matcher.and(thisMatcher);
 				if(!hasMatch(methods, thisMatcher)) break; // Adding conditions will not make any difference
+				matcher = matcher.and(thisMatcher);
 				if(currentPermutation.testBit(i) && c.getImplementation() instanceof Advice) {
 					implementation = ((Advice)c.getImplementation()).wrap(implementation);
 				}

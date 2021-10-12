@@ -1,5 +1,6 @@
 package org.orienteer.transponder.datamodel;
 
+import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.annotation.Lookup;
 
@@ -13,6 +14,10 @@ public interface ISimpleEntity {
 	
 	public String getDescription();
 	public void setDescription(String value);
+	
+	@DefaultValue("EMPTY")
+	public String getValue();
+	public void setValue(String value);
 	
 	public ISimpleEntity getOtherEntity();
 	public void setOtherEntity(ISimpleEntity entity);

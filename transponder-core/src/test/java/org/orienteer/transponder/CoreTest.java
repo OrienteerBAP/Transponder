@@ -1,8 +1,12 @@
 package org.orienteer.transponder;
 
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.junit.Assert.*;
 
 import java.io.Serializable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
@@ -243,6 +247,19 @@ public class CoreTest
 	
 	public static interface IMarker {
 		
+	}
+	
+	@Test
+	public void testDefaultValue() {
+		Transponder transponder = new Transponder(new TestDriver());
+		ITestDAO dao = transponder.dao(ITestDAO.class);
+		assertEquals((Integer)10, dao.getDefaultValue(10));
+		assertEquals((Integer)1, dao.getDefaultValue(null));
+	
+		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
+		assertEquals("EMPTY", entity.getValue());
+		entity.setValue("NOT EMPTY");
+		assertEquals("NOT EMPTY", entity.getValue());
 	}
 	
 }

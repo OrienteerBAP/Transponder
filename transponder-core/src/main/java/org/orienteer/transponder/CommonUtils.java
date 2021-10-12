@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -358,6 +359,17 @@ public class CommonUtils {
 		Class<?>[] interfaces = clazz.getInterfaces();
 		for (Class<?> intf : interfaces) {
 			collectMethods(intf, list);
+		}
+	}
+	
+	public <T> T stringToInstance(String value, Class<T> clazz) {
+		if(clazz.isInstance(value)) return (T) value;
+		else {
+			try {
+				return (T)clazz.getConstructor(String.class).newInstance(value);
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Can't convert string value '"+value+"' to instance of "+clazz.getName(), e);
+			} 
 		}
 	}
 	
