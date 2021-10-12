@@ -2,14 +2,14 @@ package org.orienteer.transponder.orientdb;
 
 import java.util.List;
 
+import org.orienteer.transponder.annotation.EntityIndex;
 import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityType;
 
-import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
 @EntityType("DAOTestClassA")
-//@DAOIndex(name="rootname", type=OClass.INDEX_TYPE.NOTUNIQUE, fields = {"name", "root"})
+@EntityIndex(name="rootname", type=ODriver.OINDEX_NOTUNIQUE, properties = {"name", "root"})
 public interface IDAOTestClassA extends IDAOTestClassRoot{
 
 

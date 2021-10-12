@@ -1,10 +1,14 @@
 package org.orienteer.transponder.datamodel;
 
 import org.orienteer.transponder.annotation.DefaultValue;
+import org.orienteer.transponder.annotation.EntityIndex;
+import org.orienteer.transponder.annotation.EntityPropertyIndex;
 import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.annotation.Lookup;
 
 @EntityType("Simple")
+@EntityIndex(name = "nameDescription", properties = {"name", "description"})
+@EntityIndex(name = "nameValue", properties = {"name", "value"})
 public interface ISimpleEntity {
 	
 	public static final String defaultValue = "Default Value";
@@ -16,6 +20,7 @@ public interface ISimpleEntity {
 	public void setDescription(String value);
 	
 	@DefaultValue("EMPTY")
+	@EntityPropertyIndex
 	public String getValue();
 	public void setValue(String value);
 	

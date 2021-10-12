@@ -39,6 +39,16 @@ public interface IDriver {
 	 */
 	public void setupRelationship(String type1Name, String property1Name, String type2Name, String property2Name);
 	
+	/**
+	 * Creates index on specified type and for the set of properties.
+	 * Type of index depends on particular driver.
+	 * @param typeName name of a type to create index on
+	 * @param indexName name of the index to create
+	 * @param indexType type of the index to be created
+	 * @param properties set of properties to be included into the index
+	 */
+	public void createIndex(String typeName, String indexName, String indexType, AnnotatedElement annotations, String... properties);
+	
 	public Object getPropertyValue(Object wrapper, String property);
 	public void setPropertyValue(Object wrapper, String property, Object value);
 	

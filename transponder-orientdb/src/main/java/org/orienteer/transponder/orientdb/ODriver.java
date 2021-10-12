@@ -24,6 +24,7 @@ import com.google.common.primitives.Primitives;
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
+import com.orientechnologies.orient.core.index.OIndex;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OProperty;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
@@ -42,6 +43,16 @@ import net.bytebuddy.implementation.bind.annotation.This;
 public class ODriver implements IDriver {
 	
 	public static final String OCLASS_CUSTOM_TRANSPONDER_WRAPPER = "transponder.wrapper";
+	
+	public static final String OINDEX_UNIQUE = "UNIQUE";
+	public static final String OINDEX_NOTUNIQUE = "NOTUNIQUE";
+	public static final String OINDEX_FULLTEXT = "FULLTEXT";
+	public static final String OINDEX_DICTIONARY = "DICTIONARY";
+	public static final String OINDEX_PROXY = "PROXY";
+	public static final String OINDEX_UNIQUE_HASH_INDEX = "UNIQUE_HASH_INDEX";
+	public static final String OINDEX_NOTUNIQUE_HASH_INDEX = "NOTUNIQUE_HASH_INDEX";
+	public static final String OINDEX_DICTIONARY_HASH_INDEX = "DICTIONARY_HASH_INDEX";
+	public static final String OINDEX_SPATIAL = "SPATIAL";
 	
 	private static final Map<OType, OType> EMBEDDED_TO_LINKS_MAP = toMap(OType.EMBEDDED, OType.LINK,
 																		 OType.EMBEDDEDLIST, OType.LINKLIST,
@@ -142,6 +153,15 @@ public class ODriver implements IDriver {
 		if(annotation==null)
 			if(!Objects.equals(property.isNotNull(), shouldBeNotNull | property.isNotNull())) property.setNotNull(shouldBeNotNull | property.isNotNull());
 		
+	}
+	
+	@Override
+	public void createIndex(String typeName, String indexName, String indexType, AnnotatedElement annotations,
+			String... properties) {
+		OSchema schema = getSchema();
+		OClass oClass = schema.getClass(typeName);
+		if(oClass.getClassIndex(indexName)==null)
+			oClass.createIndex(indexName, indexType, properties);
 	}
 
 	@Override

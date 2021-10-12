@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.orienteer.transponder.annotation.EntityIndex;
 import org.orienteer.transponder.annotation.EntityProperty;
+import org.orienteer.transponder.annotation.EntityPropertyIndex;
 import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.mutator.StackedMutator;
 
@@ -323,9 +325,15 @@ public class Transponder {
 			final String linkedType = linkedTypeCandidate;
 			final int order = currentOrder++;
 			final AnnotatedElement annotations = method;
+			final EntityPropertyIndex entityPropertIndex = method.getAnnotation(EntityPropertyIndex.class);
 			
 			ctx.postponeTillExit(fieldName, () -> {
 				driver.createProperty(type.value(), fieldName, fieldType, linkedType, order, annotations);
+				if(entityPropertIndex!=null) 
+					driver.createIndex(type.value(), 
+									   defaultIfNullOrEmpty(entityPropertIndex.name(), type.value()+"."+fieldName),
+									   Strings.emptyToNull(entityPropertIndex.type()), 
+									   annotations, fieldName);
 			});
 			if(linkedType!=null && !wasPreviouslyScheduled) ctx.postponeTillDefined(linkedType, () -> {
 				String inverse = property!=null?Strings.emptyToNull(property.inverse()):null;
@@ -336,6 +344,9 @@ public class Transponder {
 		driver.createType(type.value(), type.isAbstract(), clazz, superClasses.toArray(new String[superClasses.size()]));
 		
 		ctx.exiting(clazz, type.value());
+		for (EntityIndex index : clazz.getAnnotationsByType(EntityIndex.class)) {
+			driver.createIndex(type.value(), index.name(), index.type(), clazz, index.properties());
+		}
 		return type.value();
 	}
 	

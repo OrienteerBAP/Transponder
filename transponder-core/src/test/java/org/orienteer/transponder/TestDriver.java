@@ -1,5 +1,6 @@
 package org.orienteer.transponder;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.orienteer.transponder.CommonUtils.*;
 
@@ -7,6 +8,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,7 @@ public class TestDriver implements IDriver {
 		private boolean isAbstract;
 		private String[] superTypes;
 		private Map<String, PropertyRecord> properties = new HashMap<String, TestDriver.PropertyRecord>();
+		private Map<String, IndexRecord> indexes = new HashMap<String, TestDriver.IndexRecord>();
 		
 		public TypeRecord() {
 		}
@@ -50,6 +53,14 @@ public class TestDriver implements IDriver {
 		private int order;
 	}
 	
+	@Data
+	@Accessors(chain = true)
+	@AllArgsConstructor
+	private static class IndexRecord {
+		private String type;
+		private List<String> properties;
+	}
+	
 	private Map<String, TypeRecord> typeRecords = new HashMap<String, TestDriver.TypeRecord>();
 	
 	private Map<String, Map<String, Object>> db = new HashMap<String, Map<String,Object>>();
@@ -66,6 +77,19 @@ public class TestDriver implements IDriver {
 		TypeRecord type = typeRecords.get(typeName);
 		type.getProperties().put(propertyName, new PropertyRecord(propertyName, linkedType, order));
 	}
+	
+	@Override
+	public void createIndex(String typeName, String indexName, String indexType, AnnotatedElement annotations,
+			String... properties) {
+		assertHasType(typeName);
+		assertNotNull(properties);
+		assertTrue(properties.length>0);
+		for (String prop : properties) {
+			assertHasProperty(typeName, prop);
+		}
+		TypeRecord type = typeRecords.get(typeName);
+		type.getIndexes().put(indexName, new IndexRecord(indexType, Arrays.asList(properties)));
+	}
 
 	@Override
 	public void setupRelationship(String type1Name, String property1Name, String type2Name, String property2Name) {
@@ -80,6 +104,12 @@ public class TestDriver implements IDriver {
 		assertHasType(typeName);
 		assertTrue("Driver has not created '"+typeName+"."+propertyName+"' yet", 
 								typeRecords.get(typeName).getProperties().containsKey(propertyName));
+	}
+	
+	public void assertHasIndex(String typeName, String indexName) {
+		assertHasType(typeName);
+		assertTrue("Driver has not created '"+typeName+"."+indexName+"' yet", 
+								typeRecords.get(typeName).getIndexes().containsKey(indexName));
 	}
 
 	@Override

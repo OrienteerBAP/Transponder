@@ -12,6 +12,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,6 +23,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.orienteer.transponder.CommonUtils;
 import org.orienteer.transponder.Transponder;
 
 import com.orientechnologies.orient.core.db.ODatabaseSession;
@@ -264,7 +266,7 @@ public class DAOTest {
 			
 			assertTrue(daoTestClassRoot.isAbstract());
 			assertProperty(daoTestClassRoot, "root", OType.STRING);
-//			assertNotNull(daoTestClassRoot.getClassIndex("DAOTestClassRoot.root"));
+			assertNotNull(daoTestClassRoot.getClassIndex("DAOTestClassRoot.root"));
 			
 			OProperty root = assertProperty(daoTestClassA, "root", OType.STRING);
 			assertEquals("DAOTestClassRoot.root", root.getFullName());
@@ -276,7 +278,7 @@ public class DAOTest {
 			assertProperty(daoTestClassA, "linkAsDoc", OType.LINK, daoTestClassB);
 			assertProperty(daoTestClassA, "embeddedStringList", OType.EMBEDDEDLIST, OType.STRING);
 			assertProperty(daoTestClassA, "linkList", OType.LINKLIST, daoTestClassB);
-//			assertNotNull(daoTestClassA.getClassIndex("rootname"));
+			assertNotNull(daoTestClassA.getClassIndex("rootname"));
 			
 			assertProperty(daoTestClassB, "alias", OType.STRING);
 			assertProperty(daoTestClassB, "linkToA", OType.LINK, daoTestClassA);
@@ -288,14 +290,14 @@ public class DAOTest {
 		}
 	}
 	
-	/*@Test
+	@Test
 	public void testProperMethodListOrder() throws Exception {
 		Class<?> type = IDAOTestClassA.class;
 		
-		List<Method> methods = DAO.listMethods(type);
+		List<Method> methods = CommonUtils.getMethodList(type);
 		assertEquals("getName", methods.get(0).getName());
 		assertEquals("setName", methods.get(1).getName());
-	}*/
+	}
 	
 	@Test
 //	@Sudo
