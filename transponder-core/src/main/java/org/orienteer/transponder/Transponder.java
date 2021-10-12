@@ -241,10 +241,12 @@ public class Transponder {
 				classesToImplement.addAll(Arrays.asList(additionalInterfaces));
 			}
 			builder = builder.implement(classesToImplement);
-			builder = StackedMutator.resolveRootMutator(entity).mutate(this, builder);
+			BuilderScheduler scheduler = new BuilderScheduler();
+			builder = StackedMutator.resolveRootMutator(entity).mutate(builder, scheduler);
 			
 			IMutator driverMutator = driver.getMutator();
-			if(driverMutator!=null) builder = driverMutator.mutate(this, builder);
+			if(driverMutator!=null) builder = driverMutator.mutate(builder, scheduler);
+			builder = scheduler.apply(builder);
 			
 			builder = builder.defineField("$transponder", Transponder.class, Opcodes.ACC_PRIVATE)
 									.method(isDeclaredBy(ITransponderHolder.class)
@@ -289,7 +291,7 @@ public class Transponder {
 		
 		int currentOrder=0;
 		
-		List<Method> methods = listMethods(clazz);
+		List<Method> methods = listDeclaredMethods(clazz);
 		
 		for(Method method : methods) {
 			if(method.isDefault() || Modifier.isStatic(method.getModifiers())) continue; //Ignore default methods
@@ -343,34 +345,7 @@ public class Transponder {
 		return difference.size()==1 && difference.contains("value");
 	}*/
 	
-	static List<Method> listMethods(Class<?> clazz) {
-		Method[] unsortedMethods = clazz.getDeclaredMethods();
-		Map<String, Method> methodMapping = new HashMap<>();
-		for (Method method : unsortedMethods) {
-			methodMapping.put(method.getName()
-									+net.bytebuddy.jar.asm.Type.getMethodDescriptor(method), method);
-		}
-		//Sort by line number, but if no info: give priority for methods with DAOField annotation
-		List<Method> sortedMethods = new ArrayList<Method>(unsortedMethods.length);
-		try(InputStream in = clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class")) {
-	      if (in != null) {
-	          new ClassReader(in).accept(new ClassVisitor(Opcodes.ASM7) {
-	        	  @Override
-		        	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
-		        			String[] exceptions) {
-	        		  Method methodToAdd = methodMapping.get(name+descriptor);
-	        		  if(methodToAdd!=null) sortedMethods.add(methodToAdd);
-	        		  return null;
-		        	}
-				}, ClassReader.SKIP_FRAMES);
-	          return sortedMethods;
-	      }
-		} catch (IOException exc) {
-		}
-		//Ubnormal termination: so lets return original order
-		return Arrays.asList(unsortedMethods);
-		
-	}
+	
 	
 	private <T> T setTransponder(T object) {
 		return setTransponder(object, this);

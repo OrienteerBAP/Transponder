@@ -1,6 +1,8 @@
 package org.orienteer.transponder.mutator;
 
 import static org.orienteer.transponder.CommonUtils.*;
+
+import org.orienteer.transponder.BuilderScheduler;
 import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
 import org.orienteer.transponder.Transponder.ITransponderEntity;
@@ -26,11 +28,8 @@ import java.util.Map;
 public class LookupMutator implements IMutator {
 
 	@Override
-	public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder) {
-		return builder.method(isAnnotatedWith(Lookup.class).and(isAbstract()))
-							.intercept(MethodDelegation
-										.withDefaultConfiguration()
-										.to(LookupDelegate.class));
+	public void schedule(BuilderScheduler scheduler) {
+		scheduler.scheduleDelegate(isAnnotatedWith(Lookup.class).and(isAbstract()), LookupDelegate.class);
 	}
 	
 	public static class LookupDelegate {

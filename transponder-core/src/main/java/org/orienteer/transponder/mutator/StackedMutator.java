@@ -3,6 +3,7 @@ package org.orienteer.transponder.mutator;
 import java.util.Arrays;
 import java.util.List;
 
+import org.orienteer.transponder.BuilderScheduler;
 import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
 
@@ -30,10 +31,10 @@ public class StackedMutator implements IMutator {
 	}
 
 	@Override
-	public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder) {
+	public <T> Builder<T> mutate(Builder<T> builder, BuilderScheduler scheduler) {
 		Builder<T> ret = builder;
 		for (IMutator mutator : stack) {
-			ret = mutator.mutate(transponder, ret);
+			ret = mutator.mutate(ret, scheduler);
 		}
 		return ret;
 	}

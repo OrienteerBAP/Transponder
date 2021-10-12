@@ -8,15 +8,26 @@ import org.junit.Test;
 import org.orienteer.transponder.CommonUtils;
 
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.asm.Advice;
+import net.bytebuddy.asm.AsmVisitorWrapper;
+import net.bytebuddy.asm.Advice.Return;
+import net.bytebuddy.asm.MemberSubstitution;
+import net.bytebuddy.description.field.FieldList;
+import net.bytebuddy.description.field.FieldDescription.InDefinedShape;
+import net.bytebuddy.description.method.MethodList;
+import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.MethodCall.ArgumentLoader;
 import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.Implementation.Context;
 import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.This;
+import net.bytebuddy.jar.asm.ClassVisitor;
+import net.bytebuddy.pool.TypePool;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 import static org.junit.Assert.assertEquals;
@@ -94,5 +105,107 @@ public class ByteBuddyTest {
 		 MyInterface obj =  (MyInterface)loaded.getLoaded().newInstance();
 		 assertEquals("Test", obj.echo("Test"));
 		 assertEquals(obj, obj.getThis());
+	}
+	
+	//-------------------------------------------
+	
+	@Test
+	public void testInflightInterceptor() throws Exception {
+		DynamicType.Loaded<?> loaded = new ByteBuddy()
+                .subclass(Object.class)
+                .implement(IEchoInt.class)
+                .method(isDeclaredBy(IEchoInt.class).and(isAbstract()))
+                .intercept(MethodDelegation.to(EchoDelegator.class))
+                .make()
+                .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.WRAPPER);
+		IEchoInt obj =  (IEchoInt)loaded.getLoaded().newInstance();
+		assertEquals(3, obj.echoInt(3));
+		assertEquals(10, obj.echoInt(10));
+		
+		DynamicType.Builder<?> builder = new ByteBuddy()
+                .subclass(Object.class)
+                .implement(IEchoInt.class);
+        builder = builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract()))
+                .intercept(Advice.to(AdviceToIncrement.class).wrap(MethodDelegation.to(EchoDelegator.class)));
+//                .intercept(MethodDelegation.to(EchoDelegator.class));
+        
+//        MemberSubstitution.relaxed().method(isDeclaredBy(IEchoInt.class).and(isAbstract()))
+//        			.rep
+//        builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract()))
+//        		.intercept(null)
+//        builder = builder.visit(Advice.to(AdviceToIncrement.class).);
+        
+		
+//        builder = builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract()))
+//        		.intercept(Advice.withCustomMapping().bootstrap(builder.).to(AdviceToIncrement.class));
+//		Advice.to(AdviceToIncrement.class).wrap(builder.invokable(isDeclaredBy(IEchoInt.class).and(isAbstract())));
+//        builder = builder.visit(Advice.to(AdviceToIncrement.class)
+//							.on(isDeclaredBy(IEchoInt.class))); 
+//        Advice.to(AdviceToIncrement.class).appender(null)
+//        builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract())).
+        /*TypeDescription description = builder.toTypeDescription();
+        builder = builder.visit(
+        Advice.withCustomMapping().bootstrap(builder.toTypeDescription().getDeclaredMethods().filter(isAnnotatedWith(Test.class)).getOnly()).to(AdviceToIncrement.class)
+        .on(isDeclaredBy(IEchoInt.class))
+        );*/
+        //.on(builder.toTypeDescription().getDeclaredMethods().filter(isDeclaredBy(IEchoInt.class)).getOnly());
+//        builder.toTypeDescription().getDeclaredMethods().filter(isDeclaredBy(IEchoInt.class)).getOnly();
+//        builder = builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract())).
+       /* builder = builder.visit(new AsmVisitorWrapper() {
+			
+			@Override
+			public ClassVisitor wrap(TypeDescription instrumentedType, ClassVisitor classVisitor, Context implementationContext,
+					TypePool typePool, FieldList<InDefinedShape> fields, MethodList<?> methods, int writerFlags,
+					int readerFlags) {
+				System.out.println("Wrap Invoked!");
+				return classVisitor;
+			}
+			
+			@Override
+			public int mergeWriter(int flags) {
+				System.out.println("MergeReade: "+flags);
+				return flags;
+			}
+			
+			@Override
+			public int mergeReader(int flags) {
+				System.out.println("MergeReade: "+flags);
+				return flags;
+			}
+		});*/
+		
+		DynamicType.Loaded<?> loaded2 = builder
+										.make()
+										.load(getClass().getClassLoader(), ClassLoadingStrategy.Default.WRAPPER);
+		
+		
+		obj =  (IEchoInt)loaded2.getLoaded().newInstance();
+		assertEquals(4, obj.echoInt(3));
+		assertEquals(11, obj.echoInt(10));
+	}
+	
+	public static interface IEchoInt {
+		@Test
+		public int echoInt(int number);
+	}
+	
+	public static class EchoDelegator {
+		public static int implementEcho(@Argument(0) int number) {
+			return number;
+		}
+	}
+	
+	public static class AdviceToIncrement {
+		
+		@Advice.OnMethodEnter
+		public static void justPrint(@net.bytebuddy.asm.Advice.Origin Method m) {
+			System.out.println("Entering "+m);
+		}
+		
+		@Advice.OnMethodExit(inline = true)
+		public static void increase(@Return(readOnly = false) int ret, @net.bytebuddy.asm.Advice.Origin Method m) {
+			System.out.println("Exiting "+m);
+			ret++;
+		}
 	}
 }

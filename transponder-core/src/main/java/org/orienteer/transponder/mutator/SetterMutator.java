@@ -4,6 +4,7 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import java.lang.reflect.Method;
 
+import org.orienteer.transponder.BuilderScheduler;
 import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
 import org.orienteer.transponder.annotation.binder.PropertyName;
@@ -21,22 +22,17 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class SetterMutator implements IMutator {
 
 	@Override
-	public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder) {
-		ElementMatcher<? super MethodDescription> setterMatcher = 
-				nameStartsWith("set")
+	public void schedule(BuilderScheduler scheduler) {
+		scheduler.scheduleDelegate(nameStartsWith("set")
 					.and(takesArguments(1))
-					.and(isAbstract());
-		return builder.method(setterMatcher)
-				.intercept(MethodDelegation.withDefaultConfiguration()
-											.withBinders(PropertyName.Binder.INSTANCE)
-											.to(SetDelegate.class));
+					.and(isAbstract()), SetDelegate.class, PropertyName.Binder.INSTANCE);
 	}
 	
 	public static class SetDelegate {
 		@RuntimeType
 		public static Object getValue(@PropertyName String property, @This Object wrapper, @Origin Method method, @Argument(0) Object value) {
 			Transponder transponder = Transponder.getTransponder(wrapper);
-			transponder.getDriver().setPropertyValue(wrapper, property, transponder.unwrap(value));
+			transponder.getDriver().setPropertyValue(wrapper, property, Transponder.unwrap(value));
 			if(method.getReturnType().isInstance(wrapper)) return wrapper;
 			else return null;
 		}

@@ -3,6 +3,8 @@ package org.orienteer.transponder;
 import static com.google.common.primitives.Primitives.wrap;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -16,6 +18,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,9 +30,19 @@ import org.orienteer.transponder.Transponder.ITransponderHolder;
 import com.google.common.base.Strings;
 
 import lombok.experimental.UtilityClass;
+import net.bytebuddy.description.method.MethodDescription;
+import net.bytebuddy.description.method.MethodList;
+import net.bytebuddy.description.type.TypeDefinition;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.type.TypeList;
 import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition;
 import net.bytebuddy.implementation.FieldAccessor;
+import net.bytebuddy.jar.asm.ClassReader;
+import net.bytebuddy.jar.asm.ClassVisitor;
+import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
+import net.bytebuddy.matcher.ElementMatcher;
 
 /**
  * Common for utility methods
@@ -278,6 +291,74 @@ public class CommonUtils {
 			}
 		}
 		return ret;
+	}
+	
+	public List<Method> listDeclaredMethods(Class<?> clazz) {
+		Method[] unsortedMethods = clazz.getDeclaredMethods();
+		Map<String, Method> methodMapping = new HashMap<>();
+		for (Method method : unsortedMethods) {
+			methodMapping.put(method.getName()
+									+net.bytebuddy.jar.asm.Type.getMethodDescriptor(method), method);
+		}
+		//Sort by line number, but if no info: give priority for methods with DAOField annotation
+		List<Method> sortedMethods = new ArrayList<Method>(unsortedMethods.length);
+		try(InputStream in = clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class")) {
+	      if (in != null) {
+	          new ClassReader(in).accept(new ClassVisitor(Opcodes.ASM7) {
+	        	  @Override
+		        	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
+		        			String[] exceptions) {
+	        		  Method methodToAdd = methodMapping.get(name+descriptor);
+	        		  if(methodToAdd!=null) sortedMethods.add(methodToAdd);
+	        		  return null;
+		        	}
+				}, ClassReader.SKIP_FRAMES);
+	          return sortedMethods;
+	      }
+		} catch (IOException exc) {
+		}
+		//Ubnormal termination: so lets return original order
+		return Arrays.asList(unsortedMethods);
+		
+	}
+	
+	public <T> boolean hasMatch(Iterable<T> iterable, ElementMatcher<? super T> matcher)
+	{
+		for (T t : iterable) {
+			if(matcher.matches(t)) return true;
+		}
+		return false;
+	}
+	
+	public List<MethodDescription> getMethodDescriptionList(TypeDefinition type) {
+		List<MethodDescription> ret = new ArrayList<>();
+		collectMethodDescriptions(type, ret);
+		return ret;
+	}
+	
+	public void collectMethodDescriptions(TypeDefinition type, List<MethodDescription> list) {
+		if(type==null) return;
+		list.addAll(type.getDeclaredMethods());
+		collectMethodDescriptions(type.getSuperClass(), list);
+		TypeList.Generic interfaces = type.getInterfaces();
+		interfaces.forEach(intf -> collectMethodDescriptions(intf, list));
+	}
+	
+	public List<Method> getMethodList(Class<?> clazz) {
+		List<Method> ret = new ArrayList<>();
+		collectMethods(clazz, ret);
+		return ret;
+	}
+	
+	public void collectMethods(Class<?> clazz, List<Method> list) {
+		if(clazz==null) return;
+		list.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+		Class<?> superClass = clazz.getSuperclass();
+		collectMethods(superClass, list);
+		Class<?>[] interfaces = clazz.getInterfaces();
+		for (Class<?> intf : interfaces) {
+			collectMethods(intf, list);
+		}
 	}
 	
 }

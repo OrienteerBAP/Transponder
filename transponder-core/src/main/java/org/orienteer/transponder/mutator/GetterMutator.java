@@ -1,5 +1,6 @@
 package org.orienteer.transponder.mutator;
 
+import org.orienteer.transponder.BuilderScheduler;
 import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
 import org.orienteer.transponder.annotation.binder.PropertyName;
@@ -20,11 +21,8 @@ import java.util.Map;
 public class GetterMutator implements IMutator {
 
 	@Override
-	public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder) {
-		return builder.method(isGetter().and(isAbstract()))
-				.intercept(MethodDelegation.withDefaultConfiguration()
-								.withBinders(PropertyName.Binder.INSTANCE)
-								.to(GetDelegate.class));
+	public void schedule(BuilderScheduler scheduler) {
+		scheduler.scheduleDelegate(isGetter().and(isAbstract()), GetDelegate.class, PropertyName.Binder.INSTANCE);
 	}
 	
 	public static class GetDelegate {
