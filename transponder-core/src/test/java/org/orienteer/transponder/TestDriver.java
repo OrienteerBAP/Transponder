@@ -107,7 +107,7 @@ public class TestDriver implements ITestDriver {
 	}
 	
 	@Override
-	public boolean hasIndex(String typeName, String indexName) {
+	public boolean hasIndex(String typeName, String indexName, String... properties) {
 		return hasType(typeName) && typeRecords.get(typeName).getIndexes().containsKey(indexName);
 	}
 	

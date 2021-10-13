@@ -56,9 +56,9 @@ public abstract class AbstractUniversalTest
 		driver.assertHasType("Simple");
 		driver.assertHasProperty("Simple", "name");
 		driver.assertHasProperty("Simple", "description");
-		driver.assertHasIndex("Simple", "nameDescription");
-		driver.assertHasIndex("Simple", "nameValue");
-		driver.assertHasIndex("Simple", "Simple.value");
+		driver.assertHasIndex("Simple", "nameDescription", "name", "description");
+		driver.assertHasIndex("Simple", "nameValue", "name", "value");
+		driver.assertHasIndex("Simple", "Simple.value", "value");
 		
 		driver.assertHasType("Remote");
 		driver.assertHasProperty("Remote", "remoteName");
@@ -91,6 +91,7 @@ public abstract class AbstractUniversalTest
 	
 	@Test
 	public void testTransponderPreserving() throws Exception {
+		transponder.describe(ISimpleEntity.class);
 		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
 		assertTrue(entity instanceof ITransponderHolder);
 		assertEquals(transponder, ((ITransponderHolder)entity).get$transponder());

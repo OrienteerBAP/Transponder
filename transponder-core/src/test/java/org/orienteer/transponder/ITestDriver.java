@@ -20,11 +20,11 @@ public interface ITestDriver extends IDriver {
 								hasProperty(typeName, propertyName));
 	}
 	
-	public boolean hasIndex(String typeName, String indexName);
+	public boolean hasIndex(String typeName, String indexName, String...properties);
 	
-	public default void assertHasIndex(String typeName, String indexName) {
+	public default void assertHasIndex(String typeName, String indexName, String... properties) {
 		assertHasType(typeName);
-		assertTrue("Driver has not created '"+typeName+"."+indexName+"' yet", hasIndex(typeName, indexName));
+		assertTrue("Driver has not created '"+typeName+"."+indexName+"' yet", hasIndex(typeName, indexName, properties));
 	}
 	
 	public Object createSeedObject(String typeName, Map<String, ?> properties);

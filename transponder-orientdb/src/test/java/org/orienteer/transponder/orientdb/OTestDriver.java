@@ -1,9 +1,12 @@
 package org.orienteer.transponder.orientdb;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.orienteer.transponder.ITestDriver;
 
+import com.orientechnologies.orient.core.index.OIndex;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
 public class OTestDriver extends ODriver implements ITestDriver {
@@ -19,8 +22,12 @@ public class OTestDriver extends ODriver implements ITestDriver {
 	}
 
 	@Override
-	public boolean hasIndex(String typeName, String indexName) {
-		return hasType(typeName) && getSchema().getClass(typeName).getClassIndex(indexName)!=null;
+	public boolean hasIndex(String typeName, String indexName, String...properties) {
+		if(!hasType(typeName)) return false;
+		OIndex index = getSchema().getClass(typeName).getClassIndex(indexName);
+		if(index==null) return false;
+		List<String> fields = index.getDefinition().getFields();
+		return fields.size() == properties.length && fields.containsAll(Arrays.asList(properties));
 	}
 
 	@Override
