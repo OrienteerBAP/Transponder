@@ -183,6 +183,11 @@ public class TestDriver implements ITestDriver {
 		((Map<Object,Object>)wrapper).clear();
 		((Map<Object,Object>)wrapper).putAll((Map<Object,Object>)newSeed);
 	}
+	
+	@Override
+	public Object createSeedObject(String typeName, Map<String, ?> properties) {
+		return properties;
+	}
 
 	public TestDriver insertRecord(String pk, Map<String, Object> value) {
 		db.put(pk, value);

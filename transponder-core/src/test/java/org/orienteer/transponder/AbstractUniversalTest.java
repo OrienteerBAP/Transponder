@@ -263,4 +263,48 @@ public abstract class AbstractUniversalTest
 		assertEquals("NOT EMPTY", entity.getValue());
 	}
 	
+	@Test
+	public void testEntityProviding() {
+		String name = "Name"+RANDOM.nextInt();
+		String description = "Description"+RANDOM.nextInt();
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("name", name);
+		map.put("description", description);
+		Object seed = driver.createSeedObject("Simple", map);
+		ISimpleEntity entity = transponder.provide(seed, ISimpleEntity.class);
+		assertEquals(name, entity.getName());
+		assertEquals(description, entity.getDescription());
+	}
+	
+	@Test
+	public void testAutoWrapping() {
+		
+		String name = "Other Name";
+		String description = "Other Description";
+		Object otherSeed = driver.createSeedObject("Simple", CommonUtils.toMap("pk", "other", "name", name, "description", description));
+		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
+		entity.setOtherEntity(transponder.provide(otherSeed, ISimpleEntity.class));
+		ISimpleEntity otherEntity = entity.getOtherEntity();
+		assertNotNull(otherEntity);
+		assertEquals(name, otherEntity.getName());
+		assertEquals(description, otherEntity.getDescription());
+	}
+	
+	@Test
+	public void testAutoUnwrapping() {
+		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
+		String name = "Other Name";
+		String description = "Other Description";
+		ISimpleEntity otherEntity = transponder.create(ISimpleEntity.class);
+		otherEntity.setName(name);
+		otherEntity.setDescription(description);
+		entity.setOtherEntity(otherEntity);
+		
+		Object otherEntitySeed = driver.getPropertyValue(entity, "otherEntity");
+		ISimpleEntity otherEntityInstance = transponder.provide(otherEntitySeed, ISimpleEntity.class);
+		assertNotNull(otherEntityInstance);
+		assertEquals(name, driver.getPropertyValue(otherEntityInstance, "name"));
+		assertEquals(description, driver.getPropertyValue(otherEntityInstance, "description"));
+	}
+	
 }

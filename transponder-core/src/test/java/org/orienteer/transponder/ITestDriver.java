@@ -2,6 +2,8 @@ package org.orienteer.transponder;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+
 public interface ITestDriver extends IDriver {
 	
 	public boolean hasType(String typeName);
@@ -24,4 +26,6 @@ public interface ITestDriver extends IDriver {
 		assertHasType(typeName);
 		assertTrue("Driver has not created '"+typeName+"."+indexName+"' yet", hasIndex(typeName, indexName));
 	}
+	
+	public Object createSeedObject(String typeName, Map<String, ?> properties);
 }

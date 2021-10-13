@@ -12,6 +12,9 @@ import org.orienteer.transponder.annotation.Lookup;
 public interface ISimpleEntity {
 	
 	public static final String defaultValue = "Default Value";
+	
+	public String getPk();
+	public ISimpleEntity setPk(String pk);
 
 	public String getName();
 	public ISimpleEntity setName(String value);

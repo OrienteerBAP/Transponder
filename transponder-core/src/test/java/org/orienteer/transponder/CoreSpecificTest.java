@@ -21,18 +21,6 @@ public class CoreSpecificTest
 	public static final Random RANDOM = new Random();
 	
 	@Test
-	public void testEntityProviding() {
-		String name = "Name"+RANDOM.nextInt();
-		String description = "Description"+RANDOM.nextInt();
-		Map<String, String> map = new HashMap<String, String>();
-		map.put("name", name);
-		map.put("description", description);
-		ISimpleEntity entity = new Transponder(new TestDriver()).provide(map, ISimpleEntity.class);
-		assertEquals(name, entity.getName());
-		assertEquals(description, entity.getDescription());
-	}
-	
-	@Test
 	public void testDAOQuery() {
 		TestDriver driver = new TestDriver();
 		driver.insertRecord("a", "name",   "Single A");
@@ -110,40 +98,6 @@ public class CoreSpecificTest
 		assertNull(dao.removeByPk("dao1"));
 		assertNotNull(dao.removeByPk("dao2"));
 		assertNull(dao.removeByPk("dao2"));
-	}
-	
-	@Test
-	public void testAutoWrapping() {
-		TestDriver driver = new TestDriver();
-		Transponder transponder = new Transponder(driver);
-		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
-		String name = "Other Name";
-		String description = "Other Description";
-		Map<String, Object> otherEntityMap = new HashMap<>();
-		otherEntityMap.put("name", name);
-		otherEntityMap.put("description", description);
-		((Map<String, Object>)entity).put("otherEntity", otherEntityMap);
-		ISimpleEntity otherEntity = entity.getOtherEntity();
-		assertNotNull(otherEntity);
-		assertEquals(name, otherEntity.getName());
-		assertEquals(description, otherEntity.getDescription());
-	}
-	
-	@Test
-	public void testAutoUnwrapping() {
-		TestDriver driver = new TestDriver();
-		Transponder transponder = new Transponder(driver);
-		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
-		String name = "Other Name";
-		String description = "Other Description";
-		ISimpleEntity otherEntity = transponder.create(ISimpleEntity.class);
-		otherEntity.setName(name);
-		otherEntity.setDescription(description);
-		entity.setOtherEntity(otherEntity);
-		Map<String, Object> otherEntityMap = (Map<String, Object>)((Map<String, Object>)entity).get("otherEntity");
-		assertNotNull(otherEntityMap);
-		assertEquals(name, otherEntityMap.get("name"));
-		assertEquals(description, otherEntityMap.get("description"));
 	}
 	
 }
