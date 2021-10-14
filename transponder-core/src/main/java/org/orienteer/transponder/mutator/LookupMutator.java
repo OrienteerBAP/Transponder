@@ -9,6 +9,8 @@ import org.orienteer.transponder.Transponder.ITransponderEntity;
 import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.annotation.Lookup;
 import org.orienteer.transponder.annotation.Query;
+import org.orienteer.transponder.annotation.binder.QueryLanguage;
+import org.orienteer.transponder.annotation.binder.QueryValue;
 
 import com.google.common.primitives.Primitives;
 
@@ -29,17 +31,19 @@ public class LookupMutator implements IMutator {
 
 	@Override
 	public void schedule(BuilderScheduler scheduler) {
-		scheduler.scheduleDelegate(isAnnotatedWith(Lookup.class).and(isAbstract()), LookupDelegate.class);
+		scheduler.scheduleDelegate(isAnnotatedWith(Lookup.class).and(isAbstract()),
+								   LookupDelegate.class,
+								   QueryLanguage.Binder.INSTANCE,
+								   QueryValue.Binder.INSTANCE);
 	}
 	
 	public static class LookupDelegate {
 		@RuntimeType
-		public static Object query(@Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
-			Lookup lookup = origin.getAnnotation(Lookup.class);
+		public static Object query(@QueryLanguage String lang, @QueryValue String query, @Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
 			Map<String, Object> params = toArguments(origin, args);
 			if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
 			Transponder transponder = Transponder.getTransponder(thisObject);
-			Object newSeed = transponder.getDriver().querySingle(lookup.language(), lookup.value(), params);
+			Object newSeed = transponder.getDriver().querySingle(lang, query, params);
 			if(newSeed!=null) {
 				if(transponder.getDriver().isSeed(newSeed)) {
 					if(thisObject instanceof ITransponderEntity)

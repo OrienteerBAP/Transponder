@@ -8,6 +8,8 @@ import org.orienteer.transponder.Transponder;
 import org.orienteer.transponder.Transponder.ITransponderEntity;
 import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.annotation.Query;
+import org.orienteer.transponder.annotation.binder.QueryLanguage;
+import org.orienteer.transponder.annotation.binder.QueryValue;
 
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.MethodDelegation;
@@ -26,20 +28,22 @@ public class QueryMutator implements IMutator {
 
 	@Override
 	public void schedule(BuilderScheduler scheduler) {
-		scheduler.scheduleDelegate(isAnnotatedWith(Query.class).and(isAbstract()), QueryDelegate.class);
+		scheduler.scheduleDelegate(isAnnotatedWith(Query.class).and(isAbstract()),
+								   QueryDelegate.class,
+								   QueryLanguage.Binder.INSTANCE,
+								   QueryValue.Binder.INSTANCE);
 	}
 	
 	public static class QueryDelegate {
 		@RuntimeType
-		public static Object query(@Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
+		public static Object query(@QueryLanguage String lang, @QueryValue String query, @Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
 			try {
-				Query query = origin.getAnnotation(Query.class);
 				Map<String, Object> params = toArguments(origin, args);
 				if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
 				Transponder transponder = Transponder.getTransponder(thisObject);
 				Object ret = Collection.class.isAssignableFrom(origin.getReturnType())
-									?transponder.getDriver().query(query.language(), query.value(), params)
-									:transponder.getDriver().querySingle(query.language(), query.value(), params);
+									?transponder.getDriver().query(lang, query, params)
+									:transponder.getDriver().querySingle(lang, query, params);
 				return transponder.wrap(ret, origin.getGenericReturnType());
 			} catch (Exception e) {
 				e.printStackTrace();
