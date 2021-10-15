@@ -27,7 +27,7 @@ public class LookupMutator implements IMutator {
 	public void schedule(Transponder transponder, BuilderScheduler scheduler) {
 		scheduler.scheduleDelegate(isAnnotatedWith(Lookup.class).and(isAbstract()),
 								   LookupDelegate.class,
-								   QueryValue.Binder.INSTANCE);
+								   new QueryValue.Binder(transponder));
 	}
 	
 	public static class LookupDelegate {

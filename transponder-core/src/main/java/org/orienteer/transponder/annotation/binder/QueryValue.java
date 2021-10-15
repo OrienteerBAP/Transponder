@@ -1,18 +1,26 @@
 package org.orienteer.transponder.annotation.binder;
 
 import static org.orienteer.transponder.CommonUtils.*;
+import static com.google.common.base.Strings.emptyToNull;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import org.orienteer.transponder.CommonUtils;
+import org.orienteer.transponder.IPolyglot;
+import org.orienteer.transponder.Transponder;
 import org.orienteer.transponder.annotation.Command;
 import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.Lookup;
 import org.orienteer.transponder.annotation.Query;
+
+import com.google.common.base.Strings;
 
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.annotation.AnnotationList;
@@ -24,6 +32,7 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bind.MethodDelegationBinder;
 import net.bytebuddy.implementation.bind.MethodDelegationBinder.ParameterBinding;
 import net.bytebuddy.implementation.bind.annotation.TargetMethodAnnotationDrivenBinder;
+import net.bytebuddy.implementation.bytecode.StackManipulation;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.implementation.bytecode.collection.ArrayFactory;
@@ -36,13 +45,18 @@ import net.bytebuddy.utility.JavaConstant;
 @Target(ElementType.PARAMETER)
 public @interface QueryValue {
 
-	enum Binder implements TargetMethodAnnotationDrivenBinder.ParameterBinder<QueryValue> {
-		INSTANCE;
+	public static class Binder implements TargetMethodAnnotationDrivenBinder.ParameterBinder<QueryValue> {
+		
+		private final Transponder transponder;
 		
 		public static final ElementMatcher<AnnotationDescription> MATCHER = 
 				ElementMatchers.annotationType(Query.class)
 			.or(ElementMatchers.annotationType(Lookup.class))
 			.or(ElementMatchers.annotationType(Command.class));
+		
+		public Binder(Transponder transponder) {
+			this.transponder = transponder;
+		}
 
 		@Override
 		public Class<QueryValue> getHandledType() {
@@ -57,16 +71,25 @@ public @interface QueryValue {
 			if(annotations==null || annotations.size()!=1)
 				return MethodDelegationBinder.ParameterBinding.Illegal.INSTANCE;
 			AnnotationDescription ann = annotations.get(0);
-			String value = ann.getValue("value").resolve(String.class);
-			String language = ann.getValue("language").resolve(String.class);
-			String dialect = ann.getValue("dialect").resolve(String.class);
+			String value = emptyToNull(ann.getValue("value").resolve(String.class));
+			String language = emptyToNull(ann.getValue("language").resolve(String.class));
+			String dialect = emptyToNull(ann.getValue("dialect").resolve(String.class));
+			String queryId = source.getDeclaringType().getTypeName()+"."+source.getName();
+			
+			IPolyglot.Translation translation = transponder.getPolyglot()
+								.translate(queryId, language, dialect, value, transponder.getDriver());
 			
 			return new MethodDelegationBinder.ParameterBinding.Anonymous(
-				ArrayFactory.forType(TypeDescription.ForLoadedType.of(String.class).asGenericType())
-					.withValues(Arrays.asList(new JavaConstantValue(JavaConstant.Simple.ofLoaded(value)),
-							new JavaConstantValue(JavaConstant.Simple.ofLoaded(language)),
-							new JavaConstantValue(JavaConstant.Simple.ofLoaded(dialect))))
+				createStringArray(translation.getQuery(), translation.getLanguage())
 				);
+		}
+		
+		private static StackManipulation createStringArray(String... array) {
+			List<JavaConstantValue> values = new ArrayList<>();
+			for (String value : array) 
+				values.add(new JavaConstantValue(JavaConstant.Simple.ofLoaded(CommonUtils.defaultIfNull(value, ""))));
+			
+			return ArrayFactory.forType(TypeDescription.ForLoadedType.of(String.class).asGenericType()).withValues(values);
 		}
 		
 	}

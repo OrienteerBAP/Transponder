@@ -26,7 +26,7 @@ public class QueryMutator implements IMutator {
 	public void schedule(Transponder transponder, BuilderScheduler scheduler) {
 		scheduler.scheduleDelegate(isAnnotatedWith(Query.class).and(isAbstract()),
 								   QueryDelegate.class,
-								   QueryValue.Binder.INSTANCE);
+								   new QueryValue.Binder(transponder));
 	}
 	
 	public static class QueryDelegate {

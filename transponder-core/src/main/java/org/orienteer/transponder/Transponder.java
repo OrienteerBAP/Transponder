@@ -26,6 +26,7 @@ import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityPropertyIndex;
 import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.mutator.StackedMutator;
+import org.orienteer.transponder.polyglot.DefaultPolyglot;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -43,10 +44,11 @@ import net.bytebuddy.jar.asm.Opcodes;
 public class Transponder {
 	
 	private static final Class<?>[] NO_CLASSES = new Class<?>[0];
+	private static final TypeCache<Integer> DAO_CACHE = new TypeCache<Integer>(TypeCache.Sort.SOFT);
 	
 	private final IDriver driver;
+	private IPolyglot polyglot = new DefaultPolyglot();
 	
-	private static final TypeCache<Integer> DAO_CACHE = new TypeCache<Integer>(TypeCache.Sort.SOFT);
 	
 	public static interface ITransponderHolder {
 		public Transponder get$transponder();
@@ -371,6 +373,16 @@ public class Transponder {
 	public static Transponder getTransponder(Object object) {
 		if(!(object instanceof ITransponderHolder)) throw new IllegalArgumentException("Object has not been provided by Transponder");
 		return ((ITransponderHolder)object).get$transponder();
+	}
+	
+	public IPolyglot getPolyglot() {
+		return polyglot;
+	}
+	
+	public void setPolyglot(IPolyglot polyglot) {
+		if(polyglot==null) throw new IllegalArgumentException("Polyglot can't be null");
+		this.polyglot = polyglot;
+		DAO_CACHE.clear(); //We have to clear cache because all previous translations are cached in bytecode
 	}
 	
 }
