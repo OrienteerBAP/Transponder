@@ -22,7 +22,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class SetterMutator implements IMutator {
 
 	@Override
-	public void schedule(BuilderScheduler scheduler) {
+	public void schedule(Transponder transponder, BuilderScheduler scheduler) {
 		scheduler.scheduleDelegate(nameStartsWith("set")
 					.and(takesArguments(1))
 					.and(isAbstract()), SetDelegate.class, PropertyName.Binder.INSTANCE);

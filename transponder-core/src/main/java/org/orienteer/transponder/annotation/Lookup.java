@@ -15,4 +15,5 @@ import java.lang.annotation.Target;
 public @interface Lookup {
 	String value();
 	String language() default "";
+	String dialect() default "";
 }

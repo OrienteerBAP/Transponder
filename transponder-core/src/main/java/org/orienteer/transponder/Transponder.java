@@ -244,10 +244,10 @@ public class Transponder {
 			}
 			builder = builder.implement(classesToImplement);
 			BuilderScheduler scheduler = new BuilderScheduler();
-			builder = StackedMutator.resolveRootMutator(entity).mutate(builder, scheduler);
+			builder = StackedMutator.resolveRootMutator(entity).mutate(this, builder, scheduler);
 			
 			IMutator driverMutator = driver.getMutator();
-			if(driverMutator!=null) builder = driverMutator.mutate(builder, scheduler);
+			if(driverMutator!=null) builder = driverMutator.mutate(this, builder, scheduler);
 			builder = scheduler.apply(builder);
 			
 			builder = builder.defineField("$transponder", Transponder.class, Opcodes.ACC_PRIVATE)

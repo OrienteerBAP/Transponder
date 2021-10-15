@@ -21,7 +21,7 @@ import java.util.Map;
 public class GetterMutator implements IMutator {
 
 	@Override
-	public void schedule(BuilderScheduler scheduler) {
+	public void schedule(Transponder transponder, BuilderScheduler scheduler) {
 		scheduler.scheduleDelegate(isGetter().and(isAbstract()), GetDelegate.class, PropertyName.Binder.INSTANCE);
 	}
 	

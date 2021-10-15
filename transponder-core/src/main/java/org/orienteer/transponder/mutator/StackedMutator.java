@@ -34,10 +34,10 @@ public class StackedMutator implements IMutator {
 	}
 
 	@Override
-	public <T> Builder<T> mutate(Builder<T> builder, BuilderScheduler scheduler) {
+	public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder, BuilderScheduler scheduler) {
 		Builder<T> ret = builder;
 		for (IMutator mutator : stack) {
-			ret = mutator.mutate(ret, scheduler);
+			ret = mutator.mutate(transponder, ret, scheduler);
 		}
 		return ret;
 	}

@@ -239,7 +239,7 @@ public abstract class AbstractUniversalTest
 				return new IMutator() {
 					
 					@Override
-					public <T> Builder<T> mutate(Builder<T> builder, BuilderScheduler scheduler) {
+					public <T> Builder<T> mutate(Transponder transponder, Builder<T> builder, BuilderScheduler scheduler) {
 						return builder.implement(IMarker.class);
 					}
 				};
