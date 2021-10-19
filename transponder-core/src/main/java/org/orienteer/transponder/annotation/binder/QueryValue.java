@@ -71,13 +71,14 @@ public @interface QueryValue {
 			if(annotations==null || annotations.size()!=1)
 				return MethodDelegationBinder.ParameterBinding.Illegal.INSTANCE;
 			AnnotationDescription ann = annotations.get(0);
-			String value = emptyToNull(ann.getValue("value").resolve(String.class));
-			String language = emptyToNull(ann.getValue("language").resolve(String.class));
-			String dialect = emptyToNull(ann.getValue("dialect").resolve(String.class));
+			Class<?> ownerClass = safeClassForName(source.getDeclaringType().getTypeName());
 			String queryId = source.getDeclaringType().getTypeName()+"."+source.getName();
+			String language = emptyToNull(ann.getValue("language").resolve(String.class));
+			String value = emptyToNull(ann.getValue("value").resolve(String.class));
+			String dialect = emptyToNull(ann.getValue("dialect").resolve(String.class));
 			
 			IPolyglot.Translation translation = transponder.getPolyglot()
-								.translate(queryId, language, dialect, value, transponder.getDriver());
+								.translate(ownerClass, queryId, language, value, dialect, transponder.getDriver().getDialect());
 			
 			return new MethodDelegationBinder.ParameterBinding.Anonymous(
 				createStringArray(translation.getQuery(), translation.getLanguage())

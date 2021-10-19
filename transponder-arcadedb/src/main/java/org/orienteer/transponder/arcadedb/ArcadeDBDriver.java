@@ -21,6 +21,8 @@ import com.google.common.collect.HashBiMap;
 
 public class ArcadeDBDriver implements IDriver {
 	
+	public static final String DIALECT_ARCADEDB = "arcadedb";
+	
 	public static final String TYPE_CUSTOM_TRANSPONDER_WRAPPER = "transponder.wrapper";
 	
 	public static final String INDEX_LSM_TREE_UNIQUE = "LSM_TREE_UNIQUE";
@@ -165,6 +167,11 @@ public class ArcadeDBDriver implements IDriver {
 	@Override
 	public void replaceSeed(Object wrapper, Object newSeed) {
 		((DocumentWrapper)wrapper).setDocument((Identifiable)newSeed);
+	}
+	
+	@Override
+	public String getDialect() {
+		return DIALECT_ARCADEDB;
 	}
 
 	public Schema getSchema() {

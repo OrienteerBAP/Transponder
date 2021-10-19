@@ -42,6 +42,8 @@ import net.bytebuddy.implementation.bind.annotation.This;
 
 public class ODriver implements IDriver {
 	
+	public static final String DIALECT_ORIENTDB = "orientdb";
+	
 	public static final String OCLASS_CUSTOM_TRANSPONDER_WRAPPER = "transponder.wrapper";
 	
 	public static final String OINDEX_UNIQUE = "UNIQUE";
@@ -263,6 +265,11 @@ public class ODriver implements IDriver {
 	@Override
 	public void replaceSeed(Object wrapper, Object newSeed) {
 		((ODocumentWrapper)wrapper).fromStream(((OIdentifiable)newSeed).getRecord());
+	}
+	
+	@Override
+	public String getDialect() {
+		return DIALECT_ORIENTDB;
 	}
 	
 	protected ODatabaseSession getSession() {

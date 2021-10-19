@@ -12,6 +12,11 @@ public interface IPolyglot {
 		private String query;
 	}
 	
-	public Translation translate(String queryId, String srcLanguage, String srcDialect, String srcQuery, IDriver to);
+	public Translation translate(Class<?> ownerClass,
+								 String queryId,
+								 String srcLanguage,
+								 String srcQuery,
+								 String srcDialect,
+								 String toDialect);
 
 }

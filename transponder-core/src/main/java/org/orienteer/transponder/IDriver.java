@@ -178,4 +178,6 @@ public interface IDriver {
 	public default IMutator getMutator() {
 		return null;
 	}
+	
+	public String getDialect();
 }

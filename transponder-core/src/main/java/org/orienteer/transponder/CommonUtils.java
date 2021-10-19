@@ -239,6 +239,14 @@ public class CommonUtils {
 		else throw new IllegalArgumentException("Can't instantiate "+clazz.getName());
 	}
 	
+	public Class<?> safeClassForName(String className) {
+		try {
+			return Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			throw new IllegalArgumentException(e.getMessage(), e);
+		}
+	}
+	
 	public boolean isSimpleType(final Object iObject) {
 		if (iObject == null)
 			return false;

@@ -27,6 +27,8 @@ import net.bytebuddy.implementation.bind.annotation.This;
 
 public class TestDriver implements ITestDriver {
 	
+	public static final String DIALECT_TEST = "test";
+	
 	@Data
 	@Accessors(chain = true)
 	private static class TypeRecord {
@@ -196,6 +198,11 @@ public class TestDriver implements ITestDriver {
 	
 	public TestDriver insertRecord(String pk, Object... objects) {
 		return insertRecord(pk, CommonUtils.toMap(objects));
+	}
+	
+	@Override
+	public String getDialect() {
+		return DIALECT_TEST;
 	}
 
 }

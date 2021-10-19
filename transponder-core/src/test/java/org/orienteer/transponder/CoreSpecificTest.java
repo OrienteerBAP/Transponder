@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.junit.Test;
+import org.orienteer.transponder.IPolyglot.Translation;
 import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
@@ -98,6 +99,18 @@ public class CoreSpecificTest
 		assertNull(dao.removeByPk("dao1"));
 		assertNotNull(dao.removeByPk("dao2"));
 		assertNull(dao.removeByPk("dao2"));
+	}
+	
+	@Test
+	public void testPolyglotLoading() {
+		Transponder transponder = new Transponder(new TestDriver());
+		IPolyglot polyglot = transponder.getPolyglot();
+		Translation translation = polyglot.translate(CoreSpecificTest.class, "loaded1", "", "", "test", "test");
+		assertEquals("text", translation.getLanguage());
+		assertEquals("This was loaded", translation.getQuery());
+		translation = polyglot.translate(CoreSpecificTest.class, "loaded2", "text", "Original Query", "test", "test");
+		assertEquals("text", translation.getLanguage());
+		assertEquals("Keep source lang", translation.getQuery());
 	}
 	
 }
