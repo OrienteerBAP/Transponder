@@ -13,7 +13,8 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface Command {
-	String value();
+	String id() default "";
+	String value() default "";
 	String language() default "";
 	String dialect() default "";
 }

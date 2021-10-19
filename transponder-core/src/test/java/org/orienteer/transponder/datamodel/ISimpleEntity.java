@@ -1,5 +1,6 @@
 package org.orienteer.transponder.datamodel;
 
+import org.orienteer.transponder.annotation.Command;
 import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.EntityIndex;
 import org.orienteer.transponder.annotation.EntityPropertyIndex;
@@ -36,10 +37,10 @@ public interface ISimpleEntity {
 	public IParametrizedEntity<ISimpleEntity> getParametrizedEntity();
 	public void setParametrizedEntity(IParametrizedEntity<ISimpleEntity> entity);
 	
-	@Lookup("${pk}")
+	@Lookup(id="byPk")
 	public ISimpleEntity lookupByPk(String pk);
 	
-	@Lookup("${pk}")
+	@Lookup(id="byPk")
 	public boolean checkPresenseByPk(String pk);
 	
 	public default String getDefault() {

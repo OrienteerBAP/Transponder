@@ -32,17 +32,17 @@ public class CoreSpecificTest
 		assertNotNull(all);
 		assertEquals(3, all.size());
 		
-		ISimpleEntity ret = dao.getWithCharacter('b', 1);
+		ISimpleEntity ret = dao.lookupByPk("b");
 		assertNull(ret);
-		ret = dao.getWithCharacter('a', 1);
+		ret = dao.lookupByPk("a");
 		assertNotNull(ret);
 		assertEquals("Single A", ret.getName());
 		
-		ret = dao.getWithCharacter('a', 2);
+		ret = dao.lookupByPk("aa");
 		assertNotNull(ret);
 		assertEquals("Two A", ret.getName());
 		
-		ret = dao.getWithCharacter('a', 3);
+		ret = dao.lookupByPk("aaa");
 		assertNotNull(ret);
 		assertEquals("Triple A", ret.getName());
 	}

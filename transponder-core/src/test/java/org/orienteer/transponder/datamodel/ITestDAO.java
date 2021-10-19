@@ -14,19 +14,16 @@ public interface ITestDAO {
 		return number;
 	}
 	
-	@Query(".*")
+	@Query(value=".*", dialect = "test")
 	public List<ISimpleEntity> getAll();
 	
-	@Query("${ch}{${count}}")
-	public ISimpleEntity getWithCharacter(char ch, int count);
-	
-	@Lookup("${pk}")
+	@Lookup(id="byPk")
 	public ISimpleEntity lookupByPk(String pk);
 	
-	@Lookup("${pk}")
+	@Lookup(id="byPk")
 	public boolean checkPresenseByPk(String pk);
 	
-	@Command("${pk}")
+	@Command(id="byPk")
 	public ISimpleEntity removeByPk(String pk);
 	
 	@DefaultValue("1")

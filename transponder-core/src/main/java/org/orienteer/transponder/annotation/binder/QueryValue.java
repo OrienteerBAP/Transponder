@@ -72,7 +72,8 @@ public @interface QueryValue {
 				return MethodDelegationBinder.ParameterBinding.Illegal.INSTANCE;
 			AnnotationDescription ann = annotations.get(0);
 			Class<?> ownerClass = safeClassForName(source.getDeclaringType().getTypeName());
-			String queryId = source.getDeclaringType().getTypeName()+"."+source.getName();
+			String queryId = emptyToNull(ann.getValue("id").resolve(String.class));
+			if(queryId==null) queryId = source.getDeclaringType().getTypeName()+"."+source.getName();
 			String language = emptyToNull(ann.getValue("language").resolve(String.class));
 			String value = emptyToNull(ann.getValue("value").resolve(String.class));
 			String dialect = emptyToNull(ann.getValue("dialect").resolve(String.class));
