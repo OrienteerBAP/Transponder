@@ -385,4 +385,9 @@ public class Transponder {
 		DAO_CACHE.clear(); //We have to clear cache because all previous translations are cached in bytecode
 	}
 	
+	public static void save(Object object) {
+		Transponder transponder = getTransponder(object);
+		transponder.getDriver().saveEntityInstance(object);
+	}
+	
 }

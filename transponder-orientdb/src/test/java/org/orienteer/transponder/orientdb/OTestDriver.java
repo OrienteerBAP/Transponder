@@ -36,6 +36,7 @@ public class OTestDriver extends ODriver implements ITestDriver {
 		for (Map.Entry<String, ?> entry : properties.entrySet()) {
 			doc.field(entry.getKey(), entry.getValue());
 		}
+		doc.save();
 		return doc;
 	}
 	

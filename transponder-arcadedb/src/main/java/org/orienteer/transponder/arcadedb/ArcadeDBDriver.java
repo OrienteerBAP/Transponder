@@ -7,11 +7,14 @@ import java.lang.reflect.AnnotatedElement;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.orienteer.transponder.CommonUtils;
 import org.orienteer.transponder.IDriver;
 
 import com.arcadedb.database.Database;
 import com.arcadedb.database.Identifiable;
+import com.arcadedb.query.sql.executor.ResultSet;
 import com.arcadedb.schema.DocumentType;
 import com.arcadedb.schema.Property;
 import com.arcadedb.schema.Schema;
@@ -127,6 +130,7 @@ public class ArcadeDBDriver implements IDriver {
 	@Override
 	public void saveEntityInstance(Object wrapper) {
 		((DocumentWrapper)wrapper).save();
+		((DocumentWrapper)wrapper).reload();
 	}
 
 	@Override
@@ -160,8 +164,24 @@ public class ArcadeDBDriver implements IDriver {
 
 	@Override
 	public List<Object> query(String language, String query, Map<String, Object> params) {
-		// TODO Auto-generated method stub
-		return null;
+		try(ResultSet rs = database.query(CommonUtils.defaultIfNullOrEmpty(language, "sql"), query, params)) {
+			return rs.stream().map(r -> r.getElement().orElse(null)).collect(Collectors.toList());
+		}
+	}
+	
+	@Override
+	public Object querySingle(String language, String query, Map<String, Object> params) {
+		try(ResultSet rs = database.query(CommonUtils.defaultIfNullOrEmpty(language, "sql"), query, params)) {
+			return rs.stream().map(r -> r.getElement().orElse(null)).findFirst().orElse(null);
+		}
+	}
+	
+	@Override
+	public Object command(String language, String command, Map<String, Object> params) {
+		try(ResultSet rs = database.command(CommonUtils.defaultIfNullOrEmpty(language, "sql"), command, params)) {
+			List<?> ret = rs.stream().map(r -> r.getElement().orElse(null)).collect(Collectors.toList());
+			return ret.isEmpty()?null:(ret.size()==1?ret.get(0):ret);
+		}
 	}
 	
 	@Override

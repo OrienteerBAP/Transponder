@@ -131,8 +131,12 @@ public class TestDriver implements ITestDriver {
 	@Override
 	public void saveEntityInstance(Object wrapper) {
 		Map<String, Object> seed = toSeed(wrapper);
-		String pk = seed.get("pk").toString();
-		db.put(pk, seed);
+		Object pk = seed.get("pk");
+		if(pk!=null && pk instanceof String) db.put((String)pk, seed);
+		else {
+			pk = seed.get("name");
+			if(pk!=null && pk instanceof String) db.put((String)pk, seed);
+		}
 	}
 	
 	@Override

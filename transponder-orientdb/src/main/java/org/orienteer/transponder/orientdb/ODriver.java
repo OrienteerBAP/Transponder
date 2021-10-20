@@ -262,6 +262,31 @@ public class ODriver implements IDriver {
 		}
 	}
 	
+	
+	
+	@Override
+	public Object querySingle(String language, String query, Map<String, Object> params) {
+		try(OResultSet resultSet = getSession().query(query, params)) {
+			return resultSet.elementStream().map(e -> {
+						ODocument doc = (ODocument)e;
+						if(doc.getClassName()!=null) return doc;
+						else return doc.field("value");
+					}).findFirst().orElse(null);
+		}
+	}
+
+	@Override
+	public Object command(String language, String command, Map<String, Object> params) {
+		try(OResultSet resultSet = getSession().command(command, params)) {
+			List<?> ret = resultSet.elementStream().map(e -> {
+				ODocument doc = (ODocument)e;
+				if(doc.getClassName()!=null) return doc;
+				else return doc.field("value");
+			}).collect(Collectors.toList());
+			return ret.isEmpty()?null:(ret.size()==1?ret.get(0):ret);
+		}
+	}
+
 	@Override
 	public void replaceSeed(Object wrapper, Object newSeed) {
 		((ODocumentWrapper)wrapper).fromStream(((OIdentifiable)newSeed).getRecord());

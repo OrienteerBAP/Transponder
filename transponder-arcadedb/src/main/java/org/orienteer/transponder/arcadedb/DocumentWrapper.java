@@ -50,7 +50,9 @@ public class DocumentWrapper {
 	  }
 
 	  public void save() {
-		if(document instanceof MutableDocument) ((MutableDocument)document).save();
+		if(document instanceof MutableDocument) {
+			((MutableDocument)document).save();
+		}
 	  }
 
 	  @Override

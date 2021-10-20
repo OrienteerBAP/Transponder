@@ -14,6 +14,9 @@ public interface ITestDAO {
 		return number;
 	}
 	
+	@Command(value=".*", dialect = "test")
+	public void deleteAll();
+	
 	@Query(value=".*", dialect = "test")
 	public List<ISimpleEntity> getAll();
 	

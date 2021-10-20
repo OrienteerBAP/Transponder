@@ -40,6 +40,7 @@ public class ArcadeDBTestDriver extends ArcadeDBDriver implements ITestDriver{
 	public Object createSeedObject(String typeName, Map<String, ?> properties) {
 		MutableDocument doc = getDatabase().newDocument(typeName);
 		doc.merge((Map<String, Object>)properties);
+		doc.save();
 		return doc;
 	}
 
