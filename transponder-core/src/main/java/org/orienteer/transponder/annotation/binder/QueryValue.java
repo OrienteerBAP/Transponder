@@ -29,6 +29,7 @@ import net.bytebuddy.description.annotation.AnnotationDescription.Loadable;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.ParameterDescription;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.implementation.Implementation.Context;
 import net.bytebuddy.implementation.bind.MethodDelegationBinder;
 import net.bytebuddy.implementation.bind.MethodDelegationBinder.ParameterBinding;
 import net.bytebuddy.implementation.bind.annotation.TargetMethodAnnotationDrivenBinder;
@@ -37,6 +38,7 @@ import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.implementation.bytecode.collection.ArrayFactory;
 import net.bytebuddy.implementation.bytecode.constant.JavaConstantValue;
+import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaConstant;
@@ -72,15 +74,29 @@ public @interface QueryValue {
 				return MethodDelegationBinder.ParameterBinding.Illegal.INSTANCE;
 			AnnotationDescription ann = annotations.get(0);
 			Class<?> ownerClass = safeClassForName(source.getDeclaringType().getTypeName());
-			String queryId = emptyToNull(ann.getValue("id").resolve(String.class));
-			if(queryId==null) queryId = source.getDeclaringType().getTypeName()+"."+source.getName();
-			String language = emptyToNull(ann.getValue("language").resolve(String.class));
-			String value = emptyToNull(ann.getValue("value").resolve(String.class));
-			String dialect = emptyToNull(ann.getValue("dialect").resolve(String.class));
+			final String queryId = defaultIfNullOrEmpty(ann.getValue("id").resolve(String.class), 
+								() -> source.getDeclaringType().getTypeName()+"."+source.getName());
+			final String language = emptyToNull(ann.getValue("language").resolve(String.class));
+			final String value = emptyToNull(ann.getValue("value").resolve(String.class));
+			final String dialect = emptyToNull(ann.getValue("dialect").resolve(String.class));
 			
 			IPolyglot.Translation translation = transponder.getPolyglot()
 								.translate(ownerClass, queryId, language, value, dialect, transponder.getDriver().getDialect());
-			
+			if(translation==null)
+				return new ParameterBinding<Void>() {
+					@Override
+					public boolean isValid() {
+						return false;
+					}
+					@Override
+					public Size apply(MethodVisitor methodVisitor, Context implementationContext) {
+						throw new IllegalStateException(String.format("Translation was not found for key=%s and dialect=%s", queryId, dialect));
+					}
+					@Override
+					public Void getIdentificationToken() {
+						throw new IllegalStateException(String.format("Translation was not found for key=%s and dialect=%s", queryId, dialect));
+					}
+			};
 			return new MethodDelegationBinder.ParameterBinding.Anonymous(
 				createStringArray(translation.getQuery(), translation.getLanguage())
 				);

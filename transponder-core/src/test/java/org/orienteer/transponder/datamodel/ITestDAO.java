@@ -23,7 +23,7 @@ public interface ITestDAO {
 	@Lookup(id="byPk")
 	public boolean checkPresenseByPk(String pk);
 	
-	@Command(id="byPk")
+	@Command(id="removeByPk")
 	public ISimpleEntity removeByPk(String pk);
 	
 	@DefaultValue("1")

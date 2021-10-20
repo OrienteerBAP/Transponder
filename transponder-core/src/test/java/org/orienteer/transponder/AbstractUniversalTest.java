@@ -308,4 +308,84 @@ public abstract class AbstractUniversalTest
 		assertEquals(description, driver.getPropertyValue(otherEntityInstance, "description"));
 	}
 	
+	@Test
+	public void testDAOQuery() {
+		TestDriver driver = new TestDriver();
+		driver.createSeedObject("Simple", CommonUtils.toMap("pk", "a", "name", "Single A"));
+		driver.createSeedObject("Simple", CommonUtils.toMap("pk", "aa", "name",  "Two A"));
+		driver.createSeedObject("Simple", CommonUtils.toMap("pk", "aaa", "name", "Triple A"));
+		ITestDAO dao = new Transponder(driver).dao(ITestDAO.class);
+		List<ISimpleEntity> all = dao.getAll();
+		assertNotNull(all);
+		assertEquals(3, all.size());
+		
+		ISimpleEntity ret = dao.lookupByPk("b");
+		assertNull(ret);
+		ret = dao.lookupByPk("a");
+		assertNotNull(ret);
+		assertEquals("Single A", ret.getName());
+		
+		ret = dao.lookupByPk("aa");
+		assertNotNull(ret);
+		assertEquals("Two A", ret.getName());
+		
+		ret = dao.lookupByPk("aaa");
+		assertNotNull(ret);
+		assertEquals("Triple A", ret.getName());
+	}
+	
+	@Test
+	public void testLookupInDAO() {
+		TestDriver driver = new TestDriver();
+		driver.createSeedObject("Simple", CommonUtils.toMap("pk", "dao1", "name",  "DAO1"));
+		driver.createSeedObject("Simple", CommonUtils.toMap("pk", "dao2", "name",  "DAO2"));
+		ITestDAO dao = new Transponder(driver).dao(ITestDAO.class);
+		ISimpleEntity entity = dao.lookupByPk("dao1");
+		assertNotNull(entity);
+		assertEquals("DAO1", entity.getName());
+		entity = dao.lookupByPk("dao2");
+		assertNotNull(entity);
+		assertEquals("DAO2", entity.getName());
+		entity = dao.lookupByPk("dao3");
+		assertNull(entity);
+		assertTrue(dao.checkPresenseByPk("dao1"));
+		assertTrue(dao.checkPresenseByPk("dao2"));
+		assertFalse(dao.checkPresenseByPk("dao3"));
+	}
+	
+	@Test
+	public void testLookupInEntity() {
+		TestDriver driver = new TestDriver();
+		driver.createSeedObject("Simple", CommonUtils.toMap("pk", "dao1", "name",  "DAO1"));
+		driver.createSeedObject("Simple", CommonUtils.toMap("pk", "dao2", "name",  "DAO2"));
+		ISimpleEntity entity = new Transponder(driver).create(ISimpleEntity.class);
+		assertNotNull(entity.lookupByPk("dao1"));
+		assertEquals("DAO1", entity.getName());
+		assertNotNull(entity.lookupByPk("dao2"));
+		assertEquals("DAO2", entity.getName());
+		assertNull(entity.lookupByPk("dao3"));
+		assertEquals("DAO2", entity.getName()); //Should stay the same
+		
+		assertTrue(entity.checkPresenseByPk("dao1"));
+		assertEquals("DAO1", entity.getName());
+		assertTrue(entity.checkPresenseByPk("dao2"));
+		assertEquals("DAO2", entity.getName());
+		assertFalse(entity.checkPresenseByPk("dao3"));
+		assertEquals("DAO2", entity.getName()); //Should stay the same
+	}
+	
+	@Test
+	public void testCommand() {
+		TestDriver driver = new TestDriver();
+		driver.createSeedObject("Simple", CommonUtils.toMap("pk", "dao1", "name",  "DAO1"));
+		driver.createSeedObject("Simple", CommonUtils.toMap("pk", "dao2", "name",  "DAO2"));
+		ITestDAO dao = new Transponder(driver).dao(ITestDAO.class);
+		ISimpleEntity entity = dao.removeByPk("dao1");
+		assertNotNull(entity);
+		assertEquals("DAO1", entity.getName());
+		assertNull(dao.removeByPk("dao1"));
+		assertNotNull(dao.removeByPk("dao2"));
+		assertNull(dao.removeByPk("dao2"));
+	}
+	
 }

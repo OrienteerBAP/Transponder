@@ -188,18 +188,11 @@ public class TestDriver implements ITestDriver {
 	
 	@Override
 	public Object createSeedObject(String typeName, Map<String, ?> properties) {
+		Object pk = properties.get("pk");
+		if(pk!=null) db.put(pk.toString(), (Map<String, Object>)properties);
 		return properties;
 	}
 
-	public TestDriver insertRecord(String pk, Map<String, Object> value) {
-		db.put(pk, value);
-		return this;
-	}
-	
-	public TestDriver insertRecord(String pk, Object... objects) {
-		return insertRecord(pk, CommonUtils.toMap(objects));
-	}
-	
 	@Override
 	public String getDialect() {
 		return DIALECT_TEST;

@@ -34,14 +34,16 @@ public class DefaultPolyglot implements IPolyglot {
 		if(translation==null) {
 			translation = dictionary.get(queryId, EMPTY);
 			if(translation==null) {
-				translation = new Translation(srcLanguage, srcQuery);
+				if(toDialect.equals(srcDialect) || Strings.isNullOrEmpty(srcDialect)) 
+					translation = new Translation(srcLanguage, srcQuery);
 			}
 		}
 		return checkLanguage(translation, srcLanguage);
 	}
 	
 	private Translation checkLanguage(Translation translation, String defaultLanguage) {
-		if(!Strings.isNullOrEmpty(translation.getLanguage()) 
+		if(translation==null) return null;
+		else if(!Strings.isNullOrEmpty(translation.getLanguage()) 
 				|| Strings.isNullOrEmpty(defaultLanguage)) return translation;
 		else return new Translation(defaultLanguage, translation.getQuery());
 	}

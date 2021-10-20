@@ -105,6 +105,16 @@ public class CommonUtils {
 	}
 	
 	/**
+	 * Returns defaultValue if actual value is null or empty.
+	 * @param value value to check
+	 * @param defaultValueSupplier supplier to provide default value if main value is null or empty
+	 * @return value if it's not null or empty or defaultValue
+	 */
+	public String defaultIfNullOrEmpty(String value, Supplier<String> defaultValueSupplier) {
+		return !Strings.isNullOrEmpty(value)?value:defaultValueSupplier.get();
+	}
+	
+	/**
 	 * Return main object if it's not null or supplied default
 	 * @param <T> required return type
 	 * @param object main object
