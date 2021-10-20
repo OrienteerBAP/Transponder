@@ -35,8 +35,6 @@ import com.orientechnologies.orient.core.metadata.schema.OProperty;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
-import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
-import com.orientechnologies.orient.core.type.ODocumentWrapper;
 
 import junit.framework.AssertionFailedError;
 
@@ -102,8 +100,8 @@ public class DAOTest {
 	@Test
 	public void testInjection() {
 		IDAOTestClass doc = transponder.dao(IDAOTestClass.class);
-		List<ODocument> perspectives = getDatabase().query(new OSQLSynchQuery<ODocument>("select from DAOTestClass"));
-		for (ODocument oDocument : perspectives) {
+		getDatabase().query("select from DAOTestClass").elementStream().forEach(e -> {
+			ODocument oDocument = (ODocument) e;
 			doc.fromStream(oDocument);
 			assertEquals(oDocument.field("name"), doc.getName());
 			assertEquals(oDocument.field("name"), doc.getNameSynonymMethod());
@@ -111,7 +109,7 @@ public class DAOTest {
 			assertEquals("test2"+oDocument.field("name"), doc.getTest2Name());
 			assertEquals("test3test"+oDocument.field("name"), doc.getTest3Name());
 			assertEquals((Object)oDocument.field("name"), doc.getDocument().field("name"));
-		}
+		});
 	}
 	
 	@Test
@@ -251,7 +249,7 @@ public class DAOTest {
 	public void testDescriber() {
 		OSchema schema = getDatabase().getMetadata().getSchema();
 		try {
-			transponder.describe(IDAOTestClassA.class);
+			transponder.define(IDAOTestClassA.class);
 			assertTrue(schema.existsClass("DAOTestClassRoot"));
 			assertTrue(schema.existsClass("DAOTestClassA"));
 			assertTrue(schema.existsClass("DAOTestClassB"));
@@ -304,7 +302,7 @@ public class DAOTest {
 	public void testDescribeAllTypes() {
 		OSchema schema = getDatabase().getMetadata().getSchema();
 		try {
-			transponder.describe(IDAOAllTypesTestClass.class);
+			transponder.define(IDAOAllTypesTestClass.class);
 			assertTrue(schema.existsClass("DAOAllTypesTestClass"));
 			assertTrue(schema.existsClass("IDAODummyClass"));
 			OClass oClass = schema.getClass("DAOAllTypesTestClass");
@@ -386,7 +384,7 @@ public class DAOTest {
 	public void testInheritedClass() {
 		OSchema schema = getDatabase().getMetadata().getSchema();
 		try {
-			transponder.describe(IDAOTestClassA.class);
+			transponder.define(IDAOTestClassA.class);
 			IDAOTestClassA obj = transponder.create(IDAOTestClassA.class);
 			obj.setName("TestInheritedClass");
 			ODriver.save(obj);

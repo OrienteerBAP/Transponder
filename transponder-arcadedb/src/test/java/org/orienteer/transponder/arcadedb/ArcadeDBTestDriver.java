@@ -5,7 +5,6 @@ import java.util.Map;
 import org.orienteer.transponder.ITestDriver;
 
 import com.arcadedb.database.Database;
-import com.arcadedb.database.Document;
 import com.arcadedb.database.MutableDocument;
 
 public class ArcadeDBTestDriver extends ArcadeDBDriver implements ITestDriver{

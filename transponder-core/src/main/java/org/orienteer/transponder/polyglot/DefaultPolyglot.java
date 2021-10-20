@@ -9,10 +9,8 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-import org.orienteer.transponder.IDriver;
 import org.orienteer.transponder.IPolyglot;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;

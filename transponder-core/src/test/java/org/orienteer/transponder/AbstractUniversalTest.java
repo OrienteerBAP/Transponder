@@ -55,7 +55,7 @@ public abstract class AbstractUniversalTest
 	
 	@Test
 	public void testEntityDescription() {
-		transponder.describe(ISimpleEntity.class);
+		transponder.define(ISimpleEntity.class);
 		driver.assertHasType("Simple");
 		driver.assertHasProperty("Simple", "name");
 		driver.assertHasProperty("Simple", "description");
@@ -94,7 +94,7 @@ public abstract class AbstractUniversalTest
 	
 	@Test
 	public void testTransponderPreserving() throws Exception {
-		transponder.describe(ISimpleEntity.class);
+		transponder.define(ISimpleEntity.class);
 		ISimpleEntity entity = transponder.create(ISimpleEntity.class);
 		assertTrue(entity instanceof ITransponderHolder);
 		assertEquals(transponder, ((ITransponderHolder)entity).get$transponder());
@@ -397,7 +397,7 @@ public abstract class AbstractUniversalTest
 	
 	@Test
 	public void testSampleDataModel() {
-		transponder.describe(IFile.class, IFolder.class);
+		transponder.define(IFile.class, IFolder.class);
 		driver.assertHasType("File");
 		driver.assertHasType("Folder");
 //		driver.assertHasProperty("Folder", "name");

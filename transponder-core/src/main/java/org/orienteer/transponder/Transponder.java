@@ -3,8 +3,6 @@ package org.orienteer.transponder;
 import static org.orienteer.transponder.CommonUtils.*;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -20,6 +18,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
+import java.util.function.Supplier;
 
 import org.orienteer.transponder.annotation.EntityIndex;
 import org.orienteer.transponder.annotation.EntityProperty;
@@ -30,20 +30,18 @@ import org.orienteer.transponder.polyglot.DefaultPolyglot;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.TypeCache;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.FieldAccessor;
-import net.bytebuddy.jar.asm.ClassReader;
-import net.bytebuddy.jar.asm.ClassVisitor;
-import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
 
 public class Transponder {
 	
-	private static final Class<?>[] NO_CLASSES = new Class<?>[0];
 	private static final TypeCache<Integer> DAO_CACHE = new TypeCache<Integer>(TypeCache.Sort.SOFT);
 	
 	private final IDriver driver;
@@ -267,30 +265,30 @@ public class Transponder {
 		return setTransponder(driver.newDAOInstance(getProxyClass(Object.class, mainClass, false, additionalInterfaces)));
 	}
 	
-	public Transponder describe(Class<?>... classes) {
+	public Transponder define(Class<?>... classes) {
 		DescribeContext ctx = new DescribeContext(this);
-		describe(Arrays.asList(classes), ctx);
+		define(Arrays.asList(classes), ctx);
 		ctx.close(false);
 		return this;
 	}
 	
-	private Set<String> describe(List<Class<?>> classes, DescribeContext ctx) {
+	private Set<String> define(List<Class<?>> classes, DescribeContext ctx) {
 		Set<String> types = new HashSet<String>();
 		for (Class<?> clazz : classes) {
-			String className = describe(clazz, ctx);
+			String className = define(clazz, ctx);
 			if(className!=null) types.add(className);
 		}
 		return types;
 	}
 	
-	String describe(Class<?> clazz, DescribeContext ctx) {
+	String define(Class<?> clazz, DescribeContext ctx) {
 		if(clazz==null || !clazz.isInterface()) return null;	
 		final EntityType type = clazz.getAnnotation(EntityType.class);
 		if(type==null) return null;
 		if(ctx.wasDescribed(clazz)) return ctx.getType(clazz);
 		ctx.entering(clazz, type.value());
 		List<Class<?>> interfaces = Arrays.asList(clazz.getInterfaces());
-		Set<String> superClasses = describe(interfaces, ctx);
+		Set<String> superClasses = define(interfaces, ctx);
 		superClasses.addAll(Arrays.asList(type.superTypes()));
 		
 		int currentOrder=0;
@@ -388,6 +386,127 @@ public class Transponder {
 	public static void save(Object object) {
 		Transponder transponder = getTransponder(object);
 		transponder.getDriver().saveEntityInstance(object);
+	}
+	
+	private static class DescribeContext {
+		
+		class ContextItem {
+			private Class<?> typeClass;
+			private String type;
+			private Map<String, Runnable> postponedTillExit = new HashMap<String, Runnable>();
+			private Multimap<String, Runnable> postponedTillDefined = ArrayListMultimap.create();
+			
+			ContextItem(Class<?> daoClass, String oClass) {
+				this.typeClass = daoClass;
+				this.type = oClass;
+			}
+		}
+		
+		private final Transponder transponder;
+		
+		private Map<Class<?>, String> describedClasses = new HashMap<Class<?>, String>();
+		
+		private Stack<Class<?>> processingStackIndex = new Stack<Class<?>>();
+		private Stack<ContextItem> processingStack = new Stack<ContextItem>();
+		
+		private Multimap<String, Runnable> globalPostponedTillDefined = ArrayListMultimap.create();
+		
+		public DescribeContext(Transponder transponder) {
+			this.transponder = transponder;
+		}
+		
+
+		public void entering(Class<?> clazz, String type) {
+			if(processingStackIndex.contains(clazz)) throw new IllegalStateException("Class "+clazz.getName()+" is already in stack. Stop infinite loop.");
+			processingStackIndex.push(clazz);
+			processingStack.push(new ContextItem(clazz, type));
+		}
+		
+		public void exiting(Class<?> clazz, String type) {
+			Class<?> exiting = processingStackIndex.pop();
+			if(!clazz.equals(exiting)) throw new IllegalStateException("Exiting from wrong execution: expected "+clazz.getName()+" but in a stack "+exiting.getName());
+			ContextItem last = processingStack.pop();
+			if(!type.equals(last.type))  throw new IllegalStateException("Exiting from wrong execution: expected "+type+" but in a stack "+last.type);
+			for (Runnable postponed : last.postponedTillExit.values()) {
+				postponed.run();
+			}
+			describedClasses.put(clazz, type);
+			
+			Multimap<String, Runnable> mergeTo = processingStack.empty()?globalPostponedTillDefined:processingStack.lastElement().postponedTillDefined;
+			Iterator<Map.Entry<String, Collection<Runnable>>> it = last.postponedTillDefined.asMap().entrySet().iterator();
+			while(it.hasNext()) {
+				Map.Entry<String, Collection<Runnable>> entry = it.next();
+				if(wasDescribed(entry.getKey())) {
+					for (Runnable runnable : entry.getValue()) {
+						runnable.run();
+					}
+					it.remove();
+				} else {
+					Collection<Runnable> mergeToValue = mergeTo.get(entry.getKey());
+					if(mergeToValue!=null) mergeToValue.addAll(entry.getValue());
+					else mergeTo.putAll(entry.getKey(), entry.getValue());
+				}
+			}
+			
+		}
+		
+		public boolean inStack(Class<?> clazz) {
+			return processingStackIndex.contains(clazz);
+		}
+		
+		public boolean wasDescribed(Class<?> clazz) {
+			return describedClasses.containsKey(clazz);
+		}
+		
+		public boolean wasDescribed(String oClass) {
+			return describedClasses.containsValue(oClass);
+		}
+		
+		public String getType(Class<?> clazz) {
+			return describedClasses.get(clazz);
+		}
+		
+		public String getTypeFromStack(Class<?> clazz) {
+			int indx = processingStackIndex.indexOf(clazz);
+			return indx>=0?processingStack.get(indx).type:null;
+		}
+		
+		public String resolveType(Class<?> clazz, Supplier<String> supplier) {
+			String ret = getType(clazz);
+			if(Strings.isNullOrEmpty(ret)) ret = getTypeFromStack(clazz);
+			return !Strings.isNullOrEmpty(ret) ? ret : supplier.get();
+		}
+		
+		public String resolveOrDescribeTypeClass(Class<?> clazz) {
+			if(clazz==null) return null;
+			String ret = getType(clazz);
+			if(Strings.isNullOrEmpty(ret)) ret = getTypeFromStack(clazz);
+			return !Strings.isNullOrEmpty(ret) ? ret : transponder.define(clazz, this);
+		}
+		
+		public boolean isPropertyCreationScheduled(String propertyName) {
+			return processingStack.lastElement().postponedTillExit.containsKey(propertyName);
+		}
+		
+		public void postponeTillExit(String propertyName, Runnable supplier) {
+			processingStack.lastElement().postponedTillExit.put(propertyName, supplier);
+		}
+		
+		public void postponeTillDefined(String linkedClass, Runnable supplier) {
+			processingStack.lastElement().postponedTillDefined.put(linkedClass, supplier);
+		}
+		
+		public void close(boolean restrictDependencies) {
+			if(processingStackIndex.size()>0) throw new IllegalStateException("Can't close context because stack is not null");
+			Collection<Runnable> remaining = globalPostponedTillDefined.values();
+			if(restrictDependencies && remaining.size()>0) throw new IllegalStateException("There are unsitisfied dependencies");
+			remaining.forEach(Runnable::run);
+		}
+		
+		public String getCurrentType() {
+			return processingStack.peek().type;
+		}
+
 	}
 	
 }

@@ -2,8 +2,6 @@ package org.orienteer.transponder.orientdb;
 
 import java.io.Serializable;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
@@ -13,18 +11,13 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static org.orienteer.transponder.CommonUtils.*;
-import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import org.orienteer.transponder.IDriver;
-import org.orienteer.transponder.IMutator;
-import org.orienteer.transponder.Transponder;
 
 import com.google.common.base.Strings;
-import com.google.common.primitives.Primitives;
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
-import com.orientechnologies.orient.core.index.OIndex;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OProperty;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
@@ -32,13 +25,6 @@ import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.executor.OResultSet;
 import com.orientechnologies.orient.core.type.ODocumentWrapper;
-
-import net.bytebuddy.dynamic.DynamicType.Builder;
-import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.implementation.bind.annotation.AllArguments;
-import net.bytebuddy.implementation.bind.annotation.Origin;
-import net.bytebuddy.implementation.bind.annotation.RuntimeType;
-import net.bytebuddy.implementation.bind.annotation.This;
 
 public class ODriver implements IDriver {
 	

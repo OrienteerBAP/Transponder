@@ -1,13 +1,11 @@
 package org.orienteer.transponder;
 
 import static com.google.common.primitives.Primitives.wrap;
-import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -26,19 +24,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import org.orienteer.transponder.Transponder.ITransponderHolder;
 
 import com.google.common.base.Strings;
 
 import lombok.experimental.UtilityClass;
 import net.bytebuddy.description.method.MethodDescription;
-import net.bytebuddy.description.method.MethodList;
 import net.bytebuddy.description.type.TypeDefinition;
-import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeList;
-import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition;
-import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.MethodVisitor;

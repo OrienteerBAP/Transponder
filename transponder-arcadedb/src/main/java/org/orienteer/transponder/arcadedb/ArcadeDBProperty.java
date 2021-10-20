@@ -6,8 +6,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import com.arcadedb.schema.Type;
-
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface ArcadeDBProperty {

@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 
-import org.apache.lucene.util.packed.PackedInts.Mutable;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
