@@ -21,10 +21,17 @@ import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.implementation.bytecode.constant.JavaConstantValue;
 import net.bytebuddy.utility.JavaConstant;
 
+/**
+ * ByteBuddy binder to provide property name for getters and setters.
+ * Uses name of the method or {@link EntityProperty} annotation to obtain name of a property in target data source.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface PropertyName {
 
+	/**
+	 * Instance of binder for {@link PropertyName}
+	 */
 	enum Binder implements TargetMethodAnnotationDrivenBinder.ParameterBinder<PropertyName> {
 		INSTANCE;
 

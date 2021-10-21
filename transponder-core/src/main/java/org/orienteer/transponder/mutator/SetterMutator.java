@@ -14,6 +14,9 @@ import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.This;
 
+/**
+ * {@link IMutator} to implement setters methods
+ */
 public class SetterMutator implements IMutator {
 
 	@Override
@@ -23,9 +26,20 @@ public class SetterMutator implements IMutator {
 					.and(isAbstract()), SetDelegate.class, PropertyName.Binder.INSTANCE);
 	}
 	
+	/**
+	 * ByteBuddy delegate
+	 */
 	public static class SetDelegate {
+		/**
+		 * Sets value of a propertys
+		 * @param property name of property to set value to
+		 * @param wrapper wrapper object
+		 * @param method original method to support chaining
+		 * @param value actual value to set
+		 * @return null or wrapper object: depends on method definition
+		 */
 		@RuntimeType
-		public static Object getValue(@PropertyName String property, @This Object wrapper, @Origin Method method, @Argument(0) Object value) {
+		public static Object setValue(@PropertyName String property, @This Object wrapper, @Origin Method method, @Argument(0) Object value) {
 			Transponder transponder = Transponder.getTransponder(wrapper);
 			transponder.getDriver().setPropertyValue(wrapper, property, Transponder.unwrap(value));
 			if(method.getReturnType().isInstance(wrapper)) return wrapper;

@@ -21,6 +21,9 @@ import com.arcadedb.schema.Type;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+/**
+ * Transponder {@link IDriver} for ArcadeDB
+ */
 public class ArcadeDBDriver implements IDriver {
 	
 	public static final String DIALECT_ARCADEDB = "arcadedb";
@@ -37,10 +40,19 @@ public class ArcadeDBDriver implements IDriver {
 	private final Database database;
 	private final boolean overrideSchema;
 	
+	/**
+	 * Creates {@link IDriver} which associated with provided ArcadeDb database
+	 * @param database ArcadeDB database instance to associate driver with
+	 */
 	public ArcadeDBDriver(Database database) {
 		this(database, false);
 	}
 	
+	/**
+	 * Creates {@link IDriver} which associated with provided ArcadeDb database
+	 * @param database ArcadeDB database instance to associate driver with
+	 * @param overrideSchema flag which shows should schema be overridden or not
+	 */
 	public ArcadeDBDriver(Database database, boolean overrideSchema) {
 		this.database = database;
 		this.overrideSchema = overrideSchema;
@@ -55,7 +67,7 @@ public class ArcadeDBDriver implements IDriver {
 			String superType = superTypes[i];
 			parentTypes[i] = schema.getType(superType);
 		} 
-		DocumentType type;;
+		DocumentType type;
 		boolean existing = schema.existsType(typeName);
 		if(!existing) {
 			type = schema.createDocumentType(typeName);
@@ -63,7 +75,7 @@ public class ArcadeDBDriver implements IDriver {
 			type = schema.getType(typeName);
 		}
 		if(!existing || overrideSchema) {
-			ArcadeDBUtils.setParentTypes(type, Arrays.asList(parentTypes));
+			type.setParentTypes(Arrays.asList(parentTypes));
 		}
 		TYPE_TO_MAIN_CLASS.put(typeName, mainWrapperClass);
 	}
@@ -85,7 +97,7 @@ public class ArcadeDBDriver implements IDriver {
 		if(propType==null && referencedType!=null) {
 			propType = annotation!=null && annotation.embedded() ? Type.EMBEDDED : Type.LINK;
 		}
-		if(!existsPolymorphicProperty(oClass, propertyName)) {
+		if(!oClass.existsPolymorphicProperty(propertyName)) {
 			oClass.createProperty(propertyName, propType);
 		}
 		
@@ -193,10 +205,16 @@ public class ArcadeDBDriver implements IDriver {
 		return DIALECT_ARCADEDB;
 	}
 
+	/**
+	 * @return {@link Schema} for the associated ArcadeDB database
+	 */
 	public Schema getSchema() {
 		return getDatabase().getSchema();
 	}
 	
+	/**
+	 * @return associated ArcadeDB instance
+	 */
 	public Database getDatabase() {
 		return database;
 	}

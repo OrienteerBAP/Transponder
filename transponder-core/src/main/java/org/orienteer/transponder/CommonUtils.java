@@ -182,6 +182,13 @@ public class CommonUtils {
 		return Character.toLowerCase(s.charAt(0)) + s.substring(1);
 	}
 	
+	/**
+	 * Calculates difference between 2 annotations
+	 * @param <A> type of annotations to be compared
+	 * @param ann1 first annotation
+	 * @param ann2 second annotation
+	 * @return set of annotation's property names for which provided annotations have different values
+	 */
     public <A extends Annotation> Set<String> diffAnnotations(A ann1, A ann2){
     	try {
 			Set<Method> methods = new HashSet<Method>(Arrays.asList(ann1.getClass().getInterfaces()[0].getMethods()));
@@ -199,6 +206,12 @@ public class CommonUtils {
 		} 
     }
     
+    /**
+     * Find first annotation which is from the provided list of annotation types
+     * @param where element where to look for annotations
+     * @param classes list of annotation types to look for
+     * @return fist annotation which was found
+     */
     public Annotation getFirstPresentAnnotation(AnnotatedElement where, Class<? extends Annotation>...classes) {
     	if(classes==null || classes.length==0) return null;
     	for (Class<? extends Annotation> class1 : classes) {
@@ -208,6 +221,12 @@ public class CommonUtils {
     	return null;
     }
     
+    /**
+     * Figure out master class for provided generic type.
+     * For example: for <code>List&lt;Integer&gt;</code> <b>List</b> will be returned
+     * @param type type to be analyzed
+     * @return master class
+     */
     public Class<?> typeToMasterClass(Type type) {
     	
     	if(type instanceof Class) return wrap((Class<?>)type);
@@ -216,6 +235,16 @@ public class CommonUtils {
     	return null;
     }
     
+    /**
+     * Try to figure out actual class to which current property might be interested to reference to.
+     * For example:
+     * <ul>
+     * <li>For <code>public MyClass getMyProperty()</code> <b>MyClass</b> will be returned</li>
+     * <li>For <code>public List<MyClass> getMyProperty()</code> <b>MyClass</b> will be returned as well</li>
+     * </ul>
+     * @param type generic type to be analyzed
+     * @return class which might be required to reference to
+     */
 	public Class<?> typeToRequiredClass(Type type) {
 		if(type instanceof Class) return wrap((Class<?>) type);
 		else if(type instanceof WildcardType) 
@@ -227,6 +256,13 @@ public class CommonUtils {
 		return null;
 	}
 	
+	/**
+	 * Silent creation of instance for provided class or interface.
+	 * Only limited set of interfaces is supported
+	 * @param <T> type of an instance to be created
+	 * @param clazz class name for which new instance should be created
+	 * @return newly created instance of a specified class/interface
+	 */
 	public <T> T newInstance(Class<T> clazz) {
 		if(!clazz.isInterface()) {
 			try {
@@ -241,6 +277,11 @@ public class CommonUtils {
 		else throw new IllegalArgumentException("Can't instantiate "+clazz.getName());
 	}
 	
+	/**
+	 * Silent resolving of a class for provided class name
+	 * @param className name of a class to look for
+	 * @return {@link Class} per specified className
+	 */
 	public Class<?> safeClassForName(String className) {
 		try {
 			return Class.forName(className);
@@ -249,6 +290,11 @@ public class CommonUtils {
 		}
 	}
 	
+	/**
+	 * Check type of the provided object
+	 * @param iObject object to be checked
+	 * @return true of class of the instance considered simple
+	 */
 	public boolean isSimpleType(final Object iObject) {
 		if (iObject == null)
 			return false;
@@ -267,10 +313,25 @@ public class CommonUtils {
 		return false;
 	}
 	
+	/**
+	 * Introspect method parameters and create a map with parameter name - parameter value
+	 * @param method method to be analyzed
+	 * @param values array of arguments/values
+	 * @return Map with parameter name - parameter value
+	 */
 	public Map<String, Object> toArguments(Method method, Object[] values) {
 		return toArguments(null, true, method, values);
 	}
 	
+	/**
+	 * Introspect method parameters and create a map with parameter name - parameter value.
+	 * Try to merge new set with provided map
+	 * @param args previous map to merge to
+	 * @param override is it ok to override previously existing entries or they should be kept intact 
+	 * @param method method to be analyzed
+	 * @param values array of arguments/values
+	 * @return Map with parameter name - parameter value
+	 */
 	public Map<String, Object> toArguments(Map<String, Object> args, boolean override, Method method, Object[] values) {
 		if(args==null) {
 			args = new HashMap<>();
@@ -292,6 +353,12 @@ public class CommonUtils {
 		return args;
 	}
 	
+	/**
+	 * Substitute values into provided pattern
+	 * @param pattern pattern to substitute into
+	 * @param params map of parameters
+	 * @return interpolated string with substituted values
+	 */
 	public String interpolate(String pattern, Map<String, Object> params) {
 		String ret = pattern;
 		if(params!=null && !params.isEmpty()) {
@@ -304,6 +371,11 @@ public class CommonUtils {
 		return ret;
 	}
 	
+	/**
+	 * List of declared methods of a provided class in order according to source code
+	 * @param clazz class to list methods for
+	 * @return ordered list of methods according to source code
+	 */
 	public List<Method> listDeclaredMethods(Class<?> clazz) {
 		Method[] unsortedMethods = clazz.getDeclaredMethods();
 		Map<String, Method> methodMapping = new HashMap<>();
@@ -333,6 +405,13 @@ public class CommonUtils {
 		
 	}
 	
+	/**
+	 * Lazy check for presence of any element from iterable which match to provided matcher
+	 * @param <T> type of elements in iterable
+	 * @param iterable collection of elements to be checked
+	 * @param matcher matcher for probing elements
+	 * @return true if there is at least one element which matches to matcher
+	 */
 	public <T> boolean hasMatch(Iterable<T> iterable, ElementMatcher<? super T> matcher)
 	{
 		for (T t : iterable) {
@@ -341,12 +420,22 @@ public class CommonUtils {
 		return false;
 	}
 	
+	/**
+	 * Get full list of methods of a specified class: including super classes/interfaces
+	 * @param type class to analyze
+	 * @return list of all methods
+	 */
 	public List<MethodDescription> getMethodDescriptionList(TypeDefinition type) {
 		List<MethodDescription> ret = new ArrayList<>();
 		collectMethodDescriptions(type, ret);
 		return ret;
 	}
 	
+	/**
+	 * Collect list of methods of a specified class: including super classes/interfaces
+	 * @param type class to analyze
+	 * @param list to collect to all methods
+	 */
 	public void collectMethodDescriptions(TypeDefinition type, List<MethodDescription> list) {
 		if(type==null) return;
 		list.addAll(type.getDeclaredMethods());
@@ -355,12 +444,22 @@ public class CommonUtils {
 		interfaces.forEach(intf -> collectMethodDescriptions(intf, list));
 	}
 	
+	/**
+	 * Get full list of methods of a specified class: including super classes/interfaces
+	 * @param clazz class to analyze
+	 * @return list of all methods
+	 */
 	public List<Method> getMethodList(Class<?> clazz) {
 		List<Method> ret = new ArrayList<>();
 		collectMethods(clazz, ret);
 		return ret;
 	}
 	
+	/**
+	 * Collect list of methods of a specified class: including super classes/interfaces
+	 * @param clazz class to analyze
+	 * @param list to collect to all methods
+	 */
 	public void collectMethods(Class<?> clazz, List<Method> list) {
 		if(clazz==null) return;
 		list.addAll(Arrays.asList(clazz.getDeclaredMethods()));
@@ -372,6 +471,13 @@ public class CommonUtils {
 		}
 	}
 	
+	/**
+	 * Try to create instance of a specified class with string based value
+	 * @param <T> type of an instance to be created
+	 * @param value string representation of a value
+	 * @param clazz type of an instance to be created
+	 * @return instance of the required type
+	 */
 	public <T> T stringToInstance(String value, Class<T> clazz) {
 		if(clazz.isInstance(value)) return (T) value;
 		else {

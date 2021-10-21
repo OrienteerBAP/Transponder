@@ -6,6 +6,7 @@ import org.orienteer.transponder.BuilderScheduler;
 import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
 import org.orienteer.transponder.Transponder.ITransponderEntity;
+import org.orienteer.transponder.annotation.Command;
 import org.orienteer.transponder.annotation.Query;
 import org.orienteer.transponder.annotation.binder.QueryValue;
 
@@ -20,6 +21,9 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * {@link IMutator} and delegate to implement methods annotated by {@link Query}
+ */
 public class QueryMutator implements IMutator {
 
 	@Override
@@ -29,9 +33,20 @@ public class QueryMutator implements IMutator {
 								   new QueryValue.Binder(transponder));
 	}
 	
+	/**
+	 * ByteBuddy delegate for {@link Query} processing
+	 */
 	public static class QueryDelegate {
+		/**
+		 * ByteBuddy delegate
+		 * @param query already translated query
+		 * @param origin original method to support dynamic casting
+		 * @param thisObject wrapper object
+		 * @param args array with all arguments
+		 * @return result of the query
+		 */
 		@RuntimeType
-		public static Object query(@QueryValue String[] query, @Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
+		public static Object executeQuery(@QueryValue String[] query, @Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
 			try {
 				Map<String, Object> params = toArguments(origin, args);
 				if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));

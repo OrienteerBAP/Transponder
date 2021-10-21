@@ -15,10 +15,22 @@ import com.google.common.base.Strings;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
+/**
+ * Default implementation of {@link IPolyglot}
+ */
 public class DefaultPolyglot implements IPolyglot {
 	
+	/**
+	 * Name of a resource to be scanned
+	 */
 	public static final String POLYGLOT_RESOURCES = "META-INF/transponder/polyglot.properties";
+	/**
+	 * Suffix of property keys to be used for language overriding
+	 */
 	public static final String LANGUAGE_SUFFIX  = ".language";
+	/**
+	 * Just empty string
+	 */
 	public static final String EMPTY = "";
 	
 	private Table<String, String, Translation> dictionary = HashBasedTable.create();
@@ -54,11 +66,21 @@ public class DefaultPolyglot implements IPolyglot {
 		}
 	}
 	
+	/**
+	 * Load resources for specified class
+	 * @param ownerClass class to be used for resource loading
+	 * @throws IOException if resources can't be loaded
+	 */
 	public void loadForClass(Class<?> ownerClass) throws IOException {
 		tryToLoadForClassLoader(DefaultPolyglot.class.getClassLoader());
 		tryToLoadForClassLoader(ownerClass.getClassLoader());
 	}
 	
+	/**
+	 * Try to load resources for specified class loader
+	 * @param cl class loader to load from
+	 * @throws IOException if resources can't be loaded
+	 */
 	public void tryToLoadForClassLoader(ClassLoader cl) throws IOException {
 		if(loadedFromCL.contains(cl.hashCode())) return;
 		try {
@@ -71,6 +93,11 @@ public class DefaultPolyglot implements IPolyglot {
 		}
 	}
 	
+	/**
+	 * Load resources from specified URL
+	 * @param url url to load from
+	 * @throws IOException if resources can't be loaded
+	 */
 	public void loadFromURL(URL url) throws IOException {
 		try(InputStream is = url.openStream()) {
 			Properties content = new Properties();

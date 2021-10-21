@@ -26,7 +26,7 @@ public class ArcadeDBTestDriver extends ArcadeDBDriver implements ITestDriver{
 
 	@Override
 	public boolean hasProperty(String typeName, String propertyName) {
-		return hasType(typeName) && ArcadeDBUtils.existsPolymorphicProperty(getSchema().getType(typeName), propertyName);
+		return hasType(typeName) && getSchema().getType(typeName).existsPolymorphicProperty(propertyName);
 	}
 
 	@Override

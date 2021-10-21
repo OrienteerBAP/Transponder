@@ -26,6 +26,9 @@ import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.executor.OResultSet;
 import com.orientechnologies.orient.core.type.ODocumentWrapper;
 
+/**
+ * {@link IDriver} implementation for OrientDB
+ */
 public class ODriver implements IDriver {
 	
 	public static final String DIALECT_ORIENTDB = "orientdb";
@@ -49,10 +52,17 @@ public class ODriver implements IDriver {
 	
 	private final boolean overrideSchema;
 	
+	/**
+	 * Creates default {@link IDriver} for OrientDB
+	 */
 	public ODriver() {
 		this(false);
 	}
 	
+	/**
+	 * Created {@link IDriver} which can override scheme
+	 * @param overrideSchema flag which shows should schema be overridden or not
+	 */
 	public ODriver(boolean overrideSchema) {
 		this.overrideSchema = overrideSchema;
 	}
@@ -299,21 +309,43 @@ public class ODriver implements IDriver {
 		return ret;
 	}
 	
+	/**
+	 * Cast wrapped entity to {@link ODocumentWrapper}
+	 * @param obj wrapped entity
+	 * @return the same object, but casted to {@link ODocumentWrapper}
+	 */
 	public static ODocumentWrapper asWrapper(Object obj) {
 		if(obj==null) return null;
 		else if (obj instanceof ODocumentWrapper) return (ODocumentWrapper)obj;
 		else throw new IllegalStateException("Object is not a wrapper. Object: "+obj);
 	}
 	
+	/**
+	 * Obtain {@link ODocument} for the specified wrapped entity
+	 * @param obj wrapped entity
+	 * @return ODocument
+	 */
 	public static ODocument asDocument(Object obj) {
 		return obj!=null?asWrapper(obj).getDocument():null;
 	}
 	
+	/**
+	 * Saves/Persist provided wrapped entity
+	 * @param <T> type of a wrapped entity
+	 * @param obj wrapped entity to save/persist
+	 * @return the same wrapped entity for chaining
+	 */
 	public static <T> T save(T obj) {
 		asWrapper(obj).save();
 		return obj;
 	}
 	
+	/**
+	 * Reloads provided wrapped entity
+	 * @param <T> type of a wrapped entity
+	 * @param obj wrapped entity to reload
+	 * @return the same wrapped entity for chaining
+	 */
 	public static <T> T reload(T obj) {
 		asWrapper(obj).reload();
 		return obj;

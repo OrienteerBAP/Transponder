@@ -9,7 +9,7 @@ import com.orientechnologies.orient.core.type.ODocumentWrapper;
  * Interface which mirror methods of {@link ODocumentWrapper} 
  */
 public interface IODocumentWrapper extends Serializable {
-	
+	//CHECKSTYLE IGNORE MissingJavadocMethod FOR NEXT 35 LINES
 	public void fromStream(final ODocument iDocument);
 	public ODocument toStream();
 	public default <R extends IODocumentWrapper> R load(final String iFetchPlan, final boolean iIgnoreCache) {

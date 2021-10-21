@@ -43,19 +43,30 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaConstant;
 
+/**
+ * ByteBuddy binder to resolve/translate with the aid of {@link IPolyglot} actual query/command to be executed.
+ * Can be used only over <code>String[]</code> and designed to work only with {@link Query}, {@link Lookup}, {@link Command}
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface QueryValue {
 
+	/**
+	 * Actual binder for {@link QueryValue}. Should be instantiated everytime, because it requires instance of {@link Transponder}
+	 */
 	public static class Binder implements TargetMethodAnnotationDrivenBinder.ParameterBinder<QueryValue> {
 		
 		private final Transponder transponder;
 		
-		public static final ElementMatcher<AnnotationDescription> MATCHER = 
+		private static final ElementMatcher<AnnotationDescription> MATCHER = 
 				ElementMatchers.annotationType(Query.class)
 			.or(ElementMatchers.annotationType(Lookup.class))
 			.or(ElementMatchers.annotationType(Command.class));
 		
+		/**
+		 * Creates the binder for {@link QueryValue}. Transponder is required to be able to translate queries
+		 * @param transponder transponder instance to be associated with current binder
+		 */
 		public Binder(Transponder transponder) {
 			this.transponder = transponder;
 		}

@@ -24,7 +24,7 @@ public interface IDriver {
 	 * @param typeName name of a type for which new property should be created
 	 * @param propertyName name of a property
 	 * @param propertyType TODO
-	 * @param linkedType type to which this property might reference to
+	 * @param referencedType type to which this property might reference to
 	 * @param order order of this property
 	 * @param annotations TODO
 	 */
@@ -45,11 +45,25 @@ public interface IDriver {
 	 * @param typeName name of a type to create index on
 	 * @param indexName name of the index to create
 	 * @param indexType type of the index to be created
+	 * @param annotations element to check for possible additional annotations
 	 * @param properties set of properties to be included into the index
 	 */
 	public void createIndex(String typeName, String indexName, String indexType, AnnotatedElement annotations, String... properties);
 	
+	/**
+	 * Get value of an property
+	 * @param wrapper wrapper object to get property value from. If unwrapping is needed: driver can through {@link #toSeed(Object)}
+	 * @param property name of a property to obtain value for
+	 * @return value of an property
+	 */
 	public Object getPropertyValue(Object wrapper, String property);
+	
+	/**
+	 * Sets value to a property
+	 * @param wrapper wrapper object to set property value to. If unwrapping is needed: driver can through {@link #toSeed(Object)}
+	 * @param property name of a property to set value to
+	 * @param value actual value to set
+	 */
 	public void setPropertyValue(Object wrapper, String property, Object value);
 	
 	/**
@@ -95,15 +109,14 @@ public interface IDriver {
 	public <T> T wrapEntityInstance(Class<T> proxyClass, Object seed);
 	
 	/**
-	 * Returns default entity base class which should be in the root of 
+	 * @return default entity base class which should be in the root of 
 	 * all generated classes from this driver. Can't be interface.
-	 * @return
 	 */
 	public Class<?> getDefaultEntityBaseClass();
 	
 	/**
 	 * Try to obtain required main class or interface for provided seed object
-	 * @param object object for which driver should try to find out
+	 * @param seed object for which driver should try to find out main class
 	 * @return most appropriate class for wrapping or null
 	 */
 	public Class<?> getEntityMainClass(Object seed);
@@ -120,7 +133,7 @@ public interface IDriver {
 	/**
 	 * Is objects of this class can be a seed?
 	 * In other word: can instances of this class be wrapped by current driver?
-	 * @param seed seedClass to check
+	 * @param seedClass candidate class which might be suitable for seed objects
 	 * @return true if object can wrapped, false - if driver doesn't support such object seed
 	 */
 	public boolean isSeedClass(Class<?> seedClass);
@@ -153,6 +166,13 @@ public interface IDriver {
 		return results==null || results.isEmpty()?null:results.get(0);
 	}
 	
+	/**
+	 * Execute specified command 
+	 * @param language language for the command
+	 * @param command command to be used
+	 * @param params unwrapped parameters to be used to query data
+	 * @return return of the command
+	 */
 	public default Object command(String language, String command, Map<String, Object> params) {
 		return query(language, command, params);
 	}
@@ -179,5 +199,8 @@ public interface IDriver {
 		return null;
 	}
 	
+	/**
+	 * @return dialect name supported by driver
+	 */
 	public String getDialect();
 }
