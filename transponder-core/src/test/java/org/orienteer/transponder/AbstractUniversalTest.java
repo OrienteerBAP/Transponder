@@ -400,7 +400,7 @@ public abstract class AbstractUniversalTest
 		transponder.define(IFile.class, IFolder.class);
 		driver.assertHasType("File");
 		driver.assertHasType("Folder");
-//		driver.assertHasProperty("Folder", "name");
+		driver.assertHasProperty("Folder", "name");
 		
 		IFolder rootFolder = transponder.create(IFolder.class);
 		rootFolder.setName("Root");

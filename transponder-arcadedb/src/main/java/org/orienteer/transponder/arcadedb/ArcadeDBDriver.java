@@ -75,7 +75,7 @@ public class ArcadeDBDriver implements IDriver {
 			type = schema.getType(typeName);
 		}
 		if(!existing || overrideSchema) {
-			type.setParentTypes(Arrays.asList(parentTypes));
+			type.setSuperTypes(Arrays.asList(parentTypes));
 		}
 		TYPE_TO_MAIN_CLASS.put(typeName, mainWrapperClass);
 	}
@@ -141,7 +141,6 @@ public class ArcadeDBDriver implements IDriver {
 	@Override
 	public void saveEntityInstance(Object wrapper) {
 		((DocumentWrapper)wrapper).save();
-		((DocumentWrapper)wrapper).reload();
 	}
 
 	@Override

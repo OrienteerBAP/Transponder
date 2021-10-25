@@ -105,7 +105,15 @@ public class TestDriver implements ITestDriver {
 	
 	@Override
 	public boolean hasProperty(String typeName, String propertyName) {
-		return hasType(typeName) && typeRecords.get(typeName).getProperties().containsKey(propertyName);
+		TypeRecord type = typeRecords.get(typeName);
+		if(type==null) return false;
+		else if(type.getProperties().containsKey(propertyName)) return true;
+		else {
+			for (String superType : type.superTypes) {
+				if(hasProperty(superType, propertyName)) return true;
+			}
+			return false;
+		}
 	}
 	
 	@Override

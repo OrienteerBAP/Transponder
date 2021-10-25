@@ -40,7 +40,6 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 	}
 	
 	@Test
-	@Ignore
 	public void testDocumentAfterCreation() {
 		DocumentType typeRoot = database.getSchema().getOrCreateDocumentType("TestRoot");
 		typeRoot.getOrCreateProperty("name", String.class);
@@ -48,7 +47,7 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 		database.command("sql", "delete from TestRoot");
 		
 		DocumentType typeChild = database.getSchema().getOrCreateDocumentType("TestChild");
-		typeChild.setParentTypes(Arrays.asList(typeRoot));
+		typeChild.setSuperTypes(Arrays.asList(typeRoot));
 		MutableDocument doc =  database.newDocument("TestChild");
 		doc.set("name", "Document Name");
 		assertEquals("Document Name", doc.get("name"));
@@ -70,9 +69,8 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 		typeRoot.getOrCreateProperty("parent", Type.LINK);
 		typeRoot.getOrCreateTypeIndex(INDEX_TYPE.LSM_TREE, true, "name", "parent");
 		database.command("sql", "delete from TestRoot2");
-		
 		DocumentType typeChild = database.getSchema().getOrCreateDocumentType("TestChild2");
-		typeChild.setParentTypes(Arrays.asList(typeRoot));
+		typeChild.setSuperTypes(Arrays.asList(typeRoot));
 		MutableDocument doc =  database.newDocument("TestChild2");
 		doc.set("name", "Document Name");
 		assertEquals("Document Name", doc.get("name"));
@@ -84,5 +82,12 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 			assertEquals("Document Name", docRetrieved.get("name"));
 			assertFalse(rs.hasNext());
 		}
+	}
+	
+	@Test
+	@Ignore
+	@Override
+	public void testSampleDataModel() {
+		super.testSampleDataModel();
 	}
 }

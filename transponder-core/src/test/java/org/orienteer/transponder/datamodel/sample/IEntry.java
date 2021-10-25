@@ -6,7 +6,7 @@ import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.annotation.Lookup;
 
 @EntityType("Entry")
-//@EntityIndex(name = "nameParent", properties = {"name", "parent"})
+@EntityIndex(name = "nameParent", properties = {"name", "parent"})
 public interface IEntry {
 
 	public String getName();

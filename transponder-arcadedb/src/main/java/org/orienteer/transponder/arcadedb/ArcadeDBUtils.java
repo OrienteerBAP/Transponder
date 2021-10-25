@@ -1,11 +1,5 @@
 package org.orienteer.transponder.arcadedb;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.arcadedb.schema.DocumentType;
 import com.arcadedb.schema.Schema;
 
 import lombok.experimental.UtilityClass;

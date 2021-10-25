@@ -31,4 +31,16 @@ public class CoreSpecificTest
 		assertEquals("Keep source lang", translation.getQuery());
 	}
 	
+	@Test
+	public void testDriverPolymorphic() {
+		TestDriver driver = new TestDriver();
+		driver.createType("Root", false, null);
+		driver.createProperty("Root", "name", String.class, null, 0, null);
+		driver.assertHasType("Root");
+		driver.assertHasProperty("Root", "name");
+		driver.createType("Child", false, null, "Root");
+		driver.assertHasType("Root");
+		driver.assertHasProperty("Child", "name");
+	}
+	
 }
