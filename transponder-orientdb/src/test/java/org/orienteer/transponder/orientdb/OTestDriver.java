@@ -4,9 +4,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.orienteer.transponder.CommonUtils;
 import org.orienteer.transponder.ITestDriver;
 
+import com.google.common.base.Objects;
 import com.orientechnologies.orient.core.index.OIndex;
+import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
 public class OTestDriver extends ODriver implements ITestDriver {
@@ -19,6 +22,13 @@ public class OTestDriver extends ODriver implements ITestDriver {
 	@Override
 	public boolean hasProperty(String typeName, String propertyName) {
 		return hasType(typeName) && getSchema().getClass(typeName).getProperty(propertyName)!=null;
+	}
+	
+	@Override
+	public boolean hasReferenceProperty(String typeName, String propertyName, String referenceType) {
+		if(!hasProperty(typeName, propertyName)) return false;
+		OClass referencedClass = getSchema().getClass(typeName).getProperty(propertyName).getLinkedClass();
+		return Objects.equal(referenceType, referencedClass!=null?referencedClass.getName():null);
 	}
 
 	@Override

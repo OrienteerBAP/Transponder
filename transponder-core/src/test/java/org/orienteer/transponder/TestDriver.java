@@ -51,7 +51,7 @@ public class TestDriver implements ITestDriver {
 	@AllArgsConstructor
 	private static class PropertyRecord {
 		private String propertyName;
-		private String linkedType;
+		private String referencedType;
 		private int order;
 	}
 	
@@ -99,11 +99,11 @@ public class TestDriver implements ITestDriver {
 	public void setupRelationship(String type1Name, String property1Name, String type2Name, String property2Name) {
 		assertHasType(type1Name);
 		assertHasProperty(type1Name, property1Name);
-		typeRecords.get(type1Name).getProperties().get(property1Name).setLinkedType(type2Name);
+		typeRecords.get(type1Name).getProperties().get(property1Name).setReferencedType(type2Name);
 		assertHasType(type2Name);
 		if(property2Name!=null) {
 			assertHasProperty(type2Name, property2Name);
-			typeRecords.get(type2Name).getProperties().get(property2Name).setLinkedType(type1Name);
+			typeRecords.get(type2Name).getProperties().get(property2Name).setReferencedType(type1Name);
 		}
 	}
 	
@@ -112,17 +112,28 @@ public class TestDriver implements ITestDriver {
 		return typeRecords.containsKey(typeName);
 	}
 	
+	private PropertyRecord getPolymorphicProperty(String typeName, String propertyName) {
+		TypeRecord type = typeRecords.get(typeName);
+		if(type!=null) {
+			PropertyRecord property = type.getProperties().get(propertyName);
+			if(property!=null) return property;
+			for (String superType : type.superTypes) {
+				property = getPolymorphicProperty(superType, propertyName);
+				if(property!=null) return property;
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public boolean hasProperty(String typeName, String propertyName) {
-		TypeRecord type = typeRecords.get(typeName);
-		if(type==null) return false;
-		else if(type.getProperties().containsKey(propertyName)) return true;
-		else {
-			for (String superType : type.superTypes) {
-				if(hasProperty(superType, propertyName)) return true;
-			}
-			return false;
-		}
+		return getPolymorphicProperty(typeName, propertyName)!=null;
+	}
+	
+	@Override
+	public boolean hasReferenceProperty(String typeName, String propertyName, String referenceType) {
+		PropertyRecord property = getPolymorphicProperty(typeName, propertyName);
+		return property!=null && Objects.equals(referenceType, property.getReferencedType());
 	}
 	
 	@Override

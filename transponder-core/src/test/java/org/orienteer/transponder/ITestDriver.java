@@ -20,6 +20,14 @@ public interface ITestDriver extends IDriver {
 								hasProperty(typeName, propertyName));
 	}
 	
+	public boolean hasReferenceProperty(String typeName, String propertyName, String referenceType);
+	
+	public default void assertHasReferenceProperty(String typeName, String propertyName, String referenceType) {
+		assertHasProperty(typeName, propertyName);
+		assertTrue("Driver has not expected reference type for property'"+typeName+"."+propertyName+"'. Expects: "+referenceType, 
+				hasReferenceProperty(typeName, propertyName, referenceType));
+	}
+	
 	public boolean hasIndex(String typeName, String indexName, String...properties);
 	
 	public default void assertHasIndex(String typeName, String indexName, String... properties) {

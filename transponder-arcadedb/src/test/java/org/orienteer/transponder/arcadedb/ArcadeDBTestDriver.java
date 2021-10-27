@@ -28,6 +28,11 @@ public class ArcadeDBTestDriver extends ArcadeDBDriver implements ITestDriver{
 	public boolean hasProperty(String typeName, String propertyName) {
 		return hasType(typeName) && getSchema().getType(typeName).existsPolymorphicProperty(propertyName);
 	}
+	
+	@Override
+	public boolean hasReferenceProperty(String typeName, String propertyName, String referenceType) {
+		return hasProperty(typeName, propertyName);
+	}
 
 	@Override
 	public boolean hasIndex(String typeName, String indexName, String...properties) {
