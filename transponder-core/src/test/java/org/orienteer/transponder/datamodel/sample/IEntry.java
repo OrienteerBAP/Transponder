@@ -12,9 +12,9 @@ public interface IEntry {
 	public String getName();
 	public void setName(String value);
 	
-	public IEntry getParent();
-	public void setParent(IEntry value);
+	public IFolder getParent();
+	public void setParent(IFolder value);
 	
 	@Lookup("select from Entry where name=:name and parent=:parent")
-	public boolean lookupByName(String name, IEntry parent);
+	public boolean lookupByName(String name, IFolder parent);
 }

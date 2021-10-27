@@ -69,13 +69,15 @@ public class TestDriver implements ITestDriver {
 
 	@Override
 	public void createType(String typeName, boolean isAbstract, Class<?> mainWrapperClass, String... superTypes) {
+		for (String superType : superTypes) {
+			assertHasType(superType);
+		}
 		typeRecords.put(typeName, new TypeRecord(typeName, isAbstract, superTypes));
 	}
 
 	@Override
 	public void createProperty(String typeName, String propertyName, Type propertyType, String linkedType, int order, AnnotatedElement annotations) {
 		assertHasType(typeName);
-		if(linkedType!=null) assertHasType(linkedType);
 		TypeRecord type = typeRecords.get(typeName);
 		type.getProperties().put(propertyName, new PropertyRecord(propertyName, linkedType, order));
 	}
@@ -95,7 +97,14 @@ public class TestDriver implements ITestDriver {
 
 	@Override
 	public void setupRelationship(String type1Name, String property1Name, String type2Name, String property2Name) {
-		// TODO Auto-generated method stub
+		assertHasType(type1Name);
+		assertHasProperty(type1Name, property1Name);
+		typeRecords.get(type1Name).getProperties().get(property1Name).setLinkedType(type2Name);
+		assertHasType(type2Name);
+		if(property2Name!=null) {
+			assertHasProperty(type2Name, property2Name);
+			typeRecords.get(type2Name).getProperties().get(property2Name).setLinkedType(type1Name);
+		}
 	}
 	
 	@Override

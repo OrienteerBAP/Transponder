@@ -372,7 +372,8 @@ public class Transponder {
 		if(clazz==null || !clazz.isInterface()) return null;	
 		final EntityType type = clazz.getAnnotation(EntityType.class);
 		if(type==null) return null;
-		if(ctx.wasDescribed(clazz)) return ctx.getType(clazz);
+		if(ctx.wasDescribed(clazz)) return ctx.getDefinedType(clazz);
+//		else if(ctx.inStack(clazz)) return ctx.getTypeFromStack(clazz);
 		ctx.entering(clazz, type.value());
 		List<Class<?>> interfaces = Arrays.asList(clazz.getInterfaces());
 		Set<String> superClasses = define(interfaces, ctx);
@@ -404,8 +405,8 @@ public class Transponder {
 			//Skip second+ attempt to create a property, except if @EntityProperty is present
 			if(wasPreviouslyScheduled /*&& canSkipIfAlreadyScheduled(property)*/) continue;
 			
-			String linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(typeToMasterClass(fieldType));
-			if(linkedTypeCandidate==null) linkedTypeCandidate = ctx.resolveOrDescribeTypeClass(typeToRequiredClass(fieldType));
+			String linkedTypeCandidate = ctx.resolveOrDefineTypeClass(typeToMasterClass(fieldType), true);
+			if(linkedTypeCandidate==null) linkedTypeCandidate = ctx.resolveOrDefineTypeClass(typeToRequiredClass(fieldType), true);
 			if(linkedTypeCandidate==null && property!=null && !Strings.isNullOrEmpty(property.referencedType())) linkedTypeCandidate = property.referencedType();
 			
 			final String fieldName = fieldNameCandidate;
@@ -530,10 +531,10 @@ public class Transponder {
 			if(!clazz.equals(exiting)) throw new IllegalStateException("Exiting from wrong execution: expected "+clazz.getName()+" but in a stack "+exiting.getName());
 			ContextItem last = processingStack.pop();
 			if(!type.equals(last.type))  throw new IllegalStateException("Exiting from wrong execution: expected "+type+" but in a stack "+last.type);
+			describedClasses.put(clazz, type);
 			for (Runnable postponed : last.postponedTillExit.values()) {
 				postponed.run();
 			}
-			describedClasses.put(clazz, type);
 			
 			Multimap<String, Runnable> mergeTo = processingStack.empty()?globalPostponedTillDefined:processingStack.lastElement().postponedTillDefined;
 			Iterator<Map.Entry<String, Collection<Runnable>>> it = last.postponedTillDefined.asMap().entrySet().iterator();
@@ -565,7 +566,7 @@ public class Transponder {
 			return describedClasses.containsValue(oClass);
 		}
 		
-		public String getType(Class<?> clazz) {
+		public String getDefinedType(Class<?> clazz) {
 			return describedClasses.get(clazz);
 		}
 		
@@ -575,16 +576,26 @@ public class Transponder {
 		}
 		
 		public String resolveType(Class<?> clazz, Supplier<String> supplier) {
-			String ret = getType(clazz);
+			String ret = getDefinedType(clazz);
 			if(Strings.isNullOrEmpty(ret)) ret = getTypeFromStack(clazz);
 			return !Strings.isNullOrEmpty(ret) ? ret : supplier.get();
 		}
 		
-		public String resolveOrDescribeTypeClass(Class<?> clazz) {
+		public String resolveOrDefineTypeClass(Class<?> clazz, boolean lazyDefine) {
 			if(clazz==null) return null;
-			String ret = getType(clazz);
+			final EntityType type = clazz.getAnnotation(EntityType.class);
+			if(type==null) return null;
+			String ret = getDefinedType(clazz);
 			if(Strings.isNullOrEmpty(ret)) ret = getTypeFromStack(clazz);
-			return !Strings.isNullOrEmpty(ret) ? ret : transponder.define(clazz, this);
+			if(Strings.isNullOrEmpty(ret)) {
+				if(lazyDefine) {
+					ret = type.value();
+					postponeTillExit("create:"+ret, () -> transponder.define(clazz, this));
+				} else {
+					ret = transponder.define(clazz, this);
+				}
+			}
+			return ret;
 		}
 		
 		public boolean isPropertyCreationScheduled(String propertyName) {

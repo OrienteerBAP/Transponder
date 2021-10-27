@@ -12,12 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityType;
 
 @EntityType("DAOAllTypesTestClass")
 public interface IDAOAllTypesTestClass {
 
-	@OrientDBProperty(linkedClass = "IDAODummyClass", type = OType.LINKLIST)
+	@EntityProperty(value = "docs", referencedType = "IDAODummyClass")
 	public List<ODocument> getDocs();
 	public void setDocs(List<ODocument> val);
 
@@ -196,7 +197,7 @@ public interface IDAOAllTypesTestClass {
 	 * LINKBAG("LinkBag", 22, ORidBag.class, new Class<?>[] { ORidBag.class }),
 	 */
 	
-	@OrientDBProperty(linkedClass = "IDAODummyClass")
+	@EntityProperty(value = "linkBag", referencedType = "IDAODummyClass")
 	public ORidBag getLinkBag();
 	public void setLinkBag(ORidBag val);
 

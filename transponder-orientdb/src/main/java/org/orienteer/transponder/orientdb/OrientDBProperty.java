@@ -20,7 +20,6 @@ public @interface OrientDBProperty {
 	//CHECKSTYLE IGNORE MissingJavadocMethod FOR NEXT 12 LINES
 	OType type() default OType.ANY;
 	OType linkedType() default OType.ANY;
-	String linkedClass() default "";
 	boolean embedded() default false;
 	boolean notNull() default false;
 	boolean mandatory() default false;

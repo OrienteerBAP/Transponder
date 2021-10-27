@@ -24,7 +24,8 @@ public interface IDriver {
 	 * @param typeName name of a type for which new property should be created
 	 * @param propertyName name of a property
 	 * @param propertyType TODO
-	 * @param referencedType type to which this property might reference to
+	 * @param referencedType type to which this property might reference to.
+	 * 		It might not exist yet. In this case - do nothing and update in {@link #setupRelationship(String, String, String, String)}
 	 * @param order order of this property
 	 * @param annotations TODO
 	 */
@@ -35,7 +36,7 @@ public interface IDriver {
 	 * @param type1Name name of type1
 	 * @param property1Name property1 on type1 which is referencing to type2
 	 * @param type2Name name of type2
-	 * @param property2Name property2 on type2 which is referencing to type1
+	 * @param property2Name property2 on type2 which is referencing to type1. Might be null if it's one way setup
 	 */
 	public void setupRelationship(String type1Name, String property1Name, String type2Name, String property2Name);
 	

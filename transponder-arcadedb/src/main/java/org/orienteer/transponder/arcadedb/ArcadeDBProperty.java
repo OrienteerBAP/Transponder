@@ -15,11 +15,7 @@ import com.arcadedb.schema.Type;
 @Target(METHOD)
 public @interface ArcadeDBProperty {
 	/**
-	 * @return ArcadeDB specific referenced type
-	 */
-	String referencedType() default "";
-	/**
 	 * @return true if {@link Type#EMBEDDED} instead of {@link Type#LINK} 
 	 */
-	boolean embedded() default false;
+	boolean embedded();
 }

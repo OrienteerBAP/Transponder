@@ -101,8 +101,6 @@ public class ODriver implements IDriver {
 	public void createProperty(String typeName, String propertyName, Type propertyType, String linkedClassName, int order, AnnotatedElement annotations) {
 		OrientDBProperty annotation = annotations.getAnnotation(OrientDBProperty.class);
 		
-		if(annotation!=null) linkedClassName = defaultIfNullOrEmpty(annotation.linkedClass(), linkedClassName);
-		
 		OSchema schema = getSchema();
 		OClass oClass = schema.getClass(typeName);
 		Class<?> masterClass = typeToMasterClass(propertyType);
@@ -168,7 +166,7 @@ public class ODriver implements IDriver {
 		OClass class1 = schema.getClass(type1Name);
 		OProperty property1 = class1.getProperty(property1Name);
 		OClass class2 = schema.getClass(type2Name);
-		OProperty property2 = property2Name!=null?class1.getProperty(property2Name):null;
+		OProperty property2 = property2Name!=null?class2.getProperty(property2Name):null;
 		if(!Objects.equals(property1.getLinkedClass(), class2)) property1.setLinkedClass(class2);
 		if(property2!=null 
 				&& !Objects.equals(property2.getLinkedClass(), class1)) property2.setLinkedClass(class1);

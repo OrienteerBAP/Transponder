@@ -85,8 +85,6 @@ public class ArcadeDBDriver implements IDriver {
 			int order, AnnotatedElement annotations) {
 		ArcadeDBProperty annotation = annotations.getAnnotation(ArcadeDBProperty.class);
 		
-		if(annotation!=null) referencedType = defaultIfNullOrEmpty(annotation.referencedType(), referencedType);
-		
 		Schema schema = getSchema();
 		DocumentType oClass = schema.getType(typeName);
 		Class<?> masterClass = typeToMasterClass(propertyType);

@@ -23,13 +23,11 @@ public interface IDAOTestClass extends IODocumentWrapper {
 	public Map<String, IDAOTestClass> getLinkMap();
 	public IDAOTestClass setLinkMap(Map<String, IDAOTestClass> map);
 	
-	@EntityProperty("linkMap")
-	@OrientDBProperty(linkedClass = "DAOTestClass")
+	@EntityProperty(value = "linkMap", referencedType = "DAOTestClass")
 	public Map<String, ODocument> getLinkMapAsDocuments();
 	public IDAOTestClass setLinkMapAsDocuments(Map<String, ODocument> val);
 	
-	@EntityProperty("child")
-	@OrientDBProperty(linkedClass = "DAOTestClass")
+	@EntityProperty(value = "child", referencedType = "DAOTestClass")
 	public List<ODocument> getChildAsDocuments();
 	public IDAOTestClass setChildAsDocuments(List<ODocument> val);
 	
