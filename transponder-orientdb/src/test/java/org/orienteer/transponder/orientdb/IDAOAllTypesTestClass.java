@@ -18,7 +18,7 @@ import org.orienteer.transponder.annotation.EntityType;
 @EntityType("DAOAllTypesTestClass")
 public interface IDAOAllTypesTestClass {
 
-	@EntityProperty(value = "docs", referencedType = "IDAODummyClass")
+	@EntityProperty(referencedType = "IDAODummyClass")
 	public List<ODocument> getDocs();
 	public void setDocs(List<ODocument> val);
 
@@ -197,7 +197,7 @@ public interface IDAOAllTypesTestClass {
 	 * LINKBAG("LinkBag", 22, ORidBag.class, new Class<?>[] { ORidBag.class }),
 	 */
 	
-	@EntityProperty(value = "linkBag", referencedType = "IDAODummyClass")
+	@EntityProperty(referencedType = "IDAODummyClass")
 	public ORidBag getLinkBag();
 	public void setLinkBag(ORidBag val);
 

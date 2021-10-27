@@ -24,10 +24,10 @@ public interface IDAOTestClassA extends IDAOTestClassRoot{
 	
 	public List<String> getEmbeddedStringList();
 	
-	@EntityProperty(value = "linkAsDoc", referencedType = "DAOTestClassB")
+	@EntityProperty(referencedType = "DAOTestClassB")
 	public ODocument getLinkAsDoc();
 	
-	@EntityProperty(value = "linkList", referencedType = "DAOTestClassB")
+	@EntityProperty(referencedType = "DAOTestClassB")
 	public List<ODocument> getLinkList();
 	public IDAOTestClassA getSelfType();
 }

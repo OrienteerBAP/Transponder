@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
 
 import org.orienteer.transponder.annotation.EntityProperty;
 
+import com.google.common.base.Strings;
+
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.annotation.AnnotationDescription.Loadable;
 import net.bytebuddy.description.method.MethodDescription;
@@ -47,10 +49,11 @@ public @interface PropertyName {
 			String methodName = source.getName();
 			AnnotationDescription.Loadable<EntityProperty> entityProperty 
 						= source.getDeclaredAnnotations().ofType(EntityProperty.class);
-			String propertyName;
+			String propertyName = null;
 			if(entityProperty!=null) {
 				propertyName = entityProperty.load().value();
-			} else {
+			}
+			if(Strings.isNullOrEmpty(propertyName)) {
 				if(methodName.startsWith("set") && source.getParameters().size()==1) {
 					propertyName = decapitalize(methodName.substring(3));
 				} else if(methodName.startsWith("get") && source.getParameters().size()==0) {

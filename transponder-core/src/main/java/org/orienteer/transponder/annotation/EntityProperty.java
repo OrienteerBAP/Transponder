@@ -15,7 +15,7 @@ public @interface EntityProperty {
 	/**
 	 * @return name of the property. Can be used to override default property name which derived from method name
 	 */
-	String value();
+	String value() default "";
 	/**
 	 * @return type name of a referenced type. Used for properties which store links to other entities
 	 */
