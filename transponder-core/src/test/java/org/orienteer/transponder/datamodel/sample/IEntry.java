@@ -17,4 +17,9 @@ public interface IEntry {
 	
 	@Lookup("select from Entry where name=:name and parent=:parent")
 	public boolean lookupByName(String name, IFolder parent);
+	
+	public default String getFullPath() {
+		IFolder parent = getParent();
+		return (parent!=null?parent.getFullPath():"")+"/"+getName();
+	}
 }

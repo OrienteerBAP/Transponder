@@ -5,7 +5,7 @@ import org.orienteer.transponder.annotation.EntityType;
 @EntityType("File")
 public interface IFile extends IEntry {
 
-	public String getContent();
-	public void setContent(String value);
+	public byte[] getContent();
+	public void setContent(byte[] value);
 	
 }
