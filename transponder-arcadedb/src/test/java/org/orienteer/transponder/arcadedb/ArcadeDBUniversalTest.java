@@ -62,7 +62,6 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 	}
 	
 	@Test
-	@Ignore
 	public void testDocumentAfterCreation2() {
 		DocumentType typeRoot = database.getSchema().getOrCreateDocumentType("TestRoot2");
 		typeRoot.getOrCreateProperty("name", String.class);
@@ -83,11 +82,5 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 			assertFalse(rs.hasNext());
 		}
 	}
-	
-	@Test
-	@Ignore
-	@Override
-	public void testSampleDataModel() {
-		super.testSampleDataModel();
-	}
+
 }
