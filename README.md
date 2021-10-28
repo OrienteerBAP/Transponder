@@ -6,11 +6,25 @@
 Transponder is an Object Relational Mapping(ORM) library for NoSQL databases. It's lightweight, with very small memory footprint.
 Transponder [dynamically generates bytecode](https://github.com/raphw/byte-buddy) over native DB client classes, so there are NO overheads for reflection and NO double storing of data.
 
-### Can be used for
-* Defining in Java source code a datamodel
+## Content
+
+1. [Use Cases](#use-cases)
+2. [Key Benefits](#key-benefits)
+3. [Supported NoSQL Databases](#supported-nosql-databases)
+4. [NoSQL Databasses Support Road Map](#nosql-databases-to-be-supported-soon)
+5. [Getting Started](#getting-started)
+6. [Defining DataModel](#defining-datamodel)
+7. [Transponder API](#transponder-api)
+8. [Transponder Annotations](#transponder-annotations)
+9. [Support of Multiple Dialects](#support-of-multiple-dialects)
+10. [Suppport](#suppport)
+
+### Use Cases
+Transponder can be used for
+* Defining a data model in Java source code
 * Automatic creation of a datamodel in a NoSQL DB
-* Generation of Data Access Objects (DAO) - utility classes to work with your data
-* Easy customization per your specific need, for example: introduce custom annotation `@Sudo` to execute some code under priviledged access
+* Generation of Data Access Objects (DAO) - utility classes to work with data
+* Easy customization for specific needs, for example: introduce custom annotation `@Sudo` to execute code under priviledged access
 
 ### Key Benefits
 
@@ -24,7 +38,7 @@ Transponder [dynamically generates bytecode](https://github.com/raphw/byte-buddy
 - [X] [OrientDB](https://github.com/orientechnologies/orientdb) (maven dependency: org.orienteer.transponder:transponder-orientdb)
 - [X] [ArcadeDB](https://github.com/ArcadeData/arcadedb) (maven dependency: org.orienteer.transponder:transponder-arcadedb)
 
-### To be supported soon
+### NoSQL Databases To Be Supported Soon
 
 - [ ] [Neo4J](https://github.com/neo4j/neo4j)
 - [ ] [ArangoDB](https://github.com/arangodb/arangodb)
@@ -63,7 +77,7 @@ If you are using `SNAPSHOT` version, please make sure that the following reposit
 </repository>
 ```
 
-## Defining Data-Model
+## Defining DataModel
 
 Use interface class with annotation `@EntityType("EntryTypeName")` to define a type from your data-model. All getters and setters will be mapped to corresponding properties/columns of an entity in a database. You can use interface **default** methods for your custom methods. There is a set of annotations supported by Transponder to simplify work with the data model: `@EntityIndex`, `@Query`, `@Lookup`, `@Command` and etc. Please see corresponding chapter for details. Lets create simple datamodel to mimic file-system:
 
@@ -212,6 +226,9 @@ Transponder transponder = Transponder.getTransponder(folder);
 |`@ArcadeDBProperty`|ArcadeDB specific additional settings for the property|
 
 Annotations in bytecode generation within Transponder is very flexible (due to [Byte Buddy](https://github.com/raphw/byte-buddy)) and can be easily extended to support custom cases. For example: `@Sudo` - to execute some method under super user, `@Count` - to count number of invokations for metrics and etc.
+
+### Support of Multiple Dialects
+Queries and commands for the same functions might vary for different databases. Valid SQL for one NoSQL database, might require correction for another one. That's why **Transponder** supports polyglot definitions for `@Query`, `@Lookup` and `@Command`. **Transponder** do translation to corresponding dialect during dynamic generation of a wrapper, so there is no overheads during actual runtime. Every query/command has **id**. It's either can be defined manually (for example `@Query(id="myQuery", value="select ...")`) or generated automatically (for example first query for `IFileSystem` above will have id `<fullpackagename>.IFileSystem.getRoot`. Then **Transponder** uses provided resource file by path `/META-INF/transponder/polyglot.properties` to lookup proper query for a specific dialect. For example, for query with id `myQuery` for OrientDB library will look for keys `orientdb.myQuery` and `orientdb.myQuery.language`. If first one is found - it will be used as actual query for OrientDB. If second one was also found: correspinding language will overload language defined in actual annotation.
 
 ## Suppport
 
