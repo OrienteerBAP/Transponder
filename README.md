@@ -21,8 +21,8 @@ Transponder [dynamically generates bytecode](https://github.com/raphw/byte-buddy
 
 ### Supported NoSQL Databases
 
-- [X] [OrientDB](https://github.com/orientechnologies/orientdb)
-- [X] [ArcadeDB](https://github.com/ArcadeData/arcadedb)
+- [X] [OrientDB](https://github.com/orientechnologies/orientdb) (maven dependency: org.orienteer.transponder:transponder-orientdb)
+- [X] [ArcadeDB](https://github.com/ArcadeData/arcadedb) (maven dependency: org.orienteer.transponder:transponder-arcadedb)
 
 ### To be supported soon
 
@@ -116,7 +116,103 @@ public interface IFileSystem {
 	@Query("select from Entry where name=:name and parent=:parent")
 	public IEntry lookupByName(String name, IFolder parent);
 	
+	@Query("select from Entry where name like :search")
+	public List<IEntry> search(String search);
+	
 	@Command("delete from File where content is null")
 	public void removeEmpty();
 }
 ```
+
+## Transponder API
+
+To create **Transponder** instance:
+```java
+Transponder transponder = new Transponder(driver);
+//For example:
+Transponder transponder = new Transponder(new ODriver()); //OrientDB
+Transponder transponder = new Transponder(new ArcadeDBDriver(arcadeDatabase)); //ArcadeDB
+```
+
+To define datamodel in a database:
+```java
+transponder.define(IFolder.class, IFile.class, IMyOtherEntity.class, ...);
+```
+
+To create DAO instance from the specified interface or class:
+```java
+IFileSystem fsDao = transponder.dao(IFileSystem.class);
+IFileSystem fsDao = transponder.dao(IFileSystem.class, IOtherDAOClass.class, IYetAnotherDAOClass.class, ...);
+```
+
+After DAO creation you can use it right away:
+```java
+List<IEntry> textFiles = fsDao.search("%.txt");
+```
+
+To create new wrapped entity:
+```java
+IFolder folder = transponder.create(IFolder.class);
+IFolder folder = transponder.create(IFolder.class, IMyOtherUsefullWrapper.class, ...);
+```
+
+After creation of an entity you can work with it as usual java object:
+```java
+folder.setName("My Cool Folder");
+folder.setParent(myOtherFolder);
+String fullPath = folder.getFullPath();
+```
+
+To persist/save entity into DB:
+
+```java
+Tranponder.save(folder);
+```
+
+Or you can do simply `folder.save()` if you mixin the following method into your wrapper:
+
+```
+public default IEntry save() {
+  Transponder.save();
+  return this;
+}
+```
+
+Also you can wrap some existing entity from a database into wrapped one. Example for OrientDB:
+```java
+ODocument myFolderDoc = ...;
+IFolder folder = transponder.provide(myFolderDoc, IFolder.class);
+IFolder folder = transponder.provide(myFolderDoc, IFolder.class, IMyOtherUsefulWrapper.class, ...); //To mixin other useful interfaces
+IFodler folder = transponder.wrap(myFolderDoc); //More generic version, but corresponding wrapper should be defined by transponder.define(...) in this case
+```
+
+If needed, you can unwrap entity as well. Example for OrientDB:
+```java
+ODocument myFolderDoc = (ODocument)Transponder.unwrap(folder);
+```
+
+If you have wrapped entity and you need obtain Transponder:
+```java
+Transponder transponder = Transponder.getTransponder(folder);
+```
+
+## Transponder Annotations
+
+| Annotation | Description |
+|------------|-------------|
+|`@EntityType`|Current class defines entity type|
+|`@EntityIndex/@EntityIndexes`|Creates indexes on the entity type in a database|
+|`@EntityProperty`|This getter/setter method should be mapped to corresponding property of an entity in a database|
+|`@EntityPropertyIndex`|Creates index in a datasource on current property|
+|`@Query`|Method execute query in a database and return corresponding result|
+|`@Lookup`|Lookup database for an entity according to search criterias and if found: replace underling entity of the current wrapper|
+|`@Command`|Execute some command in a database|
+|`@DefaultValue`|Return provided default value if actual result from this method is null|
+|`@OrientDBProperty`|OrientDB specific additional settings for the property|
+|`@ArcadeDBProperty`|ArcadeDB specific additional settings for the property|
+
+Annotations in bytecode generation within Transponder is very flexible (due to [Byte Buddy](https://github.com/raphw/byte-buddy)) and can be easily extended to support custom cases. For example: `@Sudo` - to execute some method under super user, `@Count` - to count number of invokations for metrics and etc.
+
+## Suppport
+
+If you need any support or questions please create an [issue](https://github.com/OrienteerBAP/Transponder/issues) or [discussion](https://github.com/OrienteerBAP/Transponder/discussions).
