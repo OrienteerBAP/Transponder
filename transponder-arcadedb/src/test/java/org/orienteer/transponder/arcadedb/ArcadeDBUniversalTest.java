@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -35,6 +36,7 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 		database.setAutoTransaction(true);
 	}
 	
+	@AfterClass
 	public static void closeDb() {
 		if(database!=null) database.close();
 	}

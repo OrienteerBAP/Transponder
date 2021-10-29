@@ -41,7 +41,7 @@ public class SetterMutator implements IMutator {
 		@RuntimeType
 		public static Object setValue(@PropertyName String property, @This Object wrapper, @Origin Method method, @Argument(0) Object value) {
 			Transponder transponder = Transponder.getTransponder(wrapper);
-			transponder.getDriver().setPropertyValue(wrapper, property, Transponder.unwrap(value));
+			transponder.getDriver().setPropertyValue(wrapper, property, Transponder.unwrap(value), method.getGenericParameterTypes()[0]);
 			if(method.getReturnType().isInstance(wrapper)) return wrapper;
 			else return null;
 		}

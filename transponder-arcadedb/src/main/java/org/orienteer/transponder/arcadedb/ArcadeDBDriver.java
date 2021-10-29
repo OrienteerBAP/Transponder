@@ -118,12 +118,12 @@ public class ArcadeDBDriver implements IDriver {
 	}
 
 	@Override
-	public Object getPropertyValue(Object wrapper, String property) {
+	public Object getPropertyValue(Object wrapper, String property, java.lang.reflect.Type type) {
 		return ((DocumentWrapper)wrapper).get(property);
 	}
 
 	@Override
-	public void setPropertyValue(Object wrapper, String property, Object value) {
+	public void setPropertyValue(Object wrapper, String property, Object value, java.lang.reflect.Type type) {
 		((DocumentWrapper)wrapper).set(property, value);
 	}
 

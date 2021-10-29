@@ -173,14 +173,14 @@ public class ODriver implements IDriver {
 	}
 
 	@Override
-	public Object getPropertyValue(Object wrapper, String property) {
+	public Object getPropertyValue(Object wrapper, String property, Type type) {
 		if(wrapper==null) return null;
 		ODocument doc = ((ODocumentWrapper)wrapper).getDocument();
 		return doc!=null?doc.field(property):null;
 	}
 
 	@Override
-	public void setPropertyValue(Object wrapper, String property, Object value) {
+	public void setPropertyValue(Object wrapper, String property, Object value, Type type) {
 		if(wrapper==null) return;
 		ODocument doc = ((ODocumentWrapper)wrapper).getDocument();
 		if(doc!=null) doc.field(property, value);

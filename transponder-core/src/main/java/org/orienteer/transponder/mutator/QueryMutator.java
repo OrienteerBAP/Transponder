@@ -47,18 +47,13 @@ public class QueryMutator implements IMutator {
 		 */
 		@RuntimeType
 		public static Object executeQuery(@QueryValue String[] query, @Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
-			try {
-				Map<String, Object> params = toArguments(origin, args);
-				if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
-				Transponder transponder = Transponder.getTransponder(thisObject);
-				Object ret = Collection.class.isAssignableFrom(origin.getReturnType())
-									?transponder.getDriver().query(query[1], query[0], params)
-									:transponder.getDriver().querySingle(query[1], query[0], params);
-				return transponder.wrap(ret, origin.getGenericReturnType());
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
+			Map<String, Object> params = toArguments(origin, args);
+			if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
+			Transponder transponder = Transponder.getTransponder(thisObject);
+			Object ret = Collection.class.isAssignableFrom(origin.getReturnType())
+								?transponder.getDriver().query(query[1], query[0], params)
+								:transponder.getDriver().querySingle(query[1], query[0], params);
+			return transponder.wrap(ret, origin.getGenericReturnType());
 		}
 	}
 

@@ -142,12 +142,12 @@ public class TestDriver implements ITestDriver {
 	}
 	
 	@Override
-	public Object getPropertyValue(Object wrapper, String property) {
+	public Object getPropertyValue(Object wrapper, String property, Type type) {
 		return ((Map<Object, Object>)wrapper).get(property);
 	}
 
 	@Override
-	public void setPropertyValue(Object wrapper, String property, Object value) {
+	public void setPropertyValue(Object wrapper, String property, Object value, Type type) {
 		((Map<Object, Object>)wrapper).put(property, value);
 	}
 

@@ -45,16 +45,11 @@ public class CommandMutator implements IMutator {
 		 */
 		@RuntimeType
 		public static Object executeCommand(@QueryValue String[] command, @Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
-			try {
-				Map<String, Object> params = toArguments(origin, args);
-				if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
-				Transponder transponder = Transponder.getTransponder(thisObject);
-				Object ret = transponder.getDriver().command(command[1], command[0], params);
-				return transponder.wrap(ret, origin.getGenericReturnType());
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
+			Map<String, Object> params = toArguments(origin, args);
+			if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
+			Transponder transponder = Transponder.getTransponder(thisObject);
+			Object ret = transponder.getDriver().command(command[1], command[0], params);
+			return transponder.wrap(ret, origin.getGenericReturnType());
 		}
 	}
 

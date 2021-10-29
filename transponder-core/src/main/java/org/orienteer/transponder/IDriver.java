@@ -55,17 +55,19 @@ public interface IDriver {
 	 * Get value of an property
 	 * @param wrapper wrapper object to get property value from. If unwrapping is needed: driver can through {@link #toSeed(Object)}
 	 * @param property name of a property to obtain value for
+	 * @param type expected return type. The driver can ignore it and allow transponder do the magic
 	 * @return value of an property
 	 */
-	public Object getPropertyValue(Object wrapper, String property);
+	public Object getPropertyValue(Object wrapper, String property, Type type);
 	
 	/**
 	 * Sets value to a property
 	 * @param wrapper wrapper object to set property value to. If unwrapping is needed: driver can through {@link #toSeed(Object)}
 	 * @param property name of a property to set value to
 	 * @param value actual value to set
+	 * @param type setter type. The driver can ignore it, because value should be already unwrapped
 	 */
-	public void setPropertyValue(Object wrapper, String property, Object value);
+	public void setPropertyValue(Object wrapper, String property, Object value, Type type);
 	
 	/**
 	 * Providing key for this instance of driver which will be used for caching of generated classes.

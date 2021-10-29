@@ -83,6 +83,8 @@ public class DAOTest {
 	public static void afterDAOTest() {
 		
 		getDatabase().getMetadata().getSchema().dropClass(TEST_CLASS);
+		getDatabase().close();
+		orientDB.close();
 	}
 	
 	@Before

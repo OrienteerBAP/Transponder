@@ -89,7 +89,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -201,5 +201,6 @@
 		<module>transponder-core</module>
 		<module>transponder-orientdb</module>
 		<module>transponder-arcadedb</module>
+		<module>transponder-neo4j</module>
 	</modules>
 </project>

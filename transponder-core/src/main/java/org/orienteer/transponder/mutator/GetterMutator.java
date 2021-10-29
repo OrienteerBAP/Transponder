@@ -12,6 +12,7 @@ import net.bytebuddy.implementation.bind.annotation.This;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 /**
  * {@link IMutator} to implement getters methods
@@ -37,7 +38,8 @@ public class GetterMutator implements IMutator {
 		@RuntimeType
 		public static Object getValue(@PropertyName String property, @This Object wrapper, @Origin Method method) {
 			Transponder transponder = Transponder.getTransponder(wrapper);
-			return transponder.wrap(transponder.getDriver().getPropertyValue(wrapper, property), method.getGenericReturnType());
+			Type type = method.getGenericReturnType();
+			return transponder.wrap(transponder.getDriver().getPropertyValue(wrapper, property, type), type);
 		}
 	}
 

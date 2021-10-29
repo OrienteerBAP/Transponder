@@ -182,11 +182,11 @@ public abstract class AbstractUniversalTest
 		otherEntity.setDescription(description);
 		entity.setOtherEntity(otherEntity);
 		
-		Object otherEntitySeed = driver.getPropertyValue(entity, "otherEntity");
+		Object otherEntitySeed = driver.getPropertyValue(entity, "otherEntity", ISimpleEntity.class);
 		ISimpleEntity otherEntityInstance = transponder.provide(otherEntitySeed, ISimpleEntity.class);
 		assertNotNull(otherEntityInstance);
-		assertEquals(name, driver.getPropertyValue(otherEntityInstance, "name"));
-		assertEquals(description, driver.getPropertyValue(otherEntityInstance, "description"));
+		assertEquals(name, driver.getPropertyValue(otherEntityInstance, "name", String.class));
+		assertEquals(description, driver.getPropertyValue(otherEntityInstance, "description", String.class));
 	}
 	
 	@Test

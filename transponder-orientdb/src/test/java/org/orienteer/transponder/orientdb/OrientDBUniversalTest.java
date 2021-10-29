@@ -1,5 +1,6 @@
 package org.orienteer.transponder.orientdb;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.orienteer.transponder.AbstractUniversalTest;
@@ -18,6 +19,12 @@ public class OrientDBUniversalTest extends AbstractUniversalTest {
 	@BeforeClass
 	public static void beforeDAOTest() {
 		orientDB.createIfNotExists(DB_NAME, ODatabaseType.MEMORY);
+	}
+	
+	@AfterClass
+	public static void closeDb() {
+		db.close();
+		orientDB.close();
 	}
 	
 	@Before
