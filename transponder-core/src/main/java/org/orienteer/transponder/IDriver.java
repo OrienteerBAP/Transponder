@@ -20,6 +20,16 @@ public interface IDriver {
 	public void createType(String typeName, boolean isAbstract, Class<?> mainWrapperClass, String... superTypes);
 	
 	/**
+	 * Invoked when all properties and indexes have been created.
+	 * Useful if something needs to be done with properties
+	 * @param typeName name of just created type
+	 * @param mainWrapperClass class which was used for type creation. It might contain useful annotations
+	 */
+	public default void onPostCreateType(String typeName, Class<?> mainWrapperClass) {
+		
+	}
+	
+	/**
 	 * Creates property for a type.
 	 * @param typeName name of a type for which new property should be created
 	 * @param propertyName name of a property

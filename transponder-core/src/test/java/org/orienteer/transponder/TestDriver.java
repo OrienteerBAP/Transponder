@@ -1,5 +1,6 @@
 package org.orienteer.transponder;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.orienteer.transponder.CommonUtils.*;
@@ -66,13 +67,18 @@ public class TestDriver implements ITestDriver {
 	private Map<String, TypeRecord> typeRecords = new HashMap<String, TestDriver.TypeRecord>();
 	
 	private Map<String, Map<String, Object>> db = new HashMap<String, Map<String,Object>>();
-
+	
 	@Override
 	public void createType(String typeName, boolean isAbstract, Class<?> mainWrapperClass, String... superTypes) {
 		for (String superType : superTypes) {
 			assertHasType(superType);
 		}
 		typeRecords.put(typeName, new TypeRecord(typeName, isAbstract, superTypes));
+	}
+	
+	@Override
+	public void onPostCreateType(String typeName, Class<?> mainWrapperClass) {
+		assertHasType(typeName);
 	}
 
 	@Override

@@ -476,6 +476,7 @@ public class Transponder {
 		for (EntityIndex index : clazz.getAnnotationsByType(EntityIndex.class)) {
 			driver.createIndex(type.value(), index.name(), index.type(), clazz, index.properties());
 		}
+		driver.onPostCreateType(type.value(), clazz);
 		return type.value();
 	}
 	
