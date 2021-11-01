@@ -2,6 +2,7 @@ package org.orienteer.transponder;
 
 import static org.junit.Assert.*;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import org.junit.Test;
 import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
+import org.orienteer.transponder.datamodel.ISuperSimpleEntity;
 import org.orienteer.transponder.datamodel.ITestDAO;
 import org.orienteer.transponder.datamodel.sample.IFile;
 import org.orienteer.transponder.datamodel.sample.IFileSystem;
@@ -290,6 +292,33 @@ public abstract class AbstractUniversalTest
 		IFileSystem fileSystem = transponder.dao(IFileSystem.class);
 		IFolder folder = fileSystem.getRoot("Root");
 		assertEquals("Root", folder.getName());
+	}
+	
+	@Test
+	public void testReWrapping() {
+		ISimpleEntity simpleEntity = transponder.create(ISimpleEntity.class);
+		String rndName = "Simple#"+RANDOM.nextLong();
+		simpleEntity.setName(rndName);
+		assertEquals(rndName, simpleEntity.getName());
+		ISuperSimpleEntity superSimpleEntity = Transponder.rewrap(simpleEntity, ISuperSimpleEntity.class, ISuperSimpleEntity.IAnotherInterface.class);
+		assertTrue(superSimpleEntity instanceof ISuperSimpleEntity);
+		assertFalse(superSimpleEntity instanceof ISimpleEntity);
+		assertFalse(simpleEntity instanceof ISuperSimpleEntity.IAnotherInterface);
+		assertTrue(superSimpleEntity instanceof ISuperSimpleEntity.IAnotherInterface);
+		assertEquals(rndName, superSimpleEntity.getName());
+	}
+	
+	@Test
+	public void testUpgrade() {
+		ISimpleEntity simpleEntity = transponder.create(ISimpleEntity.class);
+		String rndName = "Simple#"+RANDOM.nextLong();
+		simpleEntity.setName(rndName);
+		assertEquals(rndName, simpleEntity.getName());
+		simpleEntity = Transponder.upgrade(simpleEntity, ISuperSimpleEntity.class, ISuperSimpleEntity.IAnotherInterface.class);
+		assertTrue(simpleEntity instanceof ISimpleEntity);
+		assertTrue(simpleEntity instanceof ISuperSimpleEntity);
+		assertTrue(simpleEntity instanceof ISuperSimpleEntity.IAnotherInterface);
+		assertEquals(rndName, simpleEntity.getName());
 	}
 	
 }

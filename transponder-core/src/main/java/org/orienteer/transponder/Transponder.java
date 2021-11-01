@@ -296,6 +296,47 @@ public class Transponder {
 		} else throw new IllegalStateException("Type "+wrapper.getClass()+" can't be cast to use in DB");
 	}
 	
+	/**
+	 * Rewrap provided wrapper into new mainClass with optional additional interfaces
+	 * @param <T> type of wrapper
+	 * @param wrapper wrapped object to be rewrapped
+	 * @param mainClass new main class to rewrap into
+	 * @param additionalInterfaces additional interfaces for the generated class
+	 * @return rewrapped object
+	 */
+	public static <T> T rewrap(Object wrapper, Class<T> mainClass, Class<?>... additionalInterfaces) {
+		Transponder transponder = getTransponder(wrapper);
+		if(wrapper instanceof ITransponderEntity) {
+			return transponder.provide(transponder.getDriver().toSeed(wrapper), mainClass, additionalInterfaces);
+		} else {
+			return transponder.dao(mainClass, additionalInterfaces);
+		}
+	}
+	
+	/**
+	 * Upgrade provided wrapper by addition additional interfaces
+	 * @param <T> type of wrapper
+	 * @param wrapper wrapped object to be upgraded
+	 * @param additionalInterfaces additional interfaces for the generated class
+	 * @return new wrapped object instance, but with the same seed object
+	 */
+	public static <T> T upgrade(T wrapper, Class<?>... additionalInterfaces) {
+		if(additionalInterfaces==null || additionalInterfaces.length==0) return wrapper;
+		List<Class<?>> toAdd = new ArrayList<>();
+		for (Class<?> interf : additionalInterfaces) {
+			if(!interf.isInstance(wrapper)) toAdd.add(interf);
+		}
+		if(toAdd.isEmpty()) return wrapper;
+		Class<?>[] originalIntefaces = wrapper.getClass().getInterfaces();
+		toAdd.addAll(0, Arrays.asList(originalIntefaces));
+		toAdd.remove(ITransponderEntity.class);
+		toAdd.remove(ITransponderHolder.class);
+		Class<?> mainClass = toAdd.get(0);
+		toAdd.remove(0);
+		Class<?>[] additional = toAdd.toArray(new Class<?>[toAdd.size()]);
+		return (T)rewrap(wrapper, mainClass, additional);
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected <T> Class<T> getProxyClass(Class<?> baseClass, Class<T> mainClass, boolean entity, final Class<?>... additionalInterfaces) {
 		Integer hash =   Arrays.hashCode(additionalInterfaces);
