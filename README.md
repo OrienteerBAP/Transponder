@@ -96,7 +96,7 @@ public interface IEntry {
 	@Lookup("select from Entry where name=:name and parent=:parent")
 	public boolean lookupByName(String name, IFolder parent);
   
-  public default String getFullPath() {
+  	public default String getFullPath() {
 		IFolder parent = getParent();
 		return (parent!=null?parent.getFullPath():"")+"/"+getName();
 	}
@@ -204,6 +204,17 @@ IFodler folder = transponder.wrap(myFolderDoc); //More generic version, but corr
 If needed, you can unwrap entity as well. Example for OrientDB:
 ```java
 ODocument myFolderDoc = (ODocument)Transponder.unwrap(folder);
+```
+
+Sometimes it's useful to rewrap the same entity but into different class.
+```java
+MyNewWrapper newWrapper = Transponder.rewrap(oldWrapper, MyNewWrapper.class, SomeOtherInterface.class, ...);
+```
+
+Also you can upgrade existing wrapper by adding more interfaces to be supported
+```java
+MyEntity myEntity = ...;
+myEntity = Transponder.upgrade(myEntity, SomeNewInterface.class, SomeOtherInterface.class);
 ```
 
 If you have wrapped entity and you need obtain Transponder:
