@@ -17,7 +17,8 @@ Transponder [dynamically generates bytecode](https://github.com/raphw/byte-buddy
 7. [Transponder API](#transponder-api)
 8. [Transponder Annotations](#transponder-annotations)
 9. [Support of Multiple Dialects](#support-of-multiple-dialects)
-10. [Suppport](#suppport)
+10. [Comparison With Other ORMs](#comparison-with-other-orms)
+11. [Suppport](#suppport)
 
 ### Use Cases
 Transponder can be used for
@@ -229,6 +230,19 @@ Annotations in bytecode generation within Transponder is very flexible (due to [
 
 ### Support of Multiple Dialects
 Queries and commands for the same functions might vary for different databases. Valid SQL for one NoSQL database, might require correction for another one. That's why **Transponder** supports polyglot definitions for `@Query`, `@Lookup` and `@Command`. **Transponder** do translation to corresponding dialect during dynamic generation of a wrapper, so there is no overheads during actual runtime. Every query/command has **id**. It's either can be defined manually (for example `@Query(id="myQuery", value="select ...")`) or generated automatically (for example first query for `IFileSystem` above will have id `<fullpackagename>.IFileSystem.getRoot`. Then **Transponder** uses provided resource file by path `/META-INF/transponder/polyglot.properties` to lookup proper query for a specific dialect. For example, for query with id `myQuery` for OrientDB library will look for keys `orientdb.myQuery` and `orientdb.myQuery.language`. If first one is found - it will be used as actual query for OrientDB. If second one was also found: correspinding language will overload language defined in actual annotation.
+
+## Comparison With Other ORMs
+
+|              | **Transponder** | **Spring Data** | **Hibernate** | **MyBatis** |
+|--------------|-----------------|-----------------|---------------|-------------|
+|NoSQL Support|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|
+|Universal DataModel Markup|:white_check_mark:|:x:|:x:|:x:|
+|No Double Caching|:white_check_mark:|:x:|:x:|:x:|
+|Easy Extendability On User Level Code|:white_check_mark:|:x:|:x:|:x:|
+|Easy SPI For New Drivers|:white_check_mark:|:x:|:x:|:x:|
+|Support of Multi-Inheritance|:white_check_mark:|:x:|:x:|:x:|
+
+**Disclaimer**: Comparison might be subjective. If you have comments: please create an issue or discussion
 
 ## Suppport
 
