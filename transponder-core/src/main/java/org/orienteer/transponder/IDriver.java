@@ -14,7 +14,7 @@ public interface IDriver {
 	 * Creates Type in underling data source. It might be OClass(OrientDB), DocumentType(ArcadeDB), etc.
 	 * @param typeName name of a type to be created
 	 * @param isAbstract is type should be marked as abstract?
-	 * @param mainWrapperClass TODO
+	 * @param mainWrapperClass interface class name to be associated with this type which is being created
 	 * @param superTypes array of super types
 	 */
 	public void createType(String typeName, boolean isAbstract, Class<?> mainWrapperClass, String... superTypes);
@@ -23,11 +23,11 @@ public interface IDriver {
 	 * Creates property for a type.
 	 * @param typeName name of a type for which new property should be created
 	 * @param propertyName name of a property
-	 * @param propertyType TODO
+	 * @param propertyType type of the property to be created
 	 * @param referencedType type to which this property might reference to.
 	 * 		It might not exist yet. In this case - do nothing and update in {@link #setupRelationship(String, String, String, String)}
 	 * @param order order of this property
-	 * @param annotations TODO
+	 * @param annotations additional annotations which might be helpful for customized creation a type in the DB
 	 */
 	public void createProperty(String typeName, String propertyName, Type propertyType, String referencedType, int order, AnnotatedElement annotations);
 	

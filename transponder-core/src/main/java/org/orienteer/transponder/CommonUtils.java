@@ -240,7 +240,7 @@ public class CommonUtils {
      * For example:
      * <ul>
      * <li>For <code>public MyClass getMyProperty()</code> <b>MyClass</b> will be returned</li>
-     * <li>For <code>public List<MyClass> getMyProperty()</code> <b>MyClass</b> will be returned as well</li>
+     * <li>For <code>public List&lt;MyClass&gt; getMyProperty()</code> <b>MyClass</b> will be returned as well</li>
      * </ul>
      * @param type generic type to be analyzed
      * @return class which might be required to reference to
