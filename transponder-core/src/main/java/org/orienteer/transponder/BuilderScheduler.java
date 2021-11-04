@@ -1,15 +1,20 @@
 package org.orienteer.transponder;
 
+import static net.bytebuddy.matcher.ElementMatchers.*;
+import static org.orienteer.transponder.CommonUtils.*;
+
 import java.lang.annotation.Annotation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.orienteer.transponder.annotation.AdviceAnnotation;
 import org.orienteer.transponder.annotation.DelegateAnnotation;
 
 import lombok.Value;
 import net.bytebuddy.asm.Advice;
+import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
@@ -18,8 +23,6 @@ import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.TargetMethodAnnotationDrivenBinder;
 import net.bytebuddy.matcher.ElementMatcher;
-import static net.bytebuddy.matcher.ElementMatchers.*;
-import static org.orienteer.transponder.CommonUtils.*;
 
 /**
  * Class which helps independently define in declarative way multiple {@link Advice}s and {@link ImplementationDefinition}
@@ -54,13 +57,31 @@ public class BuilderScheduler {
 	 * @return this {@link BuilderScheduler} for chaining
 	 */
 	public BuilderScheduler schedule(Class<? extends Annotation> annotationClass) {
+		return schedule(annotationClass, null);
+	}
+	
+	/**
+	 * Schedule implementation/advice for all methods annotated by provided annotation.
+	 * Annotation should have details about actual delegate
+	 * @param annotationClass annotation class to be used for method selection.
+	 * Also it should contains definition of an delegate through {@link DelegateAnnotation} or {@link AdviceAnnotation}
+	 * @param delegate class to delegate to - might be null
+	 * @return this {@link BuilderScheduler} for chaining
+	 */
+	public BuilderScheduler schedule(Class<? extends Annotation> annotationClass, Class<?> delegate) {
 		DelegateAnnotation delegateAnnotation = annotationClass.getAnnotation(DelegateAnnotation.class);
+		if(delegateAnnotation==null && delegate!=null)
+			delegateAnnotation = delegate.getAnnotation(DelegateAnnotation.class);
 		if(delegateAnnotation!=null) {
-			return scheduleDelegate(annotationClass, delegateAnnotation.value());
+			if(delegate==null) delegate = delegateAnnotation.value();
+			return scheduleDelegate(annotationClass, delegate);
 		}
 		AdviceAnnotation adviceAnnotation = annotationClass.getAnnotation(AdviceAnnotation.class);
+		if(adviceAnnotation==null && delegate!=null)
+			adviceAnnotation = delegate.getAnnotation(AdviceAnnotation.class);
 		if(adviceAnnotation!=null) {
-			return scheduleAdvice(annotationClass, adviceAnnotation.value());
+			if(delegate==null) delegate = adviceAnnotation.value();
+			return scheduleAdvice(annotationClass, delegate);
 		}
 		throw new IllegalStateException("Annotation '"+annotationClass.getName()
 											+"' is not providing information about delegate to advice");
@@ -128,11 +149,12 @@ public class BuilderScheduler {
 	 * @return new instance of {@link DynamicType.Builder} which contains all required changes
 	 */
 	public <T> DynamicType.Builder<T> apply(DynamicType.Builder<T> builder) {
-		if(cases.isEmpty()) return builder;
-		Case[] cases = this.cases.toArray(new Case[this.cases.size()]);
 		TypeDescription description = builder.toTypeDescription();
 		List<MethodDescription> methods = getMethodDescriptionList(description);
-		BigInteger permutationsTotal = BigInteger.ONE.shiftLeft(cases.length-1);
+		enhanceCasesByDynamicDefinitions(methods);
+		if(cases.isEmpty()) return builder;
+		Case[] cases = this.cases.toArray(new Case[this.cases.size()]);
+		BigInteger permutationsTotal = BigInteger.ONE.shiftLeft(cases.length).subtract(BigInteger.ONE);
 		for(BigInteger currentPermutation = BigInteger.ONE; 
 				currentPermutation.compareTo(permutationsTotal)<=0;
 				currentPermutation = currentPermutation.add(BigInteger.ONE)) {
@@ -157,7 +179,9 @@ public class BuilderScheduler {
 				if(!currentPermutation.testBit(i)) thisMatcher = not(thisMatcher);
 				if(!hasMatch(methods, thisMatcher)) break; // Adding conditions will not make any difference
 				matcher = matcher.and(thisMatcher);
-				if(currentPermutation.testBit(i) && c.getImplementation() instanceof Advice) {
+				if(currentPermutation.testBit(i) 
+						&& c.getImplementation() instanceof Advice
+						&& c.getImplementation() != baseImplementation) {
 					implementation = ((Advice)c.getImplementation()).wrap(implementation);
 				}
 			}
@@ -165,6 +189,35 @@ public class BuilderScheduler {
 				builder = builder.method(matcher).intercept(implementation);
 		}
 		return builder;
+	}
+	
+	protected void enhanceCasesByDynamicDefinitions(List<MethodDescription> methods) {
+		ClassLoader cl = BuilderScheduler.class.getClassLoader();
+		methods.stream().filter(m -> isAnnotatedWith(DelegateAnnotation.class).matches(m))
+			    .flatMap(m -> m.getDeclaredAnnotations().filter(annotationType(DelegateAnnotation.class)).stream())
+			    .distinct().forEachOrdered(a -> {
+			    	System.out.println("Scheduling delegation for "+a);
+			    	schedule(declaresAnnotation(is(a)), MethodDelegation.to(a.getValue("value").load(cl).resolve(Class.class)));
+			    	methods.stream().filter(m -> declaresAnnotation(is(a)).matches(m))
+			    			.forEach(m -> System.out.println("Matched method: "+m));
+			    });
+		methods.stream().filter(m -> isAnnotatedWith(AdviceAnnotation.class).or(isAnnotatedWith(AdviceAnnotation.List.class)).matches(m))
+			    .flatMap(m -> m.getDeclaredAnnotations().filter(annotationType(AdviceAnnotation.class).or(annotationType(AdviceAnnotation.List.class))).stream())
+			    .flatMap(a -> {
+			    	Object subA = a.getValue("value").resolve();
+			    	if(subA.getClass().isArray())
+			    		return Stream.of((AnnotationDescription[])subA);
+			    	else
+			    		return Stream.of(a);
+			    })
+			    .distinct().forEachOrdered(a -> {
+			    	System.out.println("Scheduling advice for "+a);
+			    	ElementMatcher<MethodDescription> em =  hasRepeatableAnnotation(a, new TypeDescription.ForLoadedType(AdviceAnnotation.List.class));
+			    	schedule(em, Advice.to(a.getValue("value").load(cl).resolve(Class.class)));
+			    	methods.stream().filter(m -> em.matches(m))
+	    				.forEach(m -> System.out.println("Matched method: "+m));
+			    });
+			
 	}
 
 	

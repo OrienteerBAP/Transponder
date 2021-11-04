@@ -28,14 +28,19 @@ import java.util.function.Supplier;
 import com.google.common.base.Strings;
 
 import lombok.experimental.UtilityClass;
+import net.bytebuddy.description.annotation.AnnotationDescription;
+import net.bytebuddy.description.annotation.AnnotationList;
+import net.bytebuddy.description.annotation.AnnotationSource;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDefinition;
+import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeList;
 import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.ElementMatchers;
 
 /**
  * Common for utility methods
@@ -487,6 +492,30 @@ public class CommonUtils {
 				throw new IllegalArgumentException("Can't convert string value '"+value+"' to instance of "+clazz.getName(), e);
 			} 
 		}
+	}
+	
+	/**
+	 * Generate {@link ElementMatcher} to check against predefined repeatable annotation
+	 * @param <T> type to check on
+	 * @param annotation description of annotation to try to find
+	 * @param containerType annotation for holding repeatable values
+	 * @return generated instance
+	 */
+	public <T extends AnnotationSource> ElementMatcher<T> hasRepeatableAnnotation(AnnotationDescription annotation, TypeDescription containerType) {
+		return new ElementMatcher.Junction.AbstractBase<T>() {
+
+			@Override
+			public boolean matches(T target) {
+				if(target.getDeclaredAnnotations().contains(annotation)) return true;
+				AnnotationList list = target.getDeclaredAnnotations().filter(ElementMatchers.annotationType(containerType));
+				if(list.isEmpty()) return false;
+				else {
+					return Arrays.asList(list.getOnly().getValue("value").resolve(AnnotationDescription[].class))
+							.contains(annotation);
+				}
+			}
+			
+		};
 	}
 	
 }

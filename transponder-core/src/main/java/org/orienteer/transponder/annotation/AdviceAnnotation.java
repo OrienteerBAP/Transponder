@@ -1,8 +1,10 @@
 package org.orienteer.transponder.annotation;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -13,10 +15,17 @@ import net.bytebuddy.asm.Advice;
  * For example: {@link DefaultValue}
  */
 @Retention(RUNTIME)
-@Target(ANNOTATION_TYPE)
+@Target({ANNOTATION_TYPE, METHOD})
+@Repeatable(AdviceAnnotation.List.class)
 public @interface AdviceAnnotation {
 	/**
 	 * @return Class to be used as delegate for {@link Advice} creation.
 	 */
-	Class<?> value();
+	Class<?> value() default Object.class;
+	
+	@Retention(RUNTIME)
+	@Target({ ANNOTATION_TYPE, METHOD })
+	@interface List {
+		AdviceAnnotation[] value();
+	}
 }
