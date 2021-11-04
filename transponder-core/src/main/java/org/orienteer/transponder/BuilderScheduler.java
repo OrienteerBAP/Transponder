@@ -196,10 +196,7 @@ public class BuilderScheduler {
 		methods.stream().filter(m -> isAnnotatedWith(DelegateAnnotation.class).matches(m))
 			    .flatMap(m -> m.getDeclaredAnnotations().filter(annotationType(DelegateAnnotation.class)).stream())
 			    .distinct().forEachOrdered(a -> {
-			    	System.out.println("Scheduling delegation for "+a);
 			    	schedule(declaresAnnotation(is(a)), MethodDelegation.to(a.getValue("value").load(cl).resolve(Class.class)));
-			    	methods.stream().filter(m -> declaresAnnotation(is(a)).matches(m))
-			    			.forEach(m -> System.out.println("Matched method: "+m));
 			    });
 		methods.stream().filter(m -> isAnnotatedWith(AdviceAnnotation.class).or(isAnnotatedWith(AdviceAnnotation.List.class)).matches(m))
 			    .flatMap(m -> m.getDeclaredAnnotations().filter(annotationType(AdviceAnnotation.class).or(annotationType(AdviceAnnotation.List.class))).stream())
@@ -211,11 +208,8 @@ public class BuilderScheduler {
 			    		return Stream.of(a);
 			    })
 			    .distinct().forEachOrdered(a -> {
-			    	System.out.println("Scheduling advice for "+a);
-			    	ElementMatcher<MethodDescription> em =  hasRepeatableAnnotation(a, new TypeDescription.ForLoadedType(AdviceAnnotation.List.class));
-			    	schedule(em, Advice.to(a.getValue("value").load(cl).resolve(Class.class)));
-			    	methods.stream().filter(m -> em.matches(m))
-	    				.forEach(m -> System.out.println("Matched method: "+m));
+			    	schedule(hasRepeatableAnnotation(a, new TypeDescription.ForLoadedType(AdviceAnnotation.List.class)),
+			    			Advice.to(a.getValue("value").load(cl).resolve(Class.class)));
 			    });
 			
 	}

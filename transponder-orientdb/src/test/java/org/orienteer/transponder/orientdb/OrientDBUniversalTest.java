@@ -12,7 +12,7 @@ import com.orientechnologies.orient.core.db.OrientDBConfig;
 
 public class OrientDBUniversalTest extends AbstractUniversalTest {
 	
-	private static final String DB_NAME = "TestDB";
+	private static final String DB_NAME = "UniversalTestDB";
 	private static OrientDB orientDB = new OrientDB("embedded:target/",OrientDBConfig.defaultConfig());
 	private static ODatabaseSession db;
 	

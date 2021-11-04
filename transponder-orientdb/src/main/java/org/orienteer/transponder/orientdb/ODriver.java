@@ -12,7 +12,13 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Strings.emptyToNull;
 import static org.orienteer.transponder.CommonUtils.*;
 
+import org.orienteer.transponder.BuilderScheduler;
 import org.orienteer.transponder.IDriver;
+import org.orienteer.transponder.IMutator;
+import org.orienteer.transponder.Transponder;
+import org.orienteer.transponder.annotation.common.Sudo;
+import org.orienteer.transponder.mutator.AnnotationMutator;
+import org.orienteer.transponder.orientdb.advice.SudoAdvice;
 
 import com.google.common.base.Strings;
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
@@ -49,6 +55,8 @@ public class ODriver implements IDriver {
 																		 OType.EMBEDDEDLIST, OType.LINKLIST,
 																		 OType.EMBEDDEDSET, OType.LINKSET,
 																		 OType.EMBEDDEDMAP, OType.LINKMAP);
+	
+	private static final IMutator MUTATOR = new AnnotationMutator(Sudo.class, SudoAdvice.class);
 	
 	private final boolean overrideSchema;
 	
@@ -291,6 +299,11 @@ public class ODriver implements IDriver {
 		return DIALECT_ORIENTDB;
 	}
 	
+	@Override
+	public IMutator getMutator() {
+		return MUTATOR;
+	}
+
 	protected ODatabaseSession getSession() {
 		ODatabaseSession db = ODatabaseRecordThreadLocal.instance().get();
 		if(db==null) throw new IllegalStateException("OrientDB Session is not associated with current thread");

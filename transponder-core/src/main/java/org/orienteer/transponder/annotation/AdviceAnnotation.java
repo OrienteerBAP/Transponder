@@ -23,9 +23,15 @@ public @interface AdviceAnnotation {
 	 */
 	Class<?> value() default Object.class;
 	
+	/**
+	 * Annotation to collect repeatable {@link AdviceAnnotation}s
+	 */
 	@Retention(RUNTIME)
 	@Target({ ANNOTATION_TYPE, METHOD })
 	@interface List {
+		/**
+		 * @return array of defined {@link AdviceAnnotation}s
+		 */
 		AdviceAnnotation[] value();
 	}
 }

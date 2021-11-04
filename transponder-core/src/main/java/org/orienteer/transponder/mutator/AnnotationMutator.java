@@ -36,6 +36,6 @@ public class AnnotationMutator implements IMutator {
 	
 	@Override
 	public void schedule(Transponder transponder, BuilderScheduler scheduler) {
-		scheduler.schedule(annotationClass);
+		scheduler.schedule(annotationClass, delegate);
 	}
 }

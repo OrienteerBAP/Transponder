@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.orienteer.transponder.CommonUtils;
 import org.orienteer.transponder.Transponder;
 
+import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.db.ODatabaseType;
 import com.orientechnologies.orient.core.db.OrientDB;
@@ -34,6 +35,7 @@ import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OProperty;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
 import com.orientechnologies.orient.core.metadata.schema.OType;
+import com.orientechnologies.orient.core.metadata.security.OUser;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
 import junit.framework.AssertionFailedError;
@@ -153,6 +155,12 @@ public class DAOTest {
 		assertNotNull(doc.getDocument());
 		Object reloadRet = doc.reload();
 		assertTrue(reloadRet == doc);
+	}
+	
+	@Test
+	public void testInterceptors() {
+		IDAOTestClass doc = transponder.dao(IDAOTestClass.class);
+		assertEquals(IDAOTestClass.TestDAOMethodHandler.RETURN, doc.interceptedInvocation());
 	}
 	
 	@Test
@@ -403,6 +411,22 @@ public class DAOTest {
 			if(schema.existsClass("DAOTestClassB")) schema.dropClass("DAOTestClassB");
 			if(schema.existsClass("DAOTestClassRoot")) schema.dropClass("DAOTestClassRoot");
 		}
+	}
+	
+	@Test
+	public void testSudo() {
+		try(ODatabaseSession db = orientDB.open(DB_NAME,"reader","reader")) {
+			db.activateOnCurrentThread();
+			ITestDAO dao = transponder.dao(ITestDAO.class);
+			assertEquals("reader", dao.whoAmI());
+			assertNull(dao.sudoWhoAmI());
+			assertTrue(db == ODatabaseRecordThreadLocal.instance().get());
+			assertEquals("reader", dao.whoAmI());
+			OUser user = dao.createUser();
+			assertNotNull(user);
+//			db.delete(user.getDocument());
+		}
+		DAOTest.db.activateOnCurrentThread();
 	}
 	
 }
