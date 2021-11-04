@@ -136,6 +136,11 @@ public class TestDriver implements ITestDriver {
 		return getPolymorphicProperty(typeName, propertyName)!=null;
 	}
 	
+	public boolean hasPropertyWithOrder(String typeName, String propertyName, int order) {
+		PropertyRecord record = getPolymorphicProperty(typeName, propertyName);
+		return record==null?false:order==record.getOrder();
+	}
+	
 	@Override
 	public boolean hasReferenceProperty(String typeName, String propertyName, String referenceType) {
 		PropertyRecord property = getPolymorphicProperty(typeName, propertyName);

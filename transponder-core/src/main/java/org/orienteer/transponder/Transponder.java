@@ -420,7 +420,7 @@ public class Transponder {
 		Set<String> superClasses = define(interfaces, ctx);
 		superClasses.addAll(Arrays.asList(type.superTypes()));
 		
-		int currentOrder=0;
+		int currentOrder=type.orderOffset();
 		
 		List<Method> methods = listDeclaredMethods(clazz);
 		
@@ -452,7 +452,8 @@ public class Transponder {
 			
 			final String fieldName = fieldNameCandidate;
 			final String linkedType = linkedTypeCandidate;
-			final int order = currentOrder++;
+			final int order = currentOrder;
+			currentOrder+=type.orderStep();
 			final AnnotatedElement annotations = method;
 			final EntityPropertyIndex entityPropertIndex = method.getAnnotation(EntityPropertyIndex.class);
 			

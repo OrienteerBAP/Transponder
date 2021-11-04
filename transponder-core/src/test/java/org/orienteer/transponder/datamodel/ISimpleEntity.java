@@ -7,7 +7,7 @@ import org.orienteer.transponder.annotation.EntityPropertyIndex;
 import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.annotation.Lookup;
 
-@EntityType("Simple")
+@EntityType(value = "Simple", orderOffset = 100, orderStep = 5)
 @EntityIndex(name = "nameDescription", properties = {"name", "description"})
 @EntityIndex(name = "nameValue", properties = {"name", "value"})
 public interface ISimpleEntity {

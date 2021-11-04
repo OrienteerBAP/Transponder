@@ -25,4 +25,18 @@ public @interface EntityType {
 	 * @return flag to denote types which should be defined as abstract
 	 */
 	boolean isAbstract() default false;
+	
+	/**
+	 * Defines from what order property enumeration should start.
+	 * Useful when subclass should continue ordering of properties from the parent.
+	 * If driver doesn't support orders - there is no effect. Consult with documentation.
+	 * @return integer from which order number for properties being created should start.
+	 */
+	int orderOffset() default 0;
+	
+	/**
+	 * @return how much increase order for next property
+	 * Useful when subinterface doesn't want to change setup of parent class
+	 */
+	int orderStep() default 10;
 }
