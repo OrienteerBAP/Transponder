@@ -127,52 +127,6 @@ public class ByteBuddyTest {
                 .implement(IEchoInt.class);
         builder = builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract()))
                 .intercept(Advice.to(AdviceToIncrement.class).wrap(MethodDelegation.to(EchoDelegator.class)));
-//                .intercept(MethodDelegation.to(EchoDelegator.class));
-        
-//        MemberSubstitution.relaxed().method(isDeclaredBy(IEchoInt.class).and(isAbstract()))
-//        			.rep
-//        builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract()))
-//        		.intercept(null)
-//        builder = builder.visit(Advice.to(AdviceToIncrement.class).);
-        
-		
-//        builder = builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract()))
-//        		.intercept(Advice.withCustomMapping().bootstrap(builder.).to(AdviceToIncrement.class));
-//		Advice.to(AdviceToIncrement.class).wrap(builder.invokable(isDeclaredBy(IEchoInt.class).and(isAbstract())));
-//        builder = builder.visit(Advice.to(AdviceToIncrement.class)
-//							.on(isDeclaredBy(IEchoInt.class))); 
-//        Advice.to(AdviceToIncrement.class).appender(null)
-//        builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract())).
-        /*TypeDescription description = builder.toTypeDescription();
-        builder = builder.visit(
-        Advice.withCustomMapping().bootstrap(builder.toTypeDescription().getDeclaredMethods().filter(isAnnotatedWith(Test.class)).getOnly()).to(AdviceToIncrement.class)
-        .on(isDeclaredBy(IEchoInt.class))
-        );*/
-        //.on(builder.toTypeDescription().getDeclaredMethods().filter(isDeclaredBy(IEchoInt.class)).getOnly());
-//        builder.toTypeDescription().getDeclaredMethods().filter(isDeclaredBy(IEchoInt.class)).getOnly();
-//        builder = builder.method(isDeclaredBy(IEchoInt.class).and(isAbstract())).
-       /* builder = builder.visit(new AsmVisitorWrapper() {
-			
-			@Override
-			public ClassVisitor wrap(TypeDescription instrumentedType, ClassVisitor classVisitor, Context implementationContext,
-					TypePool typePool, FieldList<InDefinedShape> fields, MethodList<?> methods, int writerFlags,
-					int readerFlags) {
-				System.out.println("Wrap Invoked!");
-				return classVisitor;
-			}
-			
-			@Override
-			public int mergeWriter(int flags) {
-				System.out.println("MergeReade: "+flags);
-				return flags;
-			}
-			
-			@Override
-			public int mergeReader(int flags) {
-				System.out.println("MergeReade: "+flags);
-				return flags;
-			}
-		});*/
 		
 		DynamicType.Loaded<?> loaded2 = builder
 										.make()

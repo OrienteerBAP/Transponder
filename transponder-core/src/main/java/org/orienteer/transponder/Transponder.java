@@ -108,6 +108,9 @@ public class Transponder {
 	 */
 	public <T> T create(Class<T> mainClass, Class<?>... additionalInterfaces) {
 		EntityType entityType = mainClass.getAnnotation(EntityType.class);
+		if(entityType==null)
+			throw new IllegalArgumentException("Main class '"+mainClass.getName()+
+								"' should be annotated by @"+EntityType.class.getSimpleName());
 		return create(mainClass, entityType.value(), additionalInterfaces);
 	}
 	

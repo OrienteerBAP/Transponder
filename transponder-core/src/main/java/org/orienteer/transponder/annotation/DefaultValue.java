@@ -6,6 +6,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -15,7 +16,8 @@ import static net.bytebuddy.asm.Advice.*;
 import static org.orienteer.transponder.CommonUtils.*;
 
 /**
- * Annotation which allow to override returned value if it's null by some default value
+ * Annotation which allow to override returned value if it's null (or default for primitive types)
+ * by some default value
  */
 @Retention(RUNTIME)
 @Target(METHOD)
@@ -37,11 +39,12 @@ public @interface DefaultValue {
 		 * Implementation of the {@link Advice}
 		 * @param ret object which was returned by actual method call
 		 * @param origin method object to be used for obtaining return type to convert default value to
+		 * @param stubValue default value should be return if actual result is equal to this value
 		 */
 		@RuntimeType
 		@OnMethodExit
-		public static void onExit(@Return(readOnly = false, typing = Typing.DYNAMIC) Object ret, @Origin Method origin) {
-			if(ret==null) {
+		public static void onExit(@Return(readOnly = false, typing = Typing.DYNAMIC) Object ret, @Origin Method origin, @StubValue Object stubValue) {
+			if(Objects.equals(ret, stubValue)) {
 				DefaultValue annotation = origin.getAnnotation(DefaultValue.class);
 				ret = stringToInstance(annotation.value(), origin.getReturnType());
 			}

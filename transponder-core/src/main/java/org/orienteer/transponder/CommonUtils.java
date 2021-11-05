@@ -487,6 +487,7 @@ public class CommonUtils {
 		if(clazz.isInstance(value)) return (T) value;
 		else {
 			try {
+				clazz = wrap(clazz);
 				return (T)clazz.getConstructor(String.class).newInstance(value);
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Can't convert string value '"+value+"' to instance of "+clazz.getName(), e);

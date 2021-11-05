@@ -7,6 +7,7 @@ import org.orienteer.transponder.annotation.binder.PropertyName;
 
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import net.bytebuddy.implementation.bind.annotation.StubValue;
 import net.bytebuddy.implementation.bind.annotation.This;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
@@ -33,13 +34,15 @@ public class GetterMutator implements IMutator {
 		 * @param property name of property to get value of
 		 * @param wrapper wrapper object
 		 * @param method original method to support dynamic casting
+		 * @param stubValue value which needs to be returned if property value is null
 		 * @return property value
 		 */
 		@RuntimeType
-		public static Object getValue(@PropertyName String property, @This Object wrapper, @Origin Method method) {
+		public static Object getValue(@PropertyName String property, @This Object wrapper, @Origin Method method, @StubValue Object stubValue) {
 			Transponder transponder = Transponder.getTransponder(wrapper);
 			Type type = method.getGenericReturnType();
-			return transponder.wrap(transponder.getDriver().getPropertyValue(wrapper, property, type), type);
+			Object ret = transponder.wrap(transponder.getDriver().getPropertyValue(wrapper, property, type), type);
+			return ret !=null ? ret : stubValue;
 		}
 	}
 

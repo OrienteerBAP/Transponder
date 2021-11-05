@@ -13,7 +13,9 @@ import org.junit.Test;
 import org.orienteer.transponder.IPolyglot.Translation;
 import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.annotation.AdviceAnnotation;
+import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.DelegateAnnotation;
+import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.IRemoteEntity;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
@@ -125,6 +127,30 @@ public class CoreSpecificTest
 		
 		transponder.define(IRemoteEntity.class);
 		assertTrue(driver.hasPropertyWithOrder("Remote", "remoteName", 0));
+	}
+	
+	@Test
+	public void testDefaultValue() {
+		Transponder transponder = new Transponder(new TestDriver());
+		DefaultValueTestCaseEntity entity = transponder.create(DefaultValueTestCaseEntity.class);
+		assertEquals(null, entity.getNoDefaultObject());
+		assertEquals(0, entity.getNoDefaultPrimitive());
+		assertEquals((Integer)100, entity.getDefaultValueObject());
+		assertEquals(300, entity.getDefaultValuePrimitive());
+	}
+	
+	@EntityType("DefaultValueTestCaseEntity")
+	public static interface DefaultValueTestCaseEntity {
+		
+		public Integer getNoDefaultObject();
+		
+		public int getNoDefaultPrimitive();
+		
+		@DefaultValue("100")
+		public Integer getDefaultValueObject();
+		
+		@DefaultValue("300")
+		public int getDefaultValuePrimitive();
 	}
 	
 }
