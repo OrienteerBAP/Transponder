@@ -15,6 +15,7 @@ import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.annotation.AdviceAnnotation;
 import org.orienteer.transponder.annotation.DelegateAnnotation;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
+import org.orienteer.transponder.datamodel.IRemoteEntity;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
 import org.orienteer.transponder.datamodel.ITestDAO;
 
@@ -114,13 +115,16 @@ public class CoreSpecificTest
 		TestDriver driver = new TestDriver();
 		Transponder transponder = new Transponder(driver);
 		transponder.define(ISimpleEntity.class);
-		driver.hasPropertyWithOrder("Simple", "pk", 100);
-		driver.hasPropertyWithOrder("Simple", "name", 105);
-		driver.hasPropertyWithOrder("Simple", "description", 110);
-		driver.hasPropertyWithOrder("Simple", "value", 500);
-		driver.hasPropertyWithOrder("Simple", "otherEntity", 115);
-		driver.hasPropertyWithOrder("Simple", "remoteEntity", 120);
-		driver.hasPropertyWithOrder("Simple", "parametrizedEntity", 125);
+		assertTrue(driver.hasPropertyWithOrder("Simple", "pk", 100));
+		assertTrue(driver.hasPropertyWithOrder("Simple", "name", 105));
+		assertTrue(driver.hasPropertyWithOrder("Simple", "description", 110));
+		assertTrue(driver.hasPropertyWithOrder("Simple", "value", 500));
+		assertTrue(driver.hasPropertyWithOrder("Simple", "otherEntity", 115));
+		assertTrue(driver.hasPropertyWithOrder("Simple", "remoteEntity", 120));
+		assertTrue(driver.hasPropertyWithOrder("Simple", "parametrizedEntity", 125));
+		
+		transponder.define(IRemoteEntity.class);
+		assertTrue(driver.hasPropertyWithOrder("Remote", "remoteName", 0));
 	}
 	
 }

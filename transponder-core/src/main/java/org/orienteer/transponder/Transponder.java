@@ -420,7 +420,7 @@ public class Transponder {
 		Set<String> superClasses = define(interfaces, ctx);
 		superClasses.addAll(Arrays.asList(type.superTypes()));
 		
-		int currentOrder=type.orderOffset()-type.orderOffset(); // Minus is needed to have first property with orderOffset
+		int currentOrder=type.orderOffset()-type.orderStep(); // Minus is needed to have first property with orderOffset
 		
 		List<Method> methods = listDeclaredMethods(clazz);
 		
