@@ -13,6 +13,7 @@ import static com.google.common.base.Strings.emptyToNull;
 import static org.orienteer.transponder.CommonUtils.*;
 
 import org.orienteer.transponder.BuilderScheduler;
+import org.orienteer.transponder.CommonUtils;
 import org.orienteer.transponder.IDriver;
 import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
@@ -228,18 +229,9 @@ public class ODriver implements IDriver {
 	public Class<?> getEntityMainClass(Object seed) {
 		if(seed==null) return null;
 		ODocument doc = ((OIdentifiable)seed).getRecord();
-		if(doc!=null) {
-			String mainWrapperClassName = doc.getSchemaClass().getCustom(OCLASS_CUSTOM_TRANSPONDER_WRAPPER);
-			if(!Strings.isNullOrEmpty(mainWrapperClassName)) {
-				try {
-					return Class.forName(mainWrapperClassName);
-				} catch (ClassNotFoundException e) {
-					//NOP
-				}
-			}
-		}
-		
-		return null;
+		return doc!=null
+				?safeClassForName(doc.getSchemaClass().getCustom(OCLASS_CUSTOM_TRANSPONDER_WRAPPER))
+				:null;
 	}
 
 	@Override

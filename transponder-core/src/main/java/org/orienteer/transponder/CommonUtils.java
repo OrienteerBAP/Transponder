@@ -289,9 +289,9 @@ public class CommonUtils {
 	 */
 	public Class<?> safeClassForName(String className) {
 		try {
-			return Class.forName(className);
+			return Strings.isNullOrEmpty(className)?null:Class.forName(className);
 		} catch (ClassNotFoundException e) {
-			throw new IllegalArgumentException(e.getMessage(), e);
+			return null;
 		}
 	}
 	
