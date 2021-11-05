@@ -24,4 +24,9 @@ public @interface EntityProperty {
 	 * @return property name which might reference back from entity which is referenced by this property
 	 */
 	String inverse() default "";
+	
+	/**
+	 * @return explicit order for the property. Take effect only if driver supports orders
+	 */
+	int order() default -1;
 }

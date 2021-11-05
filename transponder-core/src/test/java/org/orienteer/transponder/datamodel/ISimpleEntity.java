@@ -3,6 +3,7 @@ package org.orienteer.transponder.datamodel;
 import org.orienteer.transponder.annotation.Command;
 import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.EntityIndex;
+import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityPropertyIndex;
 import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.annotation.Lookup;
@@ -25,6 +26,7 @@ public interface ISimpleEntity {
 	
 	@DefaultValue("EMPTY")
 	@EntityPropertyIndex
+	@EntityProperty(order=500)
 	public String getValue();
 	public void setValue(String value);
 	

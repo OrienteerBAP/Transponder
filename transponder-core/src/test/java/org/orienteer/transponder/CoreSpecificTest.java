@@ -117,10 +117,10 @@ public class CoreSpecificTest
 		driver.hasPropertyWithOrder("Simple", "pk", 100);
 		driver.hasPropertyWithOrder("Simple", "name", 105);
 		driver.hasPropertyWithOrder("Simple", "description", 110);
-		driver.hasPropertyWithOrder("Simple", "value", 115);
-		driver.hasPropertyWithOrder("Simple", "otherEntity", 120);
-		driver.hasPropertyWithOrder("Simple", "remoteEntity", 125);
-		driver.hasPropertyWithOrder("Simple", "parametrizedEntity", 130);
+		driver.hasPropertyWithOrder("Simple", "value", 500);
+		driver.hasPropertyWithOrder("Simple", "otherEntity", 115);
+		driver.hasPropertyWithOrder("Simple", "remoteEntity", 120);
+		driver.hasPropertyWithOrder("Simple", "parametrizedEntity", 125);
 	}
 	
 }
