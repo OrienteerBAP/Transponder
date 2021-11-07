@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-
 import com.google.common.base.Strings;
 
 import lombok.experimental.UtilityClass;
@@ -483,12 +482,17 @@ public class CommonUtils {
 	 * @param clazz type of an instance to be created
 	 * @return instance of the required type
 	 */
+	@SuppressWarnings("rawtypes")
 	public <T> T stringToInstance(String value, Class<T> clazz) {
 		if(clazz.isInstance(value)) return (T) value;
 		else {
 			try {
 				clazz = wrap(clazz);
-				return (T)clazz.getConstructor(String.class).newInstance(value);
+				if(Enum.class.isAssignableFrom(clazz)) {
+					return (T) Enum.valueOf((Class<? extends Enum>)clazz, value);
+				} else {
+					return (T)clazz.getConstructor(String.class).newInstance(value);
+				}
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Can't convert string value '"+value+"' to instance of "+clazz.getName(), e);
 			} 
