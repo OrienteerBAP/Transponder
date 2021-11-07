@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 
 import org.orienteer.transponder.annotation.EntityIndex;
@@ -544,7 +545,7 @@ public class Transponder {
 		class ContextItem {
 			private Class<?> typeClass;
 			private String type;
-			private Map<String, Runnable> postponedTillExit = new HashMap<String, Runnable>();
+			private Map<String, Runnable> postponedTillExit = new TreeMap<String, Runnable>((a, b) -> a.compareTo(b));
 			private Multimap<String, Runnable> postponedTillDefined = ArrayListMultimap.create();
 			
 			ContextItem(Class<?> daoClass, String oClass) {
@@ -637,7 +638,8 @@ public class Transponder {
 			if(Strings.isNullOrEmpty(ret)) {
 				if(lazyDefine) {
 					ret = type.value();
-					postponeTillExit("create:"+ret, () -> transponder.define(clazz, this));
+					//Char '~' is needed to be the very last in queue
+					postponeTillExit("~create:"+ret, () -> transponder.define(clazz, this));
 				} else {
 					ret = transponder.define(clazz, this);
 				}

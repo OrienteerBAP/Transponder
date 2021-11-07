@@ -158,6 +158,16 @@ public class CoreSpecificTest
 		transponder = new Transponder(driver);
 		transponder.define(IFile.class);
 		assertCreatedModel(driver);
+		//Test joint creation in one order
+		driver = new TestDriver();
+		transponder = new Transponder(driver);
+		transponder.define(IFolder.class, IFile.class);
+		assertCreatedModel(driver);
+		//Test joint creation in reverse order
+		driver = new TestDriver();
+		transponder = new Transponder(driver);
+		transponder.define(IFile.class, IFolder.class);
+		assertCreatedModel(driver);
 	}
 	
 	private void assertCreatedModel(TestDriver driver) {
