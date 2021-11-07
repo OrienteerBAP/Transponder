@@ -1,28 +1,21 @@
 package org.orienteer.transponder;
 
-import static org.junit.Assert.*;
-import static net.bytebuddy.asm.Advice.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
 import org.junit.Test;
 import org.orienteer.transponder.IPolyglot.Translation;
-import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.annotation.AdviceAnnotation;
 import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.DelegateAnnotation;
+import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityType;
-import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.IRemoteEntity;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
-import org.orienteer.transponder.datamodel.ITestDAO;
 
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.dynamic.DynamicType.Builder;
 
 public class CoreSpecificTest 
 {
@@ -151,6 +144,55 @@ public class CoreSpecificTest
 		
 		@DefaultValue("300")
 		public int getDefaultValuePrimitive();
+	}
+	
+	@Test
+	public void testProperOrderForInvert() {
+		//Test creation from top to bottom
+		TestDriver driver = new TestDriver();
+		Transponder transponder = new Transponder(driver);
+		transponder.define(IFolder.class);
+		assertCreatedModel(driver);
+		//Test creation from bottom to top
+		driver = new TestDriver();
+		transponder = new Transponder(driver);
+		transponder.define(IFile.class);
+		assertCreatedModel(driver);
+	}
+	
+	private void assertCreatedModel(TestDriver driver) {
+		driver.assertHasType("Folder");
+		driver.assertHasType("File");
+		driver.assertHasProperty("Folder", "name");
+		driver.assertHasProperty("Folder", "files");
+		driver.assertHasProperty("Folder", "subFolders");
+		driver.assertHasProperty("Folder", "folder");
+		driver.assertHasProperty("File", "name");
+		driver.assertHasProperty("File", "folder");
+		assertEquals("File.folder", driver.getPolymorphicProperty("Folder", "files").getInverse());
+		assertEquals("Folder.files", driver.getPolymorphicProperty("File", "folder").getInverse());
+		assertEquals("Folder.folder", driver.getPolymorphicProperty("Folder", "subFolders").getInverse());
+		assertEquals("Folder.subFolders", driver.getPolymorphicProperty("Folder", "folder").getInverse());
+	}
+	
+	@EntityType("Folder")
+	public static interface IFolder {
+		public String getName();
+		@EntityProperty(inverse = "folder")
+		public List<IFile> getFiles();
+		
+		@EntityProperty(inverse = "folder")
+		public List<IFolder> getSubFolders();
+		
+		@EntityProperty(inverse = "subFolders")
+		public IFolder getFolder();
+	}
+	
+	@EntityType("File")
+	public static interface IFile {
+		public String getName();
+		@EntityProperty(inverse = "files")
+		public IFolder getFolder();
 	}
 	
 }

@@ -16,8 +16,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.Query;
 import org.orienteer.transponder.annotation.binder.PropertyName;
+
+import com.google.common.base.Strings;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,7 +35,7 @@ public class TestDriver implements ITestDriver {
 	
 	@Data
 	@Accessors(chain = true)
-	private static class TypeRecord {
+	public static class TypeRecord {
 		private String typeName;
 		private boolean isAbstract;
 		private String[] superTypes;
@@ -50,16 +53,17 @@ public class TestDriver implements ITestDriver {
 	@Data
 	@Accessors(chain = true)
 	@AllArgsConstructor
-	private static class PropertyRecord {
+	public static class PropertyRecord {
 		private String propertyName;
 		private String referencedType;
 		private int order;
+		private String inverse;
 	}
 	
 	@Data
 	@Accessors(chain = true)
 	@AllArgsConstructor
-	private static class IndexRecord {
+	public static class IndexRecord {
 		private String type;
 		private List<String> properties;
 	}
@@ -85,7 +89,9 @@ public class TestDriver implements ITestDriver {
 	public void createProperty(String typeName, String propertyName, Type propertyType, String linkedType, int order, AnnotatedElement annotations) {
 		assertHasType(typeName);
 		TypeRecord type = typeRecords.get(typeName);
-		type.getProperties().put(propertyName, new PropertyRecord(propertyName, linkedType, order));
+		EntityProperty propertyAnn = annotations!=null?annotations.getAnnotation(EntityProperty.class):null;
+		String inverse = propertyAnn==null?null:(Strings.isNullOrEmpty(propertyAnn.inverse())?null:linkedType+"."+propertyAnn.inverse());
+		type.getProperties().put(propertyName, new PropertyRecord(propertyName, linkedType, order, inverse));
 	}
 	
 	@Override
@@ -105,11 +111,21 @@ public class TestDriver implements ITestDriver {
 	public void setupRelationship(String type1Name, String property1Name, String type2Name, String property2Name) {
 		assertHasType(type1Name);
 		assertHasProperty(type1Name, property1Name);
-		typeRecords.get(type1Name).getProperties().get(property1Name).setReferencedType(type2Name);
+		PropertyRecord property1 = typeRecords.get(type1Name).getProperties().get(property1Name);
+		assertEquals(type2Name, property1.getReferencedType());
+		property1.setReferencedType(type2Name); 
 		assertHasType(type2Name);
 		if(property2Name!=null) {
 			assertHasProperty(type2Name, property2Name);
-			typeRecords.get(type2Name).getProperties().get(property2Name).setReferencedType(type1Name);
+			PropertyRecord property2 = typeRecords.get(type2Name).getProperties().get(property2Name);
+			String property1Inverse = type2Name+"."+property2Name;
+			assertEquals(property1Inverse, property1.getInverse());
+			property1.setInverse(property1Inverse);
+			assertEquals(type1Name, property2.getReferencedType());
+			String property2Inverse = type1Name+"."+property1Name;
+			assertEquals(property2Inverse, property2.getInverse());
+			property2.setReferencedType(type1Name);
+			property2.setInverse(property2Inverse);
 		}
 	}
 	
@@ -118,7 +134,7 @@ public class TestDriver implements ITestDriver {
 		return typeRecords.containsKey(typeName);
 	}
 	
-	private PropertyRecord getPolymorphicProperty(String typeName, String propertyName) {
+	public PropertyRecord getPolymorphicProperty(String typeName, String propertyName) {
 		TypeRecord type = typeRecords.get(typeName);
 		if(type!=null) {
 			PropertyRecord property = type.getProperties().get(propertyName);
