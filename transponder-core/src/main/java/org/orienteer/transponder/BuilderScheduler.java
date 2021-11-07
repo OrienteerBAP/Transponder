@@ -154,6 +154,14 @@ public class BuilderScheduler {
 		enhanceCasesByDynamicDefinitions(methods);
 		if(cases.isEmpty()) return builder;
 		Case[] cases = this.cases.toArray(new Case[this.cases.size()]);
+		//Lets cache presence of methods per condition
+		boolean[] hasMatchedMethods = new boolean[cases.length];
+		boolean[] hasOpositeMatchedMethods = new boolean[cases.length];
+		for (int i=0; i<cases.length; i++) {
+			hasMatchedMethods[i] = hasMatch(methods, cases[i].getMatcher());
+			hasOpositeMatchedMethods[i] = hasMatch(methods, not(cases[i].getMatcher()));
+		}
+		
 		BigInteger permutationsTotal = BigInteger.ONE.shiftLeft(cases.length).subtract(BigInteger.ONE);
 		for(BigInteger currentPermutation = BigInteger.ONE; 
 				currentPermutation.compareTo(permutationsTotal)<=0;
@@ -175,11 +183,11 @@ public class BuilderScheduler {
 			int i = cases.length-1;
 			for(; i>=0; i--) {
 				Case c = cases[i];
-				ElementMatcher<? super MethodDescription> thisMatcher = c.getMatcher();
-				if(!currentPermutation.testBit(i)) thisMatcher = not(thisMatcher);
-				if(!hasMatch(methods, thisMatcher)) break; // Adding conditions will not make any difference
-				matcher = matcher.and(thisMatcher);
-				if(currentPermutation.testBit(i) 
+				boolean caseIncluded = currentPermutation.testBit(i); // Included or excluded
+				if(!caseIncluded) continue; //Advice will not be included in any case: moving forward
+				if(!(caseIncluded?hasMatchedMethods[i]:hasOpositeMatchedMethods[i])) break; //No such methods at all
+				matcher = matcher.and(caseIncluded?c.getMatcher():not(c.getMatcher()));
+				if(caseIncluded 
 						&& c.getImplementation() instanceof Advice
 						&& c.getImplementation() != baseImplementation) {
 					implementation = ((Advice)c.getImplementation()).wrap(implementation);
