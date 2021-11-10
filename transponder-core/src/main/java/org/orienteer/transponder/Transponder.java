@@ -35,11 +35,18 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.NamingStrategy;
 import net.bytebuddy.TypeCache;
+import net.bytebuddy.description.annotation.AnnotationList;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.type.TypeList;
+import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.FieldAccessor;
+import net.bytebuddy.implementation.auxiliary.AuxiliaryType;
 import net.bytebuddy.jar.asm.Opcodes;
+import net.bytebuddy.utility.RandomString;
 
 /**
  * Main class for all API provided by this library. Typical use-cases/flows are the following:
@@ -348,6 +355,7 @@ public class Transponder {
 		return (Class<T>) DAO_CACHE.findOrInsert(mainClass.getClassLoader(), hash, () -> {
 			ByteBuddy byteBuddy = new ByteBuddy();
 			DynamicType.Builder<?> builder;
+			StringBuilder nameBuilder = new StringBuilder("transponder.").append(driver.getDialect()).append(".");
 			List<Class<?>> classesToImplement = new ArrayList<>();
 			
 			if(!mainClass.isInterface()) {
@@ -358,10 +366,17 @@ public class Transponder {
 				builder = byteBuddy.subclass(baseClass);
 				classesToImplement.add(mainClass);
 			}
+			EntityType entityType = mainClass.getAnnotation(EntityType.class);
+			if(entityType!=null) nameBuilder.append(entityType.value());
+			else if(!entity) nameBuilder.append("dao.").append(mainClass.getSimpleName());
+			else nameBuilder.append("other.").append(mainClass.getSimpleName());
+			
 			classesToImplement.add(entity?ITransponderEntity.class:ITransponderHolder.class);
 			if(additionalInterfaces!=null && additionalInterfaces.length>0) {
 				classesToImplement.addAll(Arrays.asList(additionalInterfaces));
+				nameBuilder.append("$").append(RANDOM_STRING.nextString());
 			}
+			builder = builder.name(nameBuilder.toString());
 			builder = builder.implement(classesToImplement);
 			BuilderScheduler scheduler = new BuilderScheduler();
 			builder = StackedMutator.resolveRootMutator(entity).mutate(this, builder, scheduler);

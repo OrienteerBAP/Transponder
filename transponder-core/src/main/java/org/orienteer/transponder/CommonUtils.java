@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -40,12 +41,17 @@ import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
+import net.bytebuddy.utility.RandomString;
 
 /**
  * Common for utility methods
  */
 @UtilityClass
 public class CommonUtils {
+	
+	public static final RandomString RANDOM_STRING = new RandomString();
+	
+	public static final Random RANDOM = new Random();
 
 	/**
 	 * Converts given objects into map.

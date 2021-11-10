@@ -1,6 +1,7 @@
 package org.orienteer.transponder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -12,8 +13,10 @@ import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.DelegateAnnotation;
 import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityType;
+import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.IRemoteEntity;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
+import org.orienteer.transponder.datamodel.ITestDAO;
 
 import net.bytebuddy.asm.Advice;
 
@@ -203,6 +206,20 @@ public class CoreSpecificTest
 		public String getName();
 		@EntityProperty(inverse = "files")
 		public IFolder getFolder();
+	}
+	
+	@Test
+	public void testNamingStrategy() {
+		Transponder transponder = new Transponder(new TestDriver());
+		ITestDAO testDAO = transponder.dao(ITestDAO.class);
+		assertEquals("transponder.test.dao."+ITestDAO.class.getSimpleName(), testDAO.getClass().getName());
+		ClassTestDAO classTestDAO = transponder.dao(ClassTestDAO.class);
+		assertEquals("transponder.test.dao."+ClassTestDAO.class.getSimpleName(), classTestDAO.getClass().getName());
+		ISimpleEntity simple = transponder.create(ISimpleEntity.class);
+		assertEquals("transponder.test.Simple", simple.getClass().getName());
+		simple = transponder.create(ISimpleEntity.class, IRemoteEntity.class);
+		assertNotEquals("transponder.test.Simple", simple.getClass().getName());
+		assertTrue(simple.getClass().getName().startsWith("transponder.test.Simple$"));
 	}
 	
 }

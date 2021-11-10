@@ -1,6 +1,7 @@
 package org.orienteer.transponder;
 
 import static org.junit.Assert.*;
+import static org.orienteer.transponder.CommonUtils.*;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -23,8 +24,6 @@ import net.bytebuddy.dynamic.DynamicType.Builder;
 
 public abstract class AbstractUniversalTest 
 {
-	public static final Random RANDOM = new Random();
-	
 	protected final ITestDriver driver;
 	protected final Transponder transponder;
 	
