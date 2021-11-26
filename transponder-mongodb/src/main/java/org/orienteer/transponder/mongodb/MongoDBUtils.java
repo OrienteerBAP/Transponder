@@ -23,12 +23,31 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class MongoDBUtils {
 	
-	
+	/**
+	 * Check for presence of specific collection in the db
+	 * @param db mongo db to check presence of collection in
+	 * @param collectionName name of a collection to check for
+	 * @return true if there is such collection
+	 */
 	public boolean hasCollection(MongoDatabase db, String collectionName) {
 		return StreamSupport.stream(db.listCollectionNames().spliterator(), false)
 					.filter(n -> Objects.equals(collectionName, n)).count()>0;
 	}
 	
+	/**
+	 * Execute specified command in MongoDB. Command has the following structure:
+	 * <pre>
+	 * {$operation : "select" | "find" | "update" | "delete" | "count", 
+	 * $filter : ...,
+	 * $update : ... (for update) 
+	 * }
+	 * </pre>
+	 * @param db instance of MongoDB to execute command in
+	 * @param commandStr string representation of a command. 
+	 * @param params - parameters for interpolation
+	 * @param defaultCollection default collection to execute in
+	 * @return result of command execution
+	 */
 	public Object execute(MongoDatabase db, String commandStr, Map<String, Object> params, String defaultCollection) {
 		Document command = Document.parse(CommonUtils.interpolate(commandStr, params));
 		if(command.get("$operation")==null) {
@@ -38,6 +57,19 @@ public class MongoDBUtils {
 		return execute(db, command, defaultCollection);
 	}
 	
+	/**
+	 * Execute specified command in MongoDB. Command has the following structure:
+	 * <pre>
+	 * {$operation : "select" | "find" | "update" | "delete" | "count", 
+	 * $filter : ...,
+	 * $update : ... (for update) 
+	 * }
+	 * </pre>
+	 * @param db instance of MongoDB to execute command in
+	 * @param command command to execute
+	 * @param defaultCollection default collection to execute in
+	 * @return result of command execution
+	 */
 	public Object execute(MongoDatabase db, Document command, String defaultCollection) {
 		String collectionName = (String)CommonUtils.defaultIfNull(command.get("$collection"), defaultCollection);
 		MongoCollection<Document> collection = db.getCollection(collectionName);

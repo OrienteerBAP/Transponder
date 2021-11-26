@@ -531,6 +531,11 @@ public class CommonUtils {
 		};
 	}
 	
+	/**
+	 * Try to resolve entity type for specified wrapper class
+	 * @param wrapperClass class to try to resolve entity type for
+	 * @return entity type or null
+	 */
 	public String resolveEntityType(Class<?> wrapperClass) {
 		if(wrapperClass==null) return null;
 		EntityType entityType = wrapperClass.getAnnotation(EntityType.class);
@@ -545,7 +550,7 @@ public class CommonUtils {
 			
 			Class<?>[] interfaces = wrapperClass.getInterfaces();
 			for (Class<?> interf : interfaces) {
-				entityType = superClass.getAnnotation(EntityType.class);
+				entityType = interf.getAnnotation(EntityType.class);
 				if(entityType!=null) return entityType.value();
 			}
 			

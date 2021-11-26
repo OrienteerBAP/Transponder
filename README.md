@@ -39,6 +39,7 @@ Transponder can be used for
 - [X] [OrientDB](https://github.com/orientechnologies/orientdb) (maven dependency: org.orienteer.transponder:transponder-orientdb)
 - [X] [ArcadeDB](https://github.com/ArcadeData/arcadedb) (maven dependency: org.orienteer.transponder:transponder-arcadedb)
 - [X] [Neo4J](https://github.com/neo4j/neo4j) (maven dependency: org.orienteer.transponder:transponder-neo4j)
+- [X] [MongoDB](https://github.com/mongodb/mongo) (maven dependency: org.orienteer.transponder:transponder-mongodb)
 
 ### NoSQL Databases To Be Supported Soon
 
