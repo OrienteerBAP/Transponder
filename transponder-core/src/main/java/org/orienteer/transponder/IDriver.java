@@ -163,19 +163,21 @@ public interface IDriver {
 	 * @param language language for the query
 	 * @param query query to be used
 	 * @param params unwrapped parameters to be used to query data
+	 * @param type expected return type
 	 * @return list of unwrapped objects
 	 */
-	public List<Object> query(String language, String query, Map<String, Object> params);
+	public List<Object> query(String language, String query, Map<String, Object> params, Type type);
 	
 	/**
 	 * Query driver for single record from data. Should return unwrapped object or null
 	 * @param language language for the query
 	 * @param query query to be used
 	 * @param params unwrapped parameters to be used to query data
+	 * @param type expected return type
 	 * @return single data element
 	 */
-	public default Object querySingle(String language, String query, Map<String, Object> params) {
-		List<Object> results = query(language, query, params);
+	public default Object querySingle(String language, String query, Map<String, Object> params, Type type) {
+		List<Object> results = query(language, query, params, type);
 		return results==null || results.isEmpty()?null:results.get(0);
 	}
 	
@@ -184,10 +186,11 @@ public interface IDriver {
 	 * @param language language for the command
 	 * @param command command to be used
 	 * @param params unwrapped parameters to be used to query data
+	 * @param type expected return type
 	 * @return return of the command
 	 */
-	public default Object command(String language, String command, Map<String, Object> params) {
-		return query(language, command, params);
+	public default Object command(String language, String command, Map<String, Object> params, Type type) {
+		return query(language, command, params, type);
 	}
 	
 	/**

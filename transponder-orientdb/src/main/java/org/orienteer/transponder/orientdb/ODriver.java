@@ -246,7 +246,7 @@ public class ODriver implements IDriver {
 	}
 
 	@Override
-	public List<Object> query(String language, String query, Map<String, Object> params) {
+	public List<Object> query(String language, String query, Map<String, Object> params, Type type) {
 		try(OResultSet resultSet = getSession().query(query, params)) {
 			return resultSet.elementStream().map(e -> {
 						ODocument doc = (ODocument)e;
@@ -259,7 +259,7 @@ public class ODriver implements IDriver {
 	
 	
 	@Override
-	public Object querySingle(String language, String query, Map<String, Object> params) {
+	public Object querySingle(String language, String query, Map<String, Object> params, Type type) {
 		try(OResultSet resultSet = getSession().query(query, params)) {
 			return resultSet.elementStream().map(e -> {
 						ODocument doc = (ODocument)e;
@@ -270,7 +270,7 @@ public class ODriver implements IDriver {
 	}
 
 	@Override
-	public Object command(String language, String command, Map<String, Object> params) {
+	public Object command(String language, String command, Map<String, Object> params, Type type) {
 		try(OResultSet resultSet = getSession().command(command, params)) {
 			List<?> ret = resultSet.elementStream().map(e -> {
 				ODocument doc = (ODocument)e;

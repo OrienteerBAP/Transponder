@@ -155,7 +155,7 @@ public class Neo4JDriver implements IDriver {
 	}
 
 	@Override
-	public List<Object> query(String language, String query, Map<String, Object> params) {
+	public List<Object> query(String language, String query, Map<String, Object> params, Type type) {
 		try(TransactionHolder holder = new TransactionHolder()) {
 			Transaction tx = holder.getTransaction();
 			try(Result result = tx.execute(query, params)) {

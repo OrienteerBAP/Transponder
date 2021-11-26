@@ -18,6 +18,7 @@ import net.bytebuddy.implementation.bind.annotation.This;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
 
@@ -50,9 +51,10 @@ public class QueryMutator implements IMutator {
 			Map<String, Object> params = toArguments(origin, args);
 			if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
 			Transponder transponder = Transponder.getTransponder(thisObject);
+			Type type = origin.getGenericReturnType();
 			Object ret = Collection.class.isAssignableFrom(origin.getReturnType())
-								?transponder.getDriver().query(query[1], query[0], params)
-								:transponder.getDriver().querySingle(query[1], query[0], params);
+								?transponder.getDriver().query(query[1], query[0], params, type)
+								:transponder.getDriver().querySingle(query[1], query[0], params, type);
 			return transponder.wrap(ret, origin.getGenericReturnType());
 		}
 	}

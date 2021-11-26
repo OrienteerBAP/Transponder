@@ -2,9 +2,11 @@ package org.orienteer.transponder.mongodb;
 
 import java.util.Map;
 
+import org.bson.Document;
 import org.orienteer.transponder.ITestDriver;
 import org.orienteer.transponder.mongodb.MongoDBDriver;
 
+import static org.orienteer.transponder.mongodb.MongoDBUtils.*;
 import com.mongodb.client.MongoDatabase;
 
 public class MongoDBTestDriver extends MongoDBDriver implements ITestDriver{
@@ -15,7 +17,7 @@ public class MongoDBTestDriver extends MongoDBDriver implements ITestDriver{
 
 	@Override
 	public boolean hasType(String typeName) {
-		return true;
+		return hasCollection(mongoDb, typeName);
 	}
 
 	@Override
@@ -35,8 +37,9 @@ public class MongoDBTestDriver extends MongoDBDriver implements ITestDriver{
 
 	@Override
 	public Object createSeedObject(String typeName, Map<String, ?> properties) {
-		// TODO Auto-generated method stub
-		return null;
+		Document doc = new Document((Map<String, Object>)properties);
+		getDatabase().getCollection(typeName).insertOne(doc);
+		return doc;
 	}
 
 }

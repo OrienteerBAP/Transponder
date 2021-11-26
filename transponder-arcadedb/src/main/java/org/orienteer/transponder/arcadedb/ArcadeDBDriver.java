@@ -171,21 +171,21 @@ public class ArcadeDBDriver implements IDriver {
 	}
 
 	@Override
-	public List<Object> query(String language, String query, Map<String, Object> params) {
+	public List<Object> query(String language, String query, Map<String, Object> params, java.lang.reflect.Type type) {
 		try(ResultSet rs = database.query(CommonUtils.defaultIfNullOrEmpty(language, "sql"), query, params)) {
 			return rs.stream().map(r -> r.getElement().orElse(null)).collect(Collectors.toList());
 		}
 	}
 	
 	@Override
-	public Object querySingle(String language, String query, Map<String, Object> params) {
+	public Object querySingle(String language, String query, Map<String, Object> params, java.lang.reflect.Type type) {
 		try(ResultSet rs = database.query(CommonUtils.defaultIfNullOrEmpty(language, "sql"), query, params)) {
 			return rs.stream().map(r -> r.getElement().orElse(null)).findFirst().orElse(null);
 		}
 	}
 	
 	@Override
-	public Object command(String language, String command, Map<String, Object> params) {
+	public Object command(String language, String command, Map<String, Object> params, java.lang.reflect.Type type) {
 		try(ResultSet rs = database.command(CommonUtils.defaultIfNullOrEmpty(language, "sql"), command, params)) {
 			List<?> ret = rs.stream().map(r -> r.getElement().orElse(null)).collect(Collectors.toList());
 			return ret.isEmpty()?null:(ret.size()==1?ret.get(0):ret);

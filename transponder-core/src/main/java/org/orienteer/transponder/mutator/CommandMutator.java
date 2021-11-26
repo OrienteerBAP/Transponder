@@ -48,7 +48,7 @@ public class CommandMutator implements IMutator {
 			Map<String, Object> params = toArguments(origin, args);
 			if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
 			Transponder transponder = Transponder.getTransponder(thisObject);
-			Object ret = transponder.getDriver().command(command[1], command[0], params);
+			Object ret = transponder.getDriver().command(command[1], command[0], params, origin.getGenericReturnType());
 			return transponder.wrap(ret, origin.getGenericReturnType());
 		}
 	}

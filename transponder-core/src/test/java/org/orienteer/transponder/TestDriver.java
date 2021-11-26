@@ -224,7 +224,7 @@ public class TestDriver implements ITestDriver {
 	}
 	
 	@Override
-	public List<Object> query(String language, String query, Map<String, Object> params) {
+	public List<Object> query(String language, String query, Map<String, Object> params, Type type) {
 		Pattern pattern = Pattern.compile(interpolate(query, params));
 		List<Object> ret = new ArrayList<>();
 		db.forEach((k, v) -> {
@@ -234,7 +234,7 @@ public class TestDriver implements ITestDriver {
 	}
 	
 	@Override
-	public Object command(String language, String query, Map<String, Object> params) {
+	public Object command(String language, String query, Map<String, Object> params, Type type) {
 		String pkToDelete = interpolate(query, params);
 		return db.remove(pkToDelete);
 	}

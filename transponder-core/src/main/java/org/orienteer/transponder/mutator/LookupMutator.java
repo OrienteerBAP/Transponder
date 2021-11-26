@@ -51,7 +51,7 @@ public class LookupMutator implements IMutator {
 			Map<String, Object> params = toArguments(origin, args);
 			if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
 			Transponder transponder = Transponder.getTransponder(thisObject);
-			Object newSeed = transponder.getDriver().querySingle(query[1], query[0], params);
+			Object newSeed = transponder.getDriver().querySingle(query[1], query[0], params, origin.getGenericReturnType());
 			if(newSeed!=null) {
 				if(transponder.getDriver().isSeed(newSeed)) {
 					if(thisObject instanceof ITransponderEntity)

@@ -25,6 +25,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.orienteer.transponder.annotation.EntityType;
+
 import com.google.common.base.Strings;
 
 import lombok.experimental.UtilityClass;
@@ -527,6 +529,36 @@ public class CommonUtils {
 			}
 			
 		};
+	}
+	
+	public String resolveEntityType(Class<?> wrapperClass) {
+		if(wrapperClass==null) return null;
+		EntityType entityType = wrapperClass.getAnnotation(EntityType.class);
+		if(entityType!=null) return entityType.value();
+		else {
+			//Need to search wide first - then go deeper
+			Class<?> superClass = wrapperClass.getSuperclass();
+			if(superClass!=null) {
+				entityType = superClass.getAnnotation(EntityType.class);
+				if(entityType!=null) return entityType.value();
+			}
+			
+			Class<?>[] interfaces = wrapperClass.getInterfaces();
+			for (Class<?> interf : interfaces) {
+				entityType = superClass.getAnnotation(EntityType.class);
+				if(entityType!=null) return entityType.value();
+			}
+			
+			String ret = superClass!=null?resolveEntityType(superClass):null;
+			if(ret!=null) return ret;
+			else {
+				for (Class<?> interf : interfaces) {
+					ret = resolveEntityType(interf);
+					if(ret!=null) return ret;
+				}
+			}
+		}
+		return null;
 	}
 	
 }
