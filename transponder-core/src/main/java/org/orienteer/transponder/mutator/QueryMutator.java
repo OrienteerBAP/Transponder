@@ -49,7 +49,10 @@ public class QueryMutator implements IMutator {
 		@RuntimeType
 		public static Object executeQuery(@QueryValue String[] query, @Origin Method origin, @This Object thisObject, @AllArguments Object[] args) {
 			Map<String, Object> params = toArguments(origin, args);
-			if(thisObject instanceof ITransponderEntity) params.put("target", Transponder.unwrap(thisObject));
+			if(thisObject instanceof ITransponderEntity) {
+				params.put("target", Transponder.unwrap(thisObject));
+				params.put("targetType", resolveEntityType(thisObject.getClass()));
+			}
 			Transponder transponder = Transponder.getTransponder(thisObject);
 			Type type = origin.getGenericReturnType();
 			Object ret = Collection.class.isAssignableFrom(origin.getReturnType())

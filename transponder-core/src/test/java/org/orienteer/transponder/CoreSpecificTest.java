@@ -4,7 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.orienteer.transponder.IPolyglot.Translation;
@@ -13,6 +15,7 @@ import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.DelegateAnnotation;
 import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityType;
+import org.orienteer.transponder.annotation.Lookup;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.IRemoteEntity;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
@@ -220,6 +223,42 @@ public class CoreSpecificTest
 		simple = transponder.create(ISimpleEntity.class, IRemoteEntity.class);
 		assertNotEquals("transponder.test.Simple", simple.getClass().getName());
 		assertTrue(simple.getClass().getName().startsWith("transponder.test.Simple$"));
+	}
+	
+	@Test
+	public void testPresenceOfPredefinedParameters() {
+		final String expectedName = CommonUtils.RANDOM_STRING.nextString();
+		Transponder transponder = new Transponder(new TestDriver() {
+			@Override
+			public List<Object> query(String language, String query, Map<String, Object> params, Type type) {
+				assertTrue(params.containsKey("target"));
+				Map<String, Object> target = (Map<String, Object>)params.get("target");
+				assertEquals(expectedName, target.get("name"));
+				assertTrue(params.containsKey("targetType"));
+				assertEquals("TestPredefinedParams", params.get("targetType"));
+				return super.query(language, query, params, type);
+			}
+		});
+		ITestPredefinedParams entity = transponder.create(ITestPredefinedParams.class);
+		entity.setName(expectedName);
+		entity.lookup();
+		entity.query();
+		entity.command();
+	}
+	
+	@EntityType("TestPredefinedParams")
+	public static interface ITestPredefinedParams {
+		public String getName();
+		public void setName(String name);
+		
+		@Lookup("lookup")
+		ITestPredefinedParams lookup();
+		
+		@Lookup("query")
+		ITestPredefinedParams query();
+		
+		@Lookup("command")
+		ITestPredefinedParams command();
 	}
 	
 }
