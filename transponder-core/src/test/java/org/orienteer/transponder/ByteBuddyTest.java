@@ -21,12 +21,15 @@ import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.MethodCall.ArgumentLoader;
 import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.DefaultMethodCall;
 import net.bytebuddy.implementation.Implementation.Context;
 import net.bytebuddy.implementation.bind.annotation.Argument;
+import net.bytebuddy.implementation.bind.annotation.BindingPriority;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.This;
 import net.bytebuddy.jar.asm.ClassVisitor;
+import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.pool.TypePool;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
@@ -161,5 +164,58 @@ public class ByteBuddyTest {
 			System.out.println("Exiting "+m);
 			ret++;
 		}
+	}
+	
+	@Test
+	public void testDelegation() throws Exception {
+		DelegateMe obj = new DelegateMe(100);
+		assertEquals(100, obj.getNumber());
+		assertEquals(101, obj.getNumberPlusOneWithMethod());
+		assertEquals(101, obj.getNumberPlusOneDirect());
+		
+		DynamicType.Loaded<?> loaded = new ByteBuddy()
+                .subclass(DelegateMe.class)
+                .implement(DelegateInterface.class)
+                .method(isAccessibleTo(DelegateMe.class).and(CommonUtils.isSimiliarToMethodIn(DelegateInterface.class)))
+                .intercept(DefaultMethodCall.prioritize(DelegateInterface.class))
+                .make()
+                .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.WRAPPER);
+		DelegateMe delegator =  (DelegateMe)loaded.getLoaded().newInstance();
+		assertEquals(1, delegator.getNumber());
+		assertEquals(2, delegator.getNumberPlusOneWithMethod());
+		assertEquals(1, delegator.getNumberPlusOneDirect());
+	}
+	
+	public static class DelegateMe {
+		
+		private int number;
+		
+		public DelegateMe() {
+			this(0);
+		}
+		
+		public DelegateMe(int number) {
+			this.number = number;
+		}
+		
+		public int getNumber() {
+			return number;
+		}
+		
+		public int getNumberPlusOneWithMethod() {
+			return getNumber()+1;
+		}
+		
+		public int getNumberPlusOneDirect() {
+			return number+1;
+		}
+	}
+	
+	public static interface DelegateInterface {
+		
+		public default int getNumber() {
+			return 1;
+		}
+		
 	}
 }

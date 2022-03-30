@@ -132,7 +132,7 @@ public class Transponder {
 	 */
 	public <T> T create(Class<T> mainClass, String typeName, Class<?>... additionalInterfaces) {
 		if(typeName==null) throw new NullPointerException("TypeName for Transponder.create(...) should not be null");
-		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, true, additionalInterfaces);
+		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, ProxyType.ENTITY, additionalInterfaces);
 		return setTransponder(driver.newEntityInstance(proxyClass, typeName));
 	}
 	
@@ -170,7 +170,7 @@ public class Transponder {
 			}
 			if(compatible) return (T) seed;
 		}
-		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, true, additionalInterfaces);
+		Class<T> proxyClass = getProxyClass(driver.getDefaultEntityBaseClass(), mainClass, ProxyType.ENTITY, additionalInterfaces);
 		return setTransponder(driver.wrapEntityInstance(proxyClass, seed));
 	}
 	
@@ -349,7 +349,7 @@ public class Transponder {
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected <T> Class<T> getProxyClass(Class<?> baseClass, Class<T> mainClass, boolean entity, final Class<?>... additionalInterfaces) {
+	protected <T> Class<T> getProxyClass(Class<?> baseClass, Class<T> mainClass, ProxyType proxyType, final Class<?>... additionalInterfaces) {
 		Integer hash =   Arrays.hashCode(additionalInterfaces);
 		hash = Objects.hashCode(driver.getCacheKey(), mainClass, hash);
 		return (Class<T>) DAO_CACHE.findOrInsert(mainClass.getClassLoader(), hash, () -> {
@@ -368,10 +368,9 @@ public class Transponder {
 			}
 			EntityType entityType = mainClass.getAnnotation(EntityType.class);
 			if(entityType!=null) nameBuilder.append(entityType.value());
-			else if(!entity) nameBuilder.append("dao.").append(mainClass.getSimpleName());
-			else nameBuilder.append("other.").append(mainClass.getSimpleName());
+			else nameBuilder.append(proxyType.getDefaultPackageSuffix()).append(".").append(mainClass.getSimpleName());
 			
-			classesToImplement.add(entity?ITransponderEntity.class:ITransponderHolder.class);
+			classesToImplement.add(proxyType.getTransponderInterfaceToImplement());
 			if(additionalInterfaces!=null && additionalInterfaces.length>0) {
 				classesToImplement.addAll(Arrays.asList(additionalInterfaces));
 				nameBuilder.append("$").append(RANDOM_STRING.nextString());
@@ -379,7 +378,7 @@ public class Transponder {
 			builder = builder.name(nameBuilder.toString());
 			builder = builder.implement(classesToImplement);
 			BuilderScheduler scheduler = new BuilderScheduler();
-			builder = StackedMutator.resolveRootMutator(entity).mutate(this, builder, scheduler);
+			builder = proxyType.getRootMutator().mutate(this, builder, scheduler);
 			
 			IMutator driverMutator = driver.getMutator();
 			if(driverMutator!=null) builder = driverMutator.mutate(this, builder, scheduler);
@@ -404,7 +403,7 @@ public class Transponder {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T dao(Class<T> mainClass, final Class<?>... additionalInterfaces) {
-		return setTransponder(driver.newDAOInstance(getProxyClass(Object.class, mainClass, false, additionalInterfaces)));
+		return setTransponder(driver.newDAOInstance(getProxyClass(Object.class, mainClass, ProxyType.DAO, additionalInterfaces)));
 	}
 	
 	/**

@@ -531,6 +531,20 @@ public class CommonUtils {
 		};
 	}
 	
+	public <T extends MethodDescription> ElementMatcher<T> isSimiliarToMethodIn(Class<?> type) {
+		return isSimiliarToMethodIn(TypeDescription.ForLoadedType.of(type));
+	}
+	
+	public <T extends MethodDescription> ElementMatcher<T> isSimiliarToMethodIn(TypeDescription type) {
+		return new ElementMatcher.Junction.AbstractBase<T>() {
+
+			@Override
+			public boolean matches(T target) {
+				return type.getDeclaredMethods().asSignatureTokenList().contains(target.asSignatureToken());
+			}
+		};
+	}
+	
 	/**
 	 * Try to resolve entity type for specified wrapper class
 	 * @param wrapperClass class to try to resolve entity type for
