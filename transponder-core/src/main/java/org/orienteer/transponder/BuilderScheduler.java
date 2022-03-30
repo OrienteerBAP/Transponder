@@ -151,6 +151,7 @@ public class BuilderScheduler {
 	public <T> DynamicType.Builder<T> apply(DynamicType.Builder<T> builder) {
 		TypeDescription description = builder.toTypeDescription();
 		List<MethodDescription> methods = getMethodDescriptionList(description);
+		System.out.println("Applying for: "+methods);
 		enhanceCasesByDynamicDefinitions(methods);
 		if(cases.isEmpty()) return builder;
 		Case[] cases = this.cases.toArray(new Case[this.cases.size()]);
