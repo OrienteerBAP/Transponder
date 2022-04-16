@@ -92,6 +92,18 @@ public class Transponder {
 		
 	}
 	
+	public static interface ITransponderDelegator extends ITransponderHolder{
+		//CHECKSTYLE IGNORE MethodName FOR NEXT 8 LINES
+		/**
+		 * @return associated delegate instance
+		 */
+		public Object get$delegate();
+		/**
+		 * @param delegate delegate to associate instance with
+		 */
+		public void set$delegate(Object delegate);
+	}
+	
 	/**
 	 * Create a {@link Transponder} instance for the specified driver
 	 * @param driver transponder driver to be used
@@ -351,8 +363,8 @@ public class Transponder {
 	@SuppressWarnings("unchecked")
 	protected <T> Class<T> getProxyClass(Class<?> baseClass, Class<T> mainClass, ProxyType proxyType, final Class<?>... additionalInterfaces) {
 		Integer hash =   Arrays.hashCode(additionalInterfaces);
-		hash = Objects.hashCode(driver.getCacheKey(), mainClass, hash);
-		return (Class<T>) DAO_CACHE.findOrInsert(mainClass.getClassLoader(), hash, () -> {
+		hash = Objects.hashCode(driver.getCacheKey(), mainClass, hash, proxyType);
+		return (Class<T>) DAO_CACHE.findOrInsert(Transponder.class.getClassLoader(), hash, () -> {
 			ByteBuddy byteBuddy = new ByteBuddy();
 			DynamicType.Builder<?> builder;
 			StringBuilder nameBuilder = new StringBuilder("transponder.").append(driver.getDialect()).append(".");
@@ -388,8 +400,9 @@ public class Transponder {
 									.method(isDeclaredBy(ITransponderHolder.class)
 												.and(isAbstract()))
 									.intercept(FieldAccessor.ofField("$transponder"));
+			
 			return builder.make()
-					  .load(mainClass.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
+					  .load(Transponder.class.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
 					  .getLoaded();
 		});
 	}
@@ -404,6 +417,14 @@ public class Transponder {
 	@SuppressWarnings("unchecked")
 	public <T> T dao(Class<T> mainClass, final Class<?>... additionalInterfaces) {
 		return setTransponder(driver.newDAOInstance(getProxyClass(Object.class, mainClass, ProxyType.DAO, additionalInterfaces)));
+	}
+	
+	public <T> T delegate(T delegate, final Class<?>... additionalInterfaces) {
+		Class<T> delegateClass = (Class<T>)delegate.getClass();
+		Class<T> proxyClass = getProxyClass(delegateClass, delegateClass, ProxyType.DELEGATE, additionalInterfaces);
+		T delegator = CommonUtils.OBJENESIS.newInstance(proxyClass);
+		((ITransponderDelegator)delegator).set$delegate(delegate);
+		return setTransponder(delegator);
 	}
 	
 	/**

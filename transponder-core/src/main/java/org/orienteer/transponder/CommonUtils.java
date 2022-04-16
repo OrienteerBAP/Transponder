@@ -45,6 +45,9 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.RandomString;
 
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
+
 /**
  * Common for utility methods
  */
@@ -54,6 +57,8 @@ public class CommonUtils {
 	public static final RandomString RANDOM_STRING = new RandomString();
 	
 	public static final Random RANDOM = new Random();
+	
+	public static final Objenesis  OBJENESIS = new ObjenesisStd(true);
 
 	/**
 	 * Converts given objects into map.
@@ -457,33 +462,6 @@ public class CommonUtils {
 	}
 	
 	/**
-	 * Get full list of methods of a specified class: including super classes/interfaces
-	 * @param clazz class to analyze
-	 * @return list of all methods
-	 */
-	public List<Method> getMethodList(Class<?> clazz) {
-		List<Method> ret = new ArrayList<>();
-		collectMethods(clazz, ret);
-		return ret;
-	}
-	
-	/**
-	 * Collect list of methods of a specified class: including super classes/interfaces
-	 * @param clazz class to analyze
-	 * @param list to collect to all methods
-	 */
-	public void collectMethods(Class<?> clazz, List<Method> list) {
-		if(clazz==null) return;
-		list.addAll(Arrays.asList(clazz.getDeclaredMethods()));
-		Class<?> superClass = clazz.getSuperclass();
-		collectMethods(superClass, list);
-		Class<?>[] interfaces = clazz.getInterfaces();
-		for (Class<?> intf : interfaces) {
-			collectMethods(intf, list);
-		}
-	}
-	
-	/**
 	 * Try to create instance of a specified class with string based value
 	 * @param <T> type of an instance to be created
 	 * @param value string representation of a value
@@ -541,6 +519,20 @@ public class CommonUtils {
 			@Override
 			public boolean matches(T target) {
 				return type.getDeclaredMethods().asSignatureTokenList().contains(target.asSignatureToken());
+			}
+		};
+	}
+	
+	public <T extends MethodDescription> ElementMatcher<T> isMethodPresent(Class<?> type) {
+		return isMethodPresent(TypeDescription.ForLoadedType.of(type));
+	}
+	
+	public <T extends MethodDescription> ElementMatcher<T> isMethodPresent(TypeDescription type) {
+		return new ElementMatcher.Junction.AbstractBase<T>() {
+
+			@Override
+			public boolean matches(T target) {
+				return target.getDeclaringType().asErasure().isAssignableFrom(type);
 			}
 		};
 	}

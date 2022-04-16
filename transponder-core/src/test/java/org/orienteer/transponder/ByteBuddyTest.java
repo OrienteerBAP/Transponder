@@ -240,9 +240,10 @@ public class ByteBuddyTest {
 
 		@Override
 		public boolean matches(MethodDescription target) {
-			System.out.println("Analyzing: "+target);
 			target.getDeclaredAnnotations().forEach(ad -> System.out.println("Annotation:"+ad));
-			return delegate.matches(target);
+			boolean ret = delegate.matches(target);
+			System.out.println("Analyzing: "+target+" Ret: "+ret);
+			return ret;
 		}
 		
 	}

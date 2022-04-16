@@ -7,22 +7,28 @@ import java.lang.annotation.Annotation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.orienteer.transponder.annotation.AdviceAnnotation;
 import org.orienteer.transponder.annotation.DelegateAnnotation;
+import org.orienteer.transponder.annotation.OverrideByThis;
 
 import lombok.Value;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.method.MethodDescription;
+import net.bytebuddy.description.method.MethodDescription.SignatureToken;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ImplementationDefinition;
+import net.bytebuddy.implementation.DefaultMethodCall;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.TargetMethodAnnotationDrivenBinder;
 import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.ElementMatchers;
 
 /**
  * Class which helps independently define in declarative way multiple {@link Advice}s and {@link ImplementationDefinition}
@@ -151,8 +157,8 @@ public class BuilderScheduler {
 	public <T> DynamicType.Builder<T> apply(DynamicType.Builder<T> builder) {
 		TypeDescription description = builder.toTypeDescription();
 		List<MethodDescription> methods = getMethodDescriptionList(description);
-		System.out.println("Applying for: "+methods);
 		enhanceCasesByDynamicDefinitions(methods);
+		builder = enhanceCasesByOverrides(builder, description, methods);
 		if(cases.isEmpty()) return builder;
 		Case[] cases = this.cases.toArray(new Case[this.cases.size()]);
 		//Lets cache presence of methods per condition
@@ -221,6 +227,29 @@ public class BuilderScheduler {
 			    			Advice.to(a.getValue("value").load(cl).resolve(Class.class)));
 			    });
 			
+	}
+	
+	private <T> DynamicType.Builder<T> enhanceCasesByOverrides(DynamicType.Builder<T> builder, TypeDescription type,  List<MethodDescription> methods) {
+		Map<SignatureToken, MethodDescription> signatures = methods.stream()
+												.collect(Collectors.toMap(m->m.asSignatureToken(), m->m, (k1, k2) -> k1));
+		List<Case> casesToAdd = type.getInterfaces().stream()
+			.flatMap(i->CommonUtils.getMethodDescriptionList(i).stream())
+			.filter(OverrideByThis.ANNOTED_BY_THIS_MATCHER::matches)
+			.filter(m -> {
+				//Checking that original method is present per signature
+				//and that it's not exactly the same method as we are trying to use to override
+				MethodDescription origM = signatures.get(m.asSignatureToken());
+				return origM!=null && !origM.equals(m);
+			})
+			.peek(m-> {
+				if(m.isDefaultMethod())
+					schedule(ElementMatchers.hasSignature(m.asSignatureToken()), 
+							DefaultMethodCall.prioritize(m.getDeclaringType().asErasure()));
+			}).flatMap(m -> cases.stream().filter(c-> c.getMatcher().matches(m))
+							.map(c -> new Case(ElementMatchers.hasSignature(m.asSignatureToken()), c.getImplementation()))
+			).collect(Collectors.toList());
+		cases.addAll(casesToAdd);
+		return builder;
 	}
 
 	

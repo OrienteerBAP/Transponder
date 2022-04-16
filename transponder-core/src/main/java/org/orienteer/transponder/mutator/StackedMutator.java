@@ -22,6 +22,16 @@ public class StackedMutator implements IMutator {
 																	 new CommandMutator(),
 			 														 new LookupMutator(), 
 																     new QueryMutator());
+	
+	/**
+	 * Predefined mutators for DELEGATE classes
+	 */
+	public static final IMutator DELEGATE_MUTATOR 	= new StackedMutator(new DelegatorMutator(),
+																		 new AnnotationMutator(DefaultValue.class),
+																		 new CommandMutator(),
+				 														 new LookupMutator(), 
+																	     new QueryMutator());
+	
 	/**
 	 * Predefined mutators for entity/wrapper classes
 	 */

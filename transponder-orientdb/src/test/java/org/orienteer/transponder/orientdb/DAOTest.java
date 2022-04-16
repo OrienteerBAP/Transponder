@@ -103,8 +103,9 @@ public class DAOTest {
 	
 	@Test
 	public void testInjection() {
-		IDAOTestClass doc = transponder.dao(IDAOTestClass.class);
+		IDAOTestClass doc = transponder.create(IDAOTestClass.class);
 		getDatabase().query("select from DAOTestClass").elementStream().forEach(e -> {
+			System.out.println(e.getClass());
 			ODocument oDocument = (ODocument) e;
 			doc.fromStream(oDocument);
 			assertEquals(oDocument.field("name"), doc.getName());
@@ -118,7 +119,7 @@ public class DAOTest {
 	
 	@Test
 	public void testLookups() {
-		IDAOTestClass iOPerspective = transponder.dao(IDAOTestClass.class);
+		IDAOTestClass iOPerspective = transponder.create(IDAOTestClass.class);
 		assertTrue(iOPerspective.lookupToBoolean("root"));
 		assertEquals("root", iOPerspective.getName());
 		assertEquals("testroot", iOPerspective.getTestName());
@@ -131,7 +132,7 @@ public class DAOTest {
 	
 	@Test
 	public void testQuery() {
-		IDAOTestClass iOPerspective = transponder.dao(IDAOTestClass.class);
+		IDAOTestClass iOPerspective = transponder.create(IDAOTestClass.class);
 		iOPerspective.lookupToBoolean("root");
 		List<ODocument> menu = iOPerspective.listAllChild();
 		assertNotNull(menu);

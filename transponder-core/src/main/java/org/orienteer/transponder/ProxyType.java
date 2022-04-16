@@ -1,12 +1,14 @@
 package org.orienteer.transponder;
 
+import org.orienteer.transponder.Transponder.ITransponderDelegator;
 import org.orienteer.transponder.Transponder.ITransponderEntity;
 import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.mutator.StackedMutator;
 
 public enum ProxyType {
 	ENTITY("entity", ITransponderEntity.class, StackedMutator.ENTITY_MUTATOR), 
-	DAO("dao", ITransponderHolder.class, StackedMutator.DAO_MUTATOR);
+	DAO("dao", ITransponderHolder.class, StackedMutator.DAO_MUTATOR),
+	DELEGATE("delegate", ITransponderDelegator.class, StackedMutator.DELEGATE_MUTATOR);
 	
 	private final String packageSuffix;
 	private final Class<?> transponderInterfaceToImplement;

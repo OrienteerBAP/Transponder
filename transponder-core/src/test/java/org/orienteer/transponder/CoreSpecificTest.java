@@ -4,18 +4,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
 import org.orienteer.transponder.IPolyglot.Translation;
+import org.orienteer.transponder.Transponder.ITransponderDelegator;
 import org.orienteer.transponder.annotation.AdviceAnnotation;
 import org.orienteer.transponder.annotation.DefaultValue;
 import org.orienteer.transponder.annotation.DelegateAnnotation;
 import org.orienteer.transponder.annotation.EntityProperty;
 import org.orienteer.transponder.annotation.EntityType;
 import org.orienteer.transponder.annotation.Lookup;
+import org.orienteer.transponder.annotation.OverrideByThis;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.IRemoteEntity;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
@@ -259,6 +263,39 @@ public class CoreSpecificTest
 		
 		@Lookup("command")
 		ITestPredefinedParams command();
+	}
+	
+	@Test
+	public void testDelegation() {
+		Transponder transponder = new Transponder(new TestDriver());
+		Map<String, String> obj = new HashMap<>();
+		assertEquals(0, obj.size());
+		Map<String, String> delegator =  transponder.delegate(obj, OvverideSize.class);
+		assertTrue(obj!=delegator);
+		assertEquals(0, delegator.size());
+		obj.put("test", "test");
+		assertEquals(1, obj.size());
+		assertEquals(-1, delegator.size());
+		assertEquals("test", delegator.get("test"));
+		assertEquals("OVERRIDED", delegator.toString());
+	}
+	
+	public static interface OvverideSize {
+		
+		@OverrideByThis
+		default int size() {
+			return -((Map<String, String>)((ITransponderDelegator)this).get$delegate()).size();
+		}
+		
+		@OverrideByThis
+		@DelegateAnnotation(OverrideSizeToStringDelegate.class)
+		String toString();
+	}
+	
+	public static class OverrideSizeToStringDelegate {
+		public static String otherToString() {
+			return "OVERRIDED";
+		}
 	}
 	
 }
