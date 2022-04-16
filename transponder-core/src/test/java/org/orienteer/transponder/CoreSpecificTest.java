@@ -280,11 +280,11 @@ public class CoreSpecificTest
 		assertEquals("OVERRIDED", delegator.toString());
 	}
 	
-	public static interface OvverideSize {
+	public static interface OvverideSize extends ITransponderDelegator<Map<Object, Object>> {
 		
 		@OverrideByThis
 		default int size() {
-			return -((Map<String, String>)((ITransponderDelegator)this).get$delegate()).size();
+			return -get$delegate().size();
 		}
 		
 		@OverrideByThis

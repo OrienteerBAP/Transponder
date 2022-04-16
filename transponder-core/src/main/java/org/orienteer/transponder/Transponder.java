@@ -92,16 +92,16 @@ public class Transponder {
 		
 	}
 	
-	public static interface ITransponderDelegator extends ITransponderHolder{
+	public static interface ITransponderDelegator<T> extends ITransponderHolder{
 		//CHECKSTYLE IGNORE MethodName FOR NEXT 8 LINES
 		/**
 		 * @return associated delegate instance
 		 */
-		public Object get$delegate();
+		public T get$delegate();
 		/**
 		 * @param delegate delegate to associate instance with
 		 */
-		public void set$delegate(Object delegate);
+		public void set$delegate(T delegate);
 	}
 	
 	/**
