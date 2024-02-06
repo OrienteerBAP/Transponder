@@ -92,6 +92,10 @@ public class Transponder {
 		
 	}
 	
+	/**
+	 * Interface-marker to designate classes which delegates
+	 * @param <T> type of a delegate
+	 */
 	public static interface ITransponderDelegator<T> extends ITransponderHolder{
 		//CHECKSTYLE IGNORE MethodName FOR NEXT 8 LINES
 		/**
@@ -419,6 +423,13 @@ public class Transponder {
 		return setTransponder(driver.newDAOInstance(getProxyClass(Object.class, mainClass, ProxyType.DAO, additionalInterfaces)));
 	}
 	
+	/**
+	 * Provides proxy delegate with all required interfaces
+	 * @param <T> type of proxy delegate
+	 * @param delegate instance to delegate to
+	 * @param additionalInterfaces additional interfaces to be implemented
+	 * @return generated instance
+	 */
 	public <T> T delegate(T delegate, final Class<?>... additionalInterfaces) {
 		Class<T> delegateClass = (Class<T>)delegate.getClass();
 		Class<T> proxyClass = getProxyClass(delegateClass, delegateClass, ProxyType.DELEGATE, additionalInterfaces);

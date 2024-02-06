@@ -509,10 +509,22 @@ public class CommonUtils {
 		};
 	}
 	
+	/**
+	 * Provides {@link ElementMatcher} to check whether methods are similiar from provided type
+	 * @param <T> type of a required matcher
+	 * @param type class to check methods from
+	 * @return mathcher to use for check
+	 */
 	public <T extends MethodDescription> ElementMatcher<T> isSimiliarToMethodIn(Class<?> type) {
 		return isSimiliarToMethodIn(TypeDescription.ForLoadedType.of(type));
 	}
 	
+	/**
+	 * Provides {@link ElementMatcher} to check whether methods are similiar from provided type
+	 * @param <T> type of a required matcher
+	 * @param type class to check methods from
+	 * @return mathcher to use for check
+	 */
 	public <T extends MethodDescription> ElementMatcher<T> isSimiliarToMethodIn(TypeDescription type) {
 		return new ElementMatcher.Junction.AbstractBase<T>() {
 
@@ -523,10 +535,22 @@ public class CommonUtils {
 		};
 	}
 	
+	/**
+	 * Provides {@link ElementMatcher} to check whether method is present in provided type
+	 * @param <T> type of a required matcher
+	 * @param type class to check method in
+	 * @return mathcher to use for check
+	 */
 	public <T extends MethodDescription> ElementMatcher<T> isMethodPresent(Class<?> type) {
 		return isMethodPresent(TypeDescription.ForLoadedType.of(type));
 	}
 	
+	/**
+	 * Provides {@link ElementMatcher} to check whether method is present in provided type
+	 * @param <T> type of a required matcher
+	 * @param type class to check method in
+	 * @return mathcher to use for check
+	 */
 	public <T extends MethodDescription> ElementMatcher<T> isMethodPresent(TypeDescription type) {
 		return new ElementMatcher.Junction.AbstractBase<T>() {
 

@@ -10,10 +10,13 @@ import net.bytebuddy.description.annotation.AnnotationSource;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 
+/**
+ * Annotation for methods to enforce overriding by this method
+ */
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface OverrideByThis {
 	
-	public static final ElementMatcher<AnnotationSource> ANNOTED_BY_THIS_MATCHER 
+	public static final ElementMatcher<AnnotationSource> ANNOTATED_BY_THIS_MATCHER 
 								= ElementMatchers.isAnnotatedWith(OverrideByThis.class);
 }

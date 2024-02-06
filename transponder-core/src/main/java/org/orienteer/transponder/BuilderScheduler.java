@@ -234,7 +234,7 @@ public class BuilderScheduler {
 												.collect(Collectors.toMap(m->m.asSignatureToken(), m->m, (k1, k2) -> k1));
 		List<Case> casesToAdd = type.getInterfaces().stream()
 			.flatMap(i->CommonUtils.getMethodDescriptionList(i).stream())
-			.filter(OverrideByThis.ANNOTED_BY_THIS_MATCHER::matches)
+			.filter(OverrideByThis.ANNOTATED_BY_THIS_MATCHER::matches)
 			.filter(m -> {
 				//Checking that original method is present per signature
 				//and that it's not exactly the same method as we are trying to use to override

@@ -4,6 +4,7 @@ import org.orienteer.transponder.BuilderScheduler;
 import org.orienteer.transponder.CommonUtils;
 import org.orienteer.transponder.IMutator;
 import org.orienteer.transponder.Transponder;
+import org.orienteer.transponder.annotation.Command;
 
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDescription.Generic;
@@ -15,6 +16,9 @@ import net.bytebuddy.jar.asm.Opcodes;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
+/**
+ * {@link IMutator} and delegate to implement methods from provided delegate
+ */
 public class DelegatorMutator implements IMutator {
 
 	@Override
