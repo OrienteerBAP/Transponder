@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.orienteer.transponder.AbstractUniversalTest;
 
+import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.db.ODatabaseType;
 import com.orientechnologies.orient.core.db.OrientDB;
@@ -13,7 +14,9 @@ import com.orientechnologies.orient.core.db.OrientDBConfig;
 public class OrientDBUniversalTest extends AbstractUniversalTest {
 	
 	private static final String DB_NAME = "UniversalTestDB";
-	private static OrientDB orientDB = new OrientDB("embedded:target/",OrientDBConfig.defaultConfig());
+	private static OrientDB orientDB = new OrientDB("embedded:target/",OrientDBConfig.builder()
+																			.addConfig(OGlobalConfiguration.CREATE_DEFAULT_USERS, true)
+																			.build());
 	private static ODatabaseSession db;
 	
 	@BeforeClass

@@ -26,11 +26,13 @@ import org.junit.Test;
 import org.orienteer.transponder.CommonUtils;
 import org.orienteer.transponder.Transponder;
 
+import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.db.ODatabaseType;
 import com.orientechnologies.orient.core.db.OrientDB;
 import com.orientechnologies.orient.core.db.OrientDBConfig;
+import com.orientechnologies.orient.core.db.OrientDBConfigBuilder;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OProperty;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
@@ -45,7 +47,9 @@ public class DAOTest {
 	static final String DB_NAME = "TestDB";
 	static final String TEST_CLASS = "DAOTestClass";
 	
-	private static OrientDB orientDB = new OrientDB("embedded:target/",OrientDBConfig.defaultConfig());
+	private static OrientDB orientDB = new OrientDB("embedded:target/",OrientDBConfig.builder()
+																			.addConfig(OGlobalConfiguration.CREATE_DEFAULT_USERS, true)
+																			.build());
 	private static ODatabaseSession db;
 	
 	private static Transponder transponder;

@@ -27,7 +27,7 @@
     <dependency>
 		<groupId>com.orientechnologies</groupId>
 		<artifactId>orientdb-core</artifactId>
-		<version>3.1.10</version>
+		<version>3.2.27</version>
 		<scope>provided</scope>
 		<type>bundle</type>
 	</dependency>
