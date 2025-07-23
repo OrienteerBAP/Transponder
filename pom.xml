@@ -220,6 +220,7 @@
 		<module>transponder-orientdb</module>
 		<module>transponder-arcadedb</module>
 		<module>transponder-neo4j</module>
+		<module>transponder-janusgraph</module>
 		<module>transponder-mongodb</module>
 	</modules>
 	<profiles>
