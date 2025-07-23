@@ -14,9 +14,10 @@ Transponder is an Object Relational Mapping (ORM) library for NoSQL databases. I
 - `mvn clean package` - Build and package all modules
 
 ### Running Tests
-- `mvn test` - Run all tests across modules
+- `mvn test` - Run all tests across modules (JUnit 5 with Vintage compatibility)
 - `mvn test -Dtest=ClassName` - Run specific test class
 - `mvn test -pl transponder-core` - Run tests for specific module only
+- Tests use JUnit 5 Jupiter with Vintage engine for backward compatibility
 
 ### Code Quality
 - `mvn checkstyle:check` - Run checkstyle validation (uses check_style.xml)
@@ -82,7 +83,8 @@ public interface IMyEntity {
 Each module follows consistent test structure:
 - `*UniversalTest.java` - Main integration tests
 - `*TestDriver.java` - Driver-specific test implementations
-- Uses JUnit 4.12 with Hamcrest assertions
+- Uses JUnit 5.11.3 with Jupiter API and Vintage engine for compatibility
+- Hamcrest 3.0 for advanced matchers
 - Test resources in `src/test/resources/META-INF/transponder/`
 
 ## Development Notes

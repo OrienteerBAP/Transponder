@@ -5,12 +5,12 @@ import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsMapWithSize.aMapWithSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -19,10 +19,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.orienteer.transponder.CommonUtils;
 import org.orienteer.transponder.Transponder;
 
@@ -54,7 +54,7 @@ public class DAOTest {
 	
 	private static Transponder transponder;
 
-	@BeforeClass
+	@BeforeAll
 	public static void beforeDAOTest() {
 		orientDB.createIfNotExists(DB_NAME, ODatabaseType.MEMORY);
 		
@@ -85,7 +85,7 @@ public class DAOTest {
 		transponder = new Transponder(new ODriver());
 	}
 	
-	@AfterClass
+	@AfterAll
 	public static void afterDAOTest() {
 		
 		getDatabase().getMetadata().getSchema().dropClass(TEST_CLASS);
@@ -93,7 +93,7 @@ public class DAOTest {
 		orientDB.close();
 	}
 	
-	@Before
+	@BeforeEach
 	public void makeSureThatDBInThecurrentThread() {
 		getDatabase().activateOnCurrentThread();
 	}
@@ -140,7 +140,7 @@ public class DAOTest {
 		iOPerspective.lookupToBoolean("root");
 		List<ODocument> menu = iOPerspective.listAllChild();
 		assertNotNull(menu);
-		assertTrue("Size of childs", menu.size()>0);
+		assertTrue(menu.size()>0, "Size of childs");
 	}
 	
 	@Test
@@ -148,8 +148,8 @@ public class DAOTest {
 		ITestDAO dao = transponder.dao(ITestDAO.class);
 		List<ODocument> testDocs = dao.listDAOTestClass();
 		assertNotNull(testDocs);
-		assertTrue("Size of test docs", testDocs.size()>0);
-		assertTrue("Size of test docs", dao.countAll()>0);
+		assertTrue(testDocs.size()>0, "Size of test docs");
+		assertTrue(dao.countAll()>0, "Size of test docs");
 		assertEquals(testDocs.size(), dao.countAll());
 	}
 	
@@ -389,7 +389,7 @@ public class DAOTest {
 	
 	private OProperty assertProperty(OClass oClass, String property, OType oType) {
 		OProperty prop = oClass.getProperty(property);
-		assertNotNull("Property '"+property+"'was not found on OClass:"+oClass, prop);
+		assertNotNull(prop, "Property '"+property+"'was not found on OClass:"+oClass);
 		assertEquals(oType, prop.getType());
 		return prop;
 	}

@@ -1,6 +1,6 @@
 package org.orienteer.transponder;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.orienteer.transponder.CommonUtils.*;
 
 import java.io.Serializable;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.orienteer.transponder.Transponder.ITransponderHolder;
 import org.orienteer.transponder.datamodel.ClassTestDAO;
 import org.orienteer.transponder.datamodel.ISimpleEntity;
