@@ -46,7 +46,7 @@ Transponder is an Object Relational Mapping (ORM) library for NoSQL databases. I
 - `transponder-orientdb/` - OrientDB driver (`ODriver.java`)
 - `transponder-arcadedb/` - ArcadeDB driver (`ArcadeDBDriver.java`)
 - `transponder-neo4j/` - Neo4j driver (`Neo4JDriver.java`)
-- `transponder-mongodb/` - MongoDB driver (`MongoDBDriver.java`)
+- `transponder-mongodb/` - MongoDB driver (`MongoDBDriver.java`) - uses MongoDB Java Driver 5.2.1
 
 ### Key Design Patterns
 
