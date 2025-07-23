@@ -27,13 +27,20 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 	private static Database database;
 	
 	public ArcadeDBUniversalTest() {
-		super(new ArcadeDBTestDriver(database));
+		super(new ArcadeDBTestDriver(getDatabase()));
+	}
+	
+	public static Database getDatabase() {
+		if (database == null) {
+			database = databaseFactory.exists() ? databaseFactory.open() : databaseFactory.create();
+			database.setAutoTransaction(true);
+		}
+		return database;
 	}
 	
 	@BeforeClass
 	public static void initDb() {
-		database = databaseFactory.exists() ? databaseFactory.open() : databaseFactory.create();
-		database.setAutoTransaction(true);
+		getDatabase(); // Initialize database
 	}
 	
 	@AfterClass
@@ -68,7 +75,7 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 		DocumentType typeRoot = database.getSchema().getOrCreateDocumentType("TestRoot2");
 		typeRoot.getOrCreateProperty("name", String.class);
 		typeRoot.getOrCreateProperty("parent", Type.LINK);
-		typeRoot.getOrCreateTypeIndex(INDEX_TYPE.LSM_TREE, true, "name", "parent");
+		typeRoot.getOrCreateTypeIndex(INDEX_TYPE.LSM_TREE, true, "name");
 		database.command("sql", "delete from TestRoot2");
 		DocumentType typeChild = database.getSchema().getOrCreateDocumentType("TestChild2");
 		typeChild.setSuperTypes(Arrays.asList(typeRoot));

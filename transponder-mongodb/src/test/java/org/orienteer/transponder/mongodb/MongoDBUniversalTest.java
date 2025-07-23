@@ -1,7 +1,7 @@
 package org.orienteer.transponder.mongodb;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.orienteer.transponder.AbstractUniversalTest;
 
 import com.mongodb.client.MongoClient;
@@ -21,16 +21,12 @@ public class MongoDBUniversalTest extends AbstractUniversalTest {
 	private static MongoClient mongo;
 	private static MongoDatabase mongoDb;
 	
-	@BeforeClass
+	@BeforeAll
 	public static void initMongoDB() throws Exception {
-		running = Mongod.instance().start(Version.Main.V5_0);
-		
-		mongo = MongoClients.create("mongodb://"+running.current().getServerAddress());
-		
-		mongoDb = mongo.getDatabase("test-db");
+		getMongoDatabase(); // Initialize database
 	}
 	
-	@AfterClass
+	@AfterAll
 	public static void shutdownMongoDB() throws Exception {
 		if(mongoDb!=null) mongoDb.drop();
 		if(mongo!=null) mongo.close();
@@ -38,6 +34,19 @@ public class MongoDBUniversalTest extends AbstractUniversalTest {
 	}
 	
 	public MongoDBUniversalTest() {
-		super(new MongoDBTestDriver(mongoDb));
+		super(new MongoDBTestDriver(getMongoDatabase()));
+	}
+	
+	public static MongoDatabase getMongoDatabase() {
+		if (mongoDb == null) {
+			try {
+				running = Mongod.instance().start(Version.Main.V5_0);
+				mongo = MongoClients.create("mongodb://"+running.current().getServerAddress());
+				mongoDb = mongo.getDatabase("test-db");
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to initialize MongoDB", e);
+			}
+		}
+		return mongoDb;
 	}
 }

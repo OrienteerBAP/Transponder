@@ -14,3 +14,4 @@ build.cmd
 *.iml
 *.log
 *.tar.gz
+*/log/

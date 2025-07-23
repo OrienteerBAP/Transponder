@@ -8,11 +8,17 @@ import org.orienteer.transponder.CommonUtils;
 import org.orienteer.transponder.ITestDriver;
 
 import com.google.common.base.Objects;
+import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.index.OIndex;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
 public class OTestDriver extends ODriver implements ITestDriver {
+	
+	@Override
+	protected ODatabaseSession getSession() {
+		return OrientDBUniversalTest.getODatabaseSession();
+	}
 
 	@Override
 	public boolean hasType(String typeName) {

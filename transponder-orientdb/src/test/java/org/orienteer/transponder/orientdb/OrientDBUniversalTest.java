@@ -1,11 +1,13 @@
 package org.orienteer.transponder.orientdb;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.orienteer.transponder.AbstractUniversalTest;
 
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.core.db.ODatabaseDocumentInternal;
+import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.db.ODatabaseType;
 import com.orientechnologies.orient.core.db.OrientDB;
@@ -19,20 +21,23 @@ public class OrientDBUniversalTest extends AbstractUniversalTest {
 																			.build());
 	private static ODatabaseSession db;
 	
-	@BeforeClass
+	@BeforeAll
 	public static void beforeDAOTest() {
 		orientDB.createIfNotExists(DB_NAME, ODatabaseType.MEMORY);
+		db = orientDB.open(DB_NAME,"admin","admin");
 	}
 	
-	@AfterClass
+	@AfterAll
 	public static void closeDb() {
 		db.close();
 		orientDB.close();
 	}
 	
-	@Before
+	@BeforeEach
 	public void makeSureThatDBInThecurrentThread() {
-		getODatabaseSession().activateOnCurrentThread();
+		ODatabaseSession session = getODatabaseSession();
+		session.activateOnCurrentThread();
+		ODatabaseRecordThreadLocal.instance().set((ODatabaseDocumentInternal) session);
 	}
 	
 	public OrientDBUniversalTest() {
@@ -43,6 +48,9 @@ public class OrientDBUniversalTest extends AbstractUniversalTest {
 		if(db==null) {
 			db = orientDB.open(DB_NAME,"admin","admin");
 		}
+		// Ensure the database is always set in thread-local context
+		db.activateOnCurrentThread();
+		ODatabaseRecordThreadLocal.instance().set((ODatabaseDocumentInternal) db);
 		return db;
 	}
 
