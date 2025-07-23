@@ -12,13 +12,14 @@ Transponder [dynamically generates bytecode](https://github.com/raphw/byte-buddy
 2. [Key Benefits](#key-benefits)
 3. [Supported NoSQL Databases](#supported-nosql-databases)
 4. [NoSQL Databasses Support Road Map](#nosql-databases-to-be-supported-soon)
-5. [Getting Started](#getting-started)
-6. [Defining DataModel](#defining-datamodel)
-7. [Transponder API](#transponder-api)
-8. [Transponder Annotations](#transponder-annotations)
-9. [Support of Multiple Dialects](#support-of-multiple-dialects)
-10. [Comparison With Other ORMs](#comparison-with-other-orms)
-11. [Suppport](#suppport)
+5. [Java Version Requirements](#java-version-requirements)
+6. [Getting Started](#getting-started)
+7. [Defining DataModel](#defining-datamodel)
+8. [Transponder API](#transponder-api)
+9. [Transponder Annotations](#transponder-annotations)
+10. [Support of Multiple Dialects](#support-of-multiple-dialects)
+11. [Comparison With Other ORMs](#comparison-with-other-orms)
+12. [Suppport](#suppport)
 
 ### Use Cases
 Transponder can be used for
@@ -52,7 +53,32 @@ Transponder can be used for
 
 Please create an [issue](https://github.com/OrienteerBAP/Transponder/issues) or [discussion](https://github.com/OrienteerBAP/Transponder/discussions) if you need support of some other DBs or expedite priority for those which are not yet supported.
 
+## Java Version Requirements
+
+**Important**: Different Transponder modules have specific Java version requirements:
+
+- **transponder-core**: Java 8+
+- **transponder-orientdb**: Java 8+ 
+- **transponder-arcadedb**: Java 11+
+- **transponder-neo4j**: **Java 11 only** (Neo4j 4.4.38 has strict Java 11 compatibility)
+- **transponder-mongodb**: Java 8+
+
+### Neo4j Java 11 Compatibility
+
+The Neo4j module requires Java 11 due to ByteBuffer compatibility issues in Neo4j 4.4.38. Running on Java 21 will result in `UnsupportedOperationException` errors. To work with the Neo4j module:
+
+1. Ensure Java 11 is installed on your system
+2. Set `JAVA_HOME` to Java 11 when building/testing the Neo4j module:
+   ```bash
+   export JAVA_HOME=/path/to/java11
+   mvn test -pl transponder-neo4j
+   ```
+
+For development environments with multiple Java versions, consider using tools like `jenv` or `SDKMAN!` to manage Java versions per project.
+
 ## Getting Started
+
+**Before you start**: Check the [Java Version Requirements](#java-version-requirements) section above to ensure your environment meets the requirements for your target database.
 
 Add the following dependency into your `pom.xml`:
 
