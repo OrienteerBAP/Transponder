@@ -43,10 +43,10 @@ Transponder is an Object Relational Mapping (ORM) library for NoSQL databases. I
 - `polyglot/` - Multi-dialect query support
 
 **Database Driver Modules**: Each contains driver implementation and tests
-- `transponder-orientdb/` - OrientDB driver (`ODriver.java`)
-- `transponder-arcadedb/` - ArcadeDB driver (`ArcadeDBDriver.java`)
-- `transponder-neo4j/` - Neo4j driver (`Neo4JDriver.java`)
-- `transponder-mongodb/` - MongoDB driver (`MongoDBDriver.java`) - uses MongoDB Java Driver 5.2.1
+- `transponder-orientdb/` - OrientDB driver (`ODriver.java`) - OrientDB 3.2.36
+- `transponder-arcadedb/` - ArcadeDB driver (`ArcadeDBDriver.java`) - ArcadeDB 23.12.1 
+- `transponder-neo4j/` - Neo4j driver (`Neo4JDriver.java`) - Neo4j 4.4.38 LTS
+- `transponder-mongodb/` - MongoDB driver (`MongoDBDriver.java`) - MongoDB Java Driver 5.2.1
 
 ### Key Design Patterns
 
@@ -90,6 +90,8 @@ Each module follows consistent test structure:
 ## Development Notes
 
 - Java 8 target (maven.compiler.source/target = 1.8)
+- Neo4j and ArcadeDB modules use Java 11 (maven.compiler.target = 11)
+- Neo4j module requires JVM args for module system compatibility: `--add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED`
 - Uses Lombok for boilerplate reduction
 - ByteBuddy for runtime class generation
 - Google Guava for utilities

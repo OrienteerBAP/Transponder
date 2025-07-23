@@ -45,7 +45,7 @@ public class ArcadeDBUniversalTest extends AbstractUniversalTest {
 	public void testDocumentAfterCreation() {
 		DocumentType typeRoot = database.getSchema().getOrCreateDocumentType("TestRoot");
 		typeRoot.getOrCreateProperty("name", String.class);
-		typeRoot.getOrCreateTypeIndex(INDEX_TYPE.FULL_TEXT, true, "name");
+		typeRoot.getOrCreateTypeIndex(INDEX_TYPE.LSM_TREE, true, "name");
 		database.command("sql", "delete from TestRoot");
 		
 		DocumentType typeChild = database.getSchema().getOrCreateDocumentType("TestChild");
