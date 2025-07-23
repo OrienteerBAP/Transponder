@@ -10,16 +10,15 @@ Transponder [dynamically generates bytecode](https://github.com/raphw/byte-buddy
 
 1. [Use Cases](#use-cases)
 2. [Key Benefits](#key-benefits)
-3. [Supported NoSQL Databases](#supported-nosql-databases)
-4. [NoSQL Databasses Support Road Map](#nosql-databases-to-be-supported-soon)
-5. [Java Version Requirements](#java-version-requirements)
-6. [Getting Started](#getting-started)
-7. [Defining DataModel](#defining-datamodel)
-8. [Transponder API](#transponder-api)
-9. [Transponder Annotations](#transponder-annotations)
-10. [Support of Multiple Dialects](#support-of-multiple-dialects)
-11. [Comparison With Other ORMs](#comparison-with-other-orms)
-12. [Suppport](#suppport)
+3. [NoSQL Database Support Status](#nosql-database-support-status)
+4. [Java Version Requirements](#java-version-requirements)
+5. [Getting Started](#getting-started)
+6. [Defining DataModel](#defining-datamodel)
+7. [Transponder API](#transponder-api)
+8. [Transponder Annotations](#transponder-annotations)
+9. [Support of Multiple Dialects](#support-of-multiple-dialects)
+10. [Comparison With Other ORMs](#comparison-with-other-orms)
+11. [Suppport](#suppport)
 
 ### Use Cases
 Transponder can be used for
@@ -35,21 +34,32 @@ Transponder can be used for
 * Transferable: datamodel defined for one DB can be reused for another one
 * Small learning curve
 
-### Supported NoSQL Databases
+### NoSQL Database Support Status
 
-- [X] [OrientDB](https://github.com/orientechnologies/orientdb) (maven dependency: org.orienteer.transponder:transponder-orientdb)
-- [X] [ArcadeDB](https://github.com/ArcadeData/arcadedb) (maven dependency: org.orienteer.transponder:transponder-arcadedb)
-- [X] [Neo4J](https://github.com/neo4j/neo4j) (maven dependency: org.orienteer.transponder:transponder-neo4j)
-- [X] [MongoDB](https://github.com/mongodb/mongo) (maven dependency: org.orienteer.transponder:transponder-mongodb)
+| Database | Status | Type | Complexity | Java API Quality | Community | Performance | Maven Dependency |
+|----------|--------|------|------------|------------------|-----------|-------------|-------------------|
+| **Currently Supported** |
+| [OrientDB](https://github.com/orientechnologies/orientdb) | ✅ | Multi-Model | Medium | Excellent | Strong | High | `org.orienteer.transponder:transponder-orientdb` |
+| [ArcadeDB](https://github.com/ArcadeData/arcadedb) | ✅ | Multi-Model | Medium | Good | Growing | High | `org.orienteer.transponder:transponder-arcadedb` |
+| [Neo4j](https://github.com/neo4j/neo4j) | ✅ | Graph | Medium | Excellent | Very Strong | High | `org.orienteer.transponder:transponder-neo4j` |
+| [MongoDB](https://github.com/mongodb/mongo) | ✅ | Document | Medium | Good | Very Strong | High | `org.orienteer.transponder:transponder-mongodb` |
+| **High Priority - Recommended Next** |
+| [JanusGraph](https://github.com/JanusGraph/janusgraph) | 🔄 | Graph | Low | Excellent | Strong | High | `org.orienteer.transponder:transponder-janusgraph` |
+| [ArangoDB](https://github.com/arangodb/arangodb) | 🔄 | Multi-Model | Medium | Good | Very Strong | High | `org.orienteer.transponder:transponder-arangodb` |
+| [CouchDB](https://github.com/apache/couchdb) | 🔄 | Document | Low | Good | Strong | Medium | `org.orienteer.transponder:transponder-couchdb` |
+| **Medium Priority - Strategic Extensions** |
+| [Redis](https://github.com/redis/redis) | 📋 | Key-Value | Low | Excellent | Very Strong | Very High | `org.orienteer.transponder:transponder-redis` |
+| [Memgraph](https://github.com/memgraph/memgraph) | 📋 | Graph | Very Low | Excellent | Growing | Very High | `org.orienteer.transponder:transponder-memgraph` |
+| **Lower Priority - Future Consideration** |
+| [Apache Cassandra](https://github.com/apache/cassandra) | 📋 | Wide Column | High | Excellent | Very Strong | High | `org.orienteer.transponder:transponder-cassandra` |
+| [Couchbase](https://github.com/couchbase) | 📋 | Document | Medium | Good | Strong | High | `org.orienteer.transponder:transponder-couchbase` |
+| [Hazelcast](https://github.com/hazelcast/hazelcast) | 📋 | Key-Value/Cache | Medium | Excellent | Strong | Very High | `org.orienteer.transponder:transponder-hazelcast` |
+| [DynamoDB](https://aws.amazon.com/dynamodb/) | 📋 | Key-Value/Document | High | Good | Strong | High | `org.orienteer.transponder:transponder-dynamodb` |
 
-### NoSQL Databases To Be Supported Soon
-
-- [ ] [ArangoDB](https://github.com/arangodb/arangodb)
-- [ ] [Cassandra](https://github.com/apache/cassandra)
-- [ ] [Hazelcast](https://github.com/hazelcast/hazelcast)
-- [ ] [Couchbase](https://github.com/couchbase)
-- [ ] [MongoDB](https://github.com/mongodb/mongo)
-- [ ] [DynamoDB](https://aws.amazon.com/dynamodb/)
+**Legend:**
+- ✅ **Currently Supported** - Ready to use
+- 🔄 **High Priority** - Recommended for next implementation based on similarity to existing drivers and ecosystem fit
+- 📋 **Planned** - Future consideration based on community demand and strategic value
 
 Please create an [issue](https://github.com/OrienteerBAP/Transponder/issues) or [discussion](https://github.com/OrienteerBAP/Transponder/discussions) if you need support of some other DBs or expedite priority for those which are not yet supported.
 
