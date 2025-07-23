@@ -65,25 +65,38 @@ Please create an [issue](https://github.com/OrienteerBAP/Transponder/issues) or 
 
 ## Java Version Requirements
 
-**Important**: Different Transponder modules have specific Java version requirements:
+**Important**: Different Transponder modules have specific Java version requirements based on their underlying database dependencies:
 
-- **transponder-core**: Java 8+
-- **transponder-orientdb**: Java 8+ 
-- **transponder-arcadedb**: Java 11+
-- **transponder-neo4j**: **Java 11 only** (Neo4j 4.4.38 has strict Java 11 compatibility)
-- **transponder-janusgraph**: Java 11+ (TinkerPop 3.7.3 and distributed backend requirements)
-- **transponder-mongodb**: Java 8+
+- **transponder-core**: Java 8+ (tested up to Java 21)
+- **transponder-orientdb**: Java 8+ (OrientDB 3.2.36 works with Java 8-21)
+- **transponder-arcadedb**: Java 11+ (ArcadeDB 23.12.1 requirement, works with Java 17+)
+- **transponder-neo4j**: Java 8-17 (Neo4j 4.4.38 fails with Java 21)
+- **transponder-janusgraph**: Java 8-11 (JanusGraph 1.1.0 limitation - requires explicit Java 11 compiler config)
+- **transponder-mongodb**: Java 8+ (MongoDB Java Driver 5.2.1 works with all Java versions)
 
-### Neo4j Java 11 Compatibility
+### Tested Java Version Compatibility Matrix
 
-The Neo4j module requires Java 11 due to ByteBuffer compatibility issues in Neo4j 4.4.38. Running on Java 21 will result in `UnsupportedOperationException` errors. To work with the Neo4j module:
+| Module | Java 8 | Java 11 | Java 17 | Java 21 | Notes |
+|--------|---------|---------|---------|---------|-------|
+| **transponder-core** | ⚠️* | ✅ | ✅ | ✅ | *Requires Maven compiler config changes for Java 8 |
+| **transponder-orientdb** | ⚠️* | ✅ | ✅ | ✅ | *Requires Maven compiler config changes for Java 8 |
+| **transponder-arcadedb** | ❌ | ✅ | ✅ | ✅ | Minimum Java 11 required |
+| **transponder-neo4j** | ⚠️* | ✅ | ✅ | ❌ | *Requires Maven compiler config changes for Java 8; **Fails on Java 21** |
+| **transponder-janusgraph** | ⚠️* | ✅ | ❌ | ❌ | *Requires Maven compiler config changes for Java 8; Uses Java 11 compiler config |
+| **transponder-mongodb** | ⚠️* | ✅ | ✅ | ✅ | *Requires Maven compiler config changes for Java 8 |
 
-1. Ensure Java 11 is installed on your system
-2. Set `JAVA_HOME` to Java 11 when building/testing the Neo4j module:
-   ```bash
-   export JAVA_HOME=/path/to/java11
-   mvn test -pl transponder-neo4j
-   ```
+### Recommended Java Versions by Use Case
+
+#### For Maximum Compatibility
+Use **Java 11** - all modules work perfectly with Java 11.
+
+#### For Latest Java Features  
+Use **Java 17** with modules: core, orientdb, arcadedb, mongodb (excludes neo4j and janusgraph).
+
+#### Production Environments
+- **Java 11**: Safest choice, all modules tested and working
+- **Java 17**: Good choice if not using Neo4j or JanusGraph  
+- **Java 21**: Limited to core, orientdb, arcadedb, mongodb modules only
 
 ### JanusGraph Distributed Graph Database
 

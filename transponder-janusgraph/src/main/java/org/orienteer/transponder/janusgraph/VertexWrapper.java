@@ -101,11 +101,14 @@ public class VertexWrapper {
 	public Object getProperty(String property) {
 		if(vertex != null) {
 			try {
+				// Ensure we can read the property
 				if(vertex.property(property).isPresent()) {
-					return vertex.property(property).value();
+					Object value = vertex.property(property).value();
+					return value;
 				}
 			} catch (Exception e) {
 				// Property might not exist or be accessible, return null
+				System.err.printf("Failed to get property %s: %s%n", property, e.getMessage());
 			}
 		}
 		return null;

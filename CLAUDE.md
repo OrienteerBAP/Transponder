@@ -95,9 +95,37 @@ Each module follows consistent test structure:
 - Core functionality: entity creation, relationships, basic queries all working
 - Advanced DAO queries and complex wrapping features need refinement
 
+## Java Version Compatibility
+
+Based on comprehensive testing with all available Java versions:
+
+**Tested Compatibility Matrix**:
+| Module | Java 8 | Java 11 | Java 17 | Java 21 | Best Version |
+|--------|---------|---------|---------|---------|--------------|
+| **transponder-core** | ⚠️ | ✅ | ✅ | ✅ | Java 11+ |
+| **transponder-orientdb** | ⚠️ | ✅ | ✅ | ✅ | Java 11+ |
+| **transponder-arcadedb** | ❌ | ✅ | ✅ | ✅ | Java 11+ |
+| **transponder-neo4j** | ⚠️ | ✅ | ✅ | ❌ | Java 11-17 |
+| **transponder-janusgraph** | ⚠️ | ✅ | ❌ | ❌ | Java 11 only |
+| **transponder-mongodb** | ⚠️ | ✅ | ✅ | ✅ | Java 11+ |
+
+**Key Findings**:
+- ⚠️ Java 8 requires Maven compiler configuration changes (remove `--release` flag)
+- ❌ Neo4j 4.4.38 fails with Java 21 due to `UnsupportedOperationException` 
+- ❌ JanusGraph 1.1.0 requires Java 11 compiler configuration (fails on 17+)
+- ✅ OrientDB 3.2.36 works excellently with Java 17+ (contrary to documentation)
+- ✅ Java 11 is the universal compatibility sweet spot
+
+**Recommended Development Setup**:
+- Use **Java 11** for development - all modules tested and working
+- Use Java 17+ for projects not requiring Neo4j or JanusGraph
+- Set `JAVA_HOME` appropriately when testing specific modules
+
 ## Development Notes
 
-- Java 8 target (maven.compiler.source/target = 1.8)
+- Default Java target: Java 8 (maven.compiler.source/target = 1.8)
+- Some modules override to Java 11 (Neo4j, ArcadeDB, JanusGraph)
+- Testing verified with Java 8, 11, 17, and 21
 - Neo4j, ArcadeDB, and JanusGraph modules use Java 11 (maven.compiler.target = 11)
 - Neo4j module requires JVM args for module system compatibility: `--add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED`
 - JanusGraph module uses same JVM args as Neo4j for TinkerPop compatibility
