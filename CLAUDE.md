@@ -124,3 +124,7 @@ Each module follows consistent test structure:
 - Basic Gremlin query translation from SQL-like syntax
 
 **Current Status**: Production-ready for basic graph operations. Advanced DAO features and complex query translation available for enhancement based on usage patterns.
+
+## Maintenance Guidelines
+
+- Always check and update README.md and CLAUDE.md if needed
