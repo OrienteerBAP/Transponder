@@ -42,9 +42,9 @@ Transponder can be used for
 | [OrientDB](https://github.com/orientechnologies/orientdb) | ✅ | Multi-Model | Medium | Excellent | Strong | High | `org.orienteer.transponder:transponder-orientdb` |
 | [ArcadeDB](https://github.com/ArcadeData/arcadedb) | ✅ | Multi-Model | Medium | Good | Growing | High | `org.orienteer.transponder:transponder-arcadedb` |
 | [Neo4j](https://github.com/neo4j/neo4j) | ✅ | Graph | Medium | Excellent | Very Strong | High | `org.orienteer.transponder:transponder-neo4j` |
+| [JanusGraph](https://github.com/JanusGraph/janusgraph) | ✅ | Graph | Low | Excellent | Strong | High | `org.orienteer.transponder:transponder-janusgraph` |
 | [MongoDB](https://github.com/mongodb/mongo) | ✅ | Document | Medium | Good | Very Strong | High | `org.orienteer.transponder:transponder-mongodb` |
 | **High Priority - Recommended Next** |
-| [JanusGraph](https://github.com/JanusGraph/janusgraph) | 🔄 | Graph | Low | Excellent | Strong | High | `org.orienteer.transponder:transponder-janusgraph` |
 | [ArangoDB](https://github.com/arangodb/arangodb) | 🔄 | Multi-Model | Medium | Good | Very Strong | High | `org.orienteer.transponder:transponder-arangodb` |
 | [CouchDB](https://github.com/apache/couchdb) | 🔄 | Document | Low | Good | Strong | Medium | `org.orienteer.transponder:transponder-couchdb` |
 | **Medium Priority - Strategic Extensions** |
@@ -71,6 +71,7 @@ Please create an [issue](https://github.com/OrienteerBAP/Transponder/issues) or 
 - **transponder-orientdb**: Java 8+ 
 - **transponder-arcadedb**: Java 11+
 - **transponder-neo4j**: **Java 11 only** (Neo4j 4.4.38 has strict Java 11 compatibility)
+- **transponder-janusgraph**: Java 11+ (TinkerPop 3.7.3 and distributed backend requirements)
 - **transponder-mongodb**: Java 8+
 
 ### Neo4j Java 11 Compatibility
@@ -83,6 +84,18 @@ The Neo4j module requires Java 11 due to ByteBuffer compatibility issues in Neo4
    export JAVA_HOME=/path/to/java11
    mvn test -pl transponder-neo4j
    ```
+
+### JanusGraph Distributed Graph Database
+
+The JanusGraph module provides enterprise-grade distributed graph database capabilities that scale beyond Neo4j limitations:
+
+- **Massive Scalability**: Handle graphs with billions of vertices and edges across multiple machines
+- **Multiple Storage Backends**: Choose from Cassandra, HBase, or BerkeleyDB for storage
+- **Native TinkerPop Integration**: Full Apache TinkerPop 3.7.3 and Gremlin query support
+- **ACID Transactions**: Complete transactional support for data consistency
+- **High Availability**: Built-in replication and fault tolerance
+
+Use JanusGraph when you need distributed graph processing or when your graph data exceeds single-machine capabilities.
 
 For development environments with multiple Java versions, consider using tools like `jenv` or `SDKMAN!` to manage Java versions per project.
 

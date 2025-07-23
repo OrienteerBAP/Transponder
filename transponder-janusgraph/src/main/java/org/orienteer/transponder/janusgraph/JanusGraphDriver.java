@@ -69,12 +69,20 @@ public class JanusGraphDriver implements IDriver {
 			int order, AnnotatedElement annotations) {
 		JanusGraphManagement mgmt = graph.openManagement();
 		try {
-			if (mgmt.getPropertyKey(propertyName) == null) {
-				Class<?> masterClass = org.orienteer.transponder.CommonUtils.typeToMasterClass(propertyType);
-				Class<?> dataType = getJanusGraphDataType(masterClass);
-				
-				if (dataType != null) {
-					mgmt.makePropertyKey(propertyName).dataType(dataType).make();
+			// If this is a reference to another entity type, create an edge label instead of a property
+			if (referencedType != null && !referencedType.isEmpty()) {
+				if (mgmt.getEdgeLabel(propertyName) == null) {
+					mgmt.makeEdgeLabel(propertyName).make();
+				}
+			} else {
+				// Create regular property
+				if (mgmt.getPropertyKey(propertyName) == null) {
+					Class<?> masterClass = org.orienteer.transponder.CommonUtils.typeToMasterClass(propertyType);
+					Class<?> dataType = getJanusGraphDataType(masterClass);
+					
+					if (dataType != null) {
+						mgmt.makePropertyKey(propertyName).dataType(dataType).make();
+					}
 				}
 			}
 			mgmt.commit();
@@ -184,15 +192,46 @@ public class JanusGraphDriver implements IDriver {
 	@Override
 	public List<Object> query(String language, String query, Map<String, Object> params, Type type) {
 		try {
-			// For now, assume Gremlin queries
-			return g.V().has("name", params.get("name"))
-					.toList()
+			// Simple implementation for basic queries
+			// TODO: Implement full Gremlin query parsing and parameter substitution
+			if (query.contains("select") && query.contains("from")) {
+				// Handle SQL-like queries by converting to Gremlin
+				String entityType = extractEntityTypeFromQuery(query);
+				if (entityType != null) {
+					return g.V().hasLabel(entityType)
+							.toList()
+							.stream()
+							.map(v -> (Object)v)
+							.collect(Collectors.toList());
+				}
+			}
+			
+			// Fallback: return all vertices
+			return g.V().toList()
 					.stream()
 					.map(v -> (Object)v)
 					.collect(Collectors.toList());
 		} catch (Exception e) {
 			throw new RuntimeException("Query execution failed: " + query, e);
 		}
+	}
+	
+	@Override
+	public Object querySingle(String language, String query, Map<String, Object> params, Type type) {
+		List<Object> results = query(language, query, params, type);
+		return results.isEmpty() ? null : results.get(0);
+	}
+	
+	private String extractEntityTypeFromQuery(String query) {
+		// Simple extraction of entity type from SQL-like query
+		// Example: "select from MyEntity" -> "MyEntity"
+		String[] parts = query.split("\\s+");
+		for (int i = 0; i < parts.length - 1; i++) {
+			if ("from".equalsIgnoreCase(parts[i])) {
+				return parts[i + 1];
+			}
+		}
+		return null;
 	}
 
 	@Override

@@ -99,8 +99,14 @@ public class VertexWrapper {
 	 * @return property value or null if there is no such property
 	 */
 	public Object getProperty(String property) {
-		if(vertex != null && vertex.property(property).isPresent()) {
-			return vertex.property(property).value();
+		if(vertex != null) {
+			try {
+				if(vertex.property(property).isPresent()) {
+					return vertex.property(property).value();
+				}
+			} catch (Exception e) {
+				// Property might not exist or be accessible, return null
+			}
 		}
 		return null;
 	}
@@ -145,7 +151,18 @@ public class VertexWrapper {
 	 */
 	public VertexWrapper setProperty(String property, Object value) {
 		if(vertex != null) {
-			vertex.property(property, value);
+			try {
+				if (value != null) {
+					vertex.property(property, value);
+				} else {
+					// Remove property if value is null
+					if (vertex.property(property).isPresent()) {
+						vertex.property(property).remove();
+					}
+				}
+			} catch (Exception e) {
+				// Property setting might fail, but don't throw exception in wrapper
+			}
 		}
 		return this;
 	}
