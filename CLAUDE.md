@@ -106,18 +106,20 @@ Based on comprehensive testing with all available Java versions:
 | **transponder-orientdb** | ⚠️ | ✅ | ✅ | ✅ | Java 11+ |
 | **transponder-arcadedb** | ❌ | ✅ | ✅ | ✅ | Java 11+ |
 | **transponder-neo4j** | ⚠️ | ✅ | ✅ | ❌ | Java 11-17 |
-| **transponder-janusgraph** | ⚠️ | ✅ | ❌ | ❌ | Java 11 only |
+| **transponder-janusgraph** | ⚠️ | ⚠️ | ❌ | ❌ | Java 11 (with issues) |
 | **transponder-mongodb** | ⚠️ | ✅ | ✅ | ✅ | Java 11+ |
 
 **Key Findings**:
 - ⚠️ Java 8 requires Maven compiler configuration changes (remove `--release` flag)
 - ❌ Neo4j 4.4.38 fails with Java 21 due to `UnsupportedOperationException` 
-- ❌ JanusGraph 1.1.0 requires Java 11 compiler configuration (fails on 17+)
+- ⚠️ JanusGraph 1.1.0 has ByteBuddy delegation issues (9/20 tests fail even on Java 11)
+- ❌ JanusGraph 1.1.0 fails completely on Java 17+ due to compiler configuration
 - ✅ OrientDB 3.2.36 works excellently with Java 17+ (contrary to documentation)
-- ✅ Java 11 is the universal compatibility sweet spot
+- ✅ Java 11 provides best overall compatibility (5/6 modules fully pass tests)
 
 **Recommended Development Setup**:
-- Use **Java 11** for development - all modules tested and working
+- Use **Java 11** for development - best overall compatibility (5/6 modules fully pass tests)
+- Note: JanusGraph has known test failures due to ByteBuddy proxy delegation issues
 - Use Java 17+ for projects not requiring Neo4j or JanusGraph
 - Set `JAVA_HOME` appropriately when testing specific modules
 
