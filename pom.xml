@@ -54,6 +54,8 @@
 		<!-- settings.xml server holding the Central Portal user token; override with -Dcentral.server.id=<id> -->
 		<central.server.id>central</central.server.id>
 		<release.testSources.skip>true</release.testSources.skip>
+		<!-- Set by jacoco:prepare-agent; modules adding JVM flags use "@{argLine} ..." so the agent is kept -->
+		<argLine></argLine>
 	</properties>
 
 	<dependencyManagement>
@@ -130,6 +132,32 @@
 								</requireJavaVersion>
 							</rules>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Coverage report (no thresholds): target/site/jacoco/ in each module after `verify`. Only this project's classes
+			     are instrumented, so the DB engines and the ByteBuddy-generated classes run untouched. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<configuration>
+					<includes>
+						<include>org/orienteer/transponder/**</include>
+					</includes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>jacoco-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
@@ -296,6 +324,11 @@
 					<groupId>org.sonatype.central</groupId>
 					<artifactId>central-publishing-maven-plugin</artifactId>
 					<version>0.11.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>0.8.15</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
