@@ -46,8 +46,8 @@
 	</licenses>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.release>21</maven.compiler.release>
+		<lombok.version>1.18.48</lombok.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -76,7 +76,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.34</version>
+			<version>${lombok.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -131,15 +131,24 @@
 					<inherited>true</inherited>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.8.1</version>
+					<version>3.16.0</version>
 					<configuration>
-						<release>8</release>
+						<release>${maven.compiler.release}</release>
 						<encoding>UTF-8</encoding>
 						<showWarnings>true</showWarnings>
 						<showDeprecation>true</showDeprecation>
+						<!-- Required: @Query/@Command/@Lookup parameters bind by Java parameter name -->
 						<compilerArgs>
 							<arg>-parameters</arg>
 						</compilerArgs>
+						<!-- Lombok must be on the processor path explicitly: JDK 23+ no longer runs processors found on the class path -->
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+								<version>${lombok.version}</version>
+							</path>
+						</annotationProcessorPaths>
 					</configuration>
 				</plugin>
 				<plugin>
