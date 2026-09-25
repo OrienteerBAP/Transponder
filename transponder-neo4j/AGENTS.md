@@ -4,6 +4,8 @@ Neo4j driver (`org.orienteer.transponder:transponder-neo4j`), embedded Neo4j 4.4
 under the driver policy (plan D7: fixes within the same DB major, otherwise the `parked` profile).
 Root rules: [`../AGENTS.md`](../AGENTS.md); plan: [`../REFRESH_PLAN.md`](../REFRESH_PLAN.md).
 
+**Parked** (profile `parked`, plan D13): not built by default, never published. Try it with `./mvnw -Pparked -pl transponder-core,transponder-neo4j verify`.
+
 ## Key classes (`org.orienteer.transponder.neo4j`)
 
 - `Neo4JDriver implements IDriver` — bound to a `GraphDatabaseService` (+ optional `Transaction`); types are labels,
@@ -19,5 +21,6 @@ Root rules: [`../AGENTS.md`](../AGENTS.md); plan: [`../REFRESH_PLAN.md`](../REFR
 ## Tests
 
 - `Neo4JUniversalTest` (20): embedded DB under `target/db`.
-- Baseline 2026-09-25: on JDK 21 the DB doesn't start (`UnsupportedOperationException: set` from Neo4j 4.4's
-  off-heap `ByteBuffer` wrapping). Neo4j 5.26 LTS / 2026.x would be a DB-major port (plan X).
+- On JDK 21+ the DB doesn't start: Neo4j 4.4's `UnsafeUtil.initDirectByteBuffer` sets the now-`final`
+  `java.nio.Buffer.capacity` via a `VarHandle` (`UnsupportedOperationException: set`); 4.4.48 is the same. No flag
+  fixes it; Neo4j 5.26 LTS / 2026.x would be a DB-major port (plan X).

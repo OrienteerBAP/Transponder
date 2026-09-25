@@ -210,11 +210,18 @@
 		<module>transponder-core</module>
 		<module>transponder-orientdb</module>
 		<module>transponder-arcadedb</module>
-		<module>transponder-neo4j</module>
-		<module>transponder-janusgraph</module>
 		<module>transponder-mongodb</module>
 	</modules>
 	<profiles>
+		<!-- Drivers that don't build/test on JDK 21+ within their current DB major (REFRESH_PLAN.md D7, D13, D14).
+		     Not built by default and never published (D8); try them with: ./mvnw -Pparked verify -->
+		<profile>
+			<id>parked</id>
+			<modules>
+				<module>transponder-neo4j</module>
+				<module>transponder-janusgraph</module>
+			</modules>
+		</profile>
 		<profile>
 			<id>release</id>
 			<build>

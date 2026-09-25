@@ -30,9 +30,9 @@ and is modernized in lockstep with it.
 
 ## Build status — read first
 
-- Baseline (2026-09-25, plan Appendix C): on JDK 21 core, orientdb, arcadedb and mongodb are green; neo4j can't start
-  its DB on JDK 21; janusgraph has 6 failing tests and 2 Checkstyle violations. On JDK 25 core doesn't even compile.
-  Stage A (plan section A) fixes this; drivers that stay red move to the opt-in profile `parked` (D7).
+- Stage A in progress (plan section A). Default reactor: parent, core, orientdb, arcadedb, mongodb — green on JDK 21.
+  **Parked** (opt-in profile `parked`, never published): neo4j (Neo4j 4.4 can't run on JDK 21, D13) and janusgraph
+  (6 failing tests, D14). `./mvnw -Pparked verify` still tries them.
 - JDK 8 is gone: don't support it. `.sdkmanrc` pins Temurin 21.0.11; Temurin 25.0.4 for verification:
   `JAVA_HOME=~/.sdkman/candidates/java/25.0.4-tem ./mvnw clean verify`. JDK 27 is non-LTS.
 - Publishing: OSSRH (oss.sonatype.org) and jcenter are dead; the Central Portal setup is phase R. **Only the owner runs
@@ -55,7 +55,7 @@ and is modernized in lockstep with it.
   `ProxyType`, `CommonUtils`, `annotation/*`, `polyglot/DefaultPolyglot` (per-dialect queries from
   `/META-INF/transponder/polyglot.properties`). Publishes a **test-jar** with the driver-independent test suite.
 - `transponder-orientdb/` — `ODriver`, `IODocumentWrapper`, `@OrientDBProperty`, `advice/SudoAdvice` (`@Sudo`).
-- `transponder-arcadedb/`, `-neo4j/`, `-janusgraph/`, `-mongodb/` — other drivers; not used by Orienteer.
+- `transponder-arcadedb/`, `-mongodb/` — other drivers; `-neo4j/`, `-janusgraph/` — parked drivers. None is used by Orienteer.
 - Every module has its own `AGENTS.md`. `check_style.xml` — Checkstyle rules for main sources.
 
 ## Conventions

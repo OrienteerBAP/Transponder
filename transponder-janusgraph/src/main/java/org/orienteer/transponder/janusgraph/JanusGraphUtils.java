@@ -15,6 +15,9 @@ import org.orienteer.transponder.Transponder;
  */
 public class JanusGraphUtils {
 	
+	private JanusGraphUtils() {
+	}
+	
 	private static final Set<Class<?>> SUPPORTED_PROPERTY_CLASSES = new HashSet<>(Arrays.asList(
 			String.class, Integer.class, int.class, Long.class, long.class,
 			Double.class, double.class, Float.class, float.class,

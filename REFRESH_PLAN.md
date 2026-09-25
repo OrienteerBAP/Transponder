@@ -45,6 +45,8 @@ Started: 2026-09-25. Versions below were checked on Maven Central on that date �
 | D10 | 2026-09-25 | **Publishing** via the Central Portal (`central-publishing-maven-plugin`, server id property `central.server.id`, default `central`). Agents prepare and validate locally only; every upload is run/approved by the owner. **The `org.orienteer` namespace status on the Central Portal is unconfirmed** → the snapshot deploy is a hard stop until the owner confirms the namespace is verified **with SNAPSHOTs enabled**. | accepted; namespace **open** |
 | D11 | 2026-09-25 | Publishing config (`distributionManagement`, `release` profile, nexus-staging, release plugin) stays untouched in Stage A and is replaced in phase R. Only dead `<repositories>` are removed in A. Checkstyle is upgraded in A with a semantically equivalent config. | accepted |
 | D12 | 2026-09-25 | `AGENTS.md` (root + per module) is the canonical agent guide; `CLAUDE.md` is only a pointer to it, so nothing is duplicated. | accepted |
+| D13 | 2026-09-25 | **`transponder-neo4j` is parked** (D7). Neo4j 4.4 (4.4.38 and the last patch 4.4.48 tried) can't start on JDK 21: `UnsafeUtil.initDirectByteBuffer` writes `java.nio.Buffer.capacity` through a `VarHandle`, and that field is `final` since JDK 21 (`UnsupportedOperationException: set`); every page-cache read/write goes through it, no Neo4j toggle avoids it, and no `--add-opens` can make a final field writable. Neo4j 4.4 supports Java 11/17 only; JDK 21 needs Neo4j 5.x (DB-major port → X). Stays on 4.4.38 (the patch bump fixed nothing). | accepted (policy D7) |
+| D14 | 2026-09-25 | **`transponder-janusgraph` is parked** (D7). 6 of its 20 universal tests fail on JDK 21 exactly as in the baseline (query translation/wrapping gaps, not a JDK issue; JanusGraph 1.1.0 is the latest release). Its 2 Checkstyle violations are fixed (Javadoc-only `package-info.java`; private constructor for the static-only `JanusGraphUtils` — the module was never published) so `-Pparked` shows only the real test failures. | accepted (policy D7) |
 
 ### Open questions (decide when the phase starts; record the answer above)
 
@@ -98,7 +100,8 @@ janusgraph 6/20 tests fail and 2 Checkstyle violations. JDK 25 — core doesn't 
 - [ ] A8 ByteBuddy 1.15.10 → 1.18.14 (D6); check `CommonUtils.listDeclaredMethods` (ByteBuddy's repackaged ASM, visitor API level `ASM7`) against Java 17+ class features (sealed/records)
 - [ ] A9 OrientDB 3.2.36 → 3.2.56 (D3, `provided`); record the transitive diff in the handoff
 - [ ] A9 GraalJS swap in test scope (D4); `dependency:tree -Dincludes='org.graalvm*'` shows only 25.0.4, test scope
-- [ ] A10 Drivers (D7), one commit each: arcadedb, neo4j, janusgraph, mongodb — fix within the same DB major or park; record each decision in the decisions log and README
+- [x] A10 Drivers (D7): neo4j and janusgraph → profile `parked` (D13, D14); arcadedb and mongodb stay in the default build (green on JDK 21 and 25 without changes) — 2026-09-25. Done right after A4 so every later commit has a green default build; `./mvnw -Pparked verify` builds both parked drivers with 0 Checkstyle violations, their tests fail as documented. README updated in A12
+- [ ] A10 ArcadeDB on JDK 25: its GraalVM 22.3.4 logs `GraalVM Polyglot Engine: no languages found` (JS unusable; tests don't run JS) → GraalJS 25.0.4 swap for `arcadedb-engine` (compile scope there: ArcadeDB's own scripting), verified with a JS query on 21 and 25
 - [ ] A11 Surefire `argLine`: keep/add `--add-opens` only where a test run proves it's needed; list them in the handoff
 - [ ] A11 Library hygiene: Lombok `provided`; no logging binding or logging config in any main jar (`jar tf`); no servlet API; no needless hard pins
 - [ ] A12 `./mvnw clean verify` green on JDK 21 **and** 25; record test counts in Appendix C
@@ -153,7 +156,9 @@ Goal: confirm no `javax.servlet`/`javax.inject`/`javax.mail` in this library or 
 - [ ] Keep all `AGENTS.md` files current at the end of every stage
 
 ### Parked / other drivers (DB-major decisions, D7)
-- [ ] Filled in by A10 (one item per driver that ends up parked or needs a major port)
+- [ ] Neo4j (parked, D13): port to Neo4j 5.26 LTS or 2026.x (Java 21+): new embedded API packages, Cypher 5, `neo4j` artifact size; then un-park — or drop the driver (owner)
+- [ ] JanusGraph (parked, D14): fix the 6 failing universal tests (`JanusGraphDriver` query translation, auto-(un)wrapping, lookups), then un-park — or drop (owner)
+- [ ] ArcadeDB 23.12 → 26.x (DB major, Java 21 baseline) — optional; 23.12 works on 21/25
 
 ### Known bugs / tech debt
 - [ ] `JanusGraphDriver`: only basic SQL → Gremlin translation; 6 of 20 universal tests fail (pre-existing, Appendix C)
