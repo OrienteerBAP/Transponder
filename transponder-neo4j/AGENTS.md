@@ -15,7 +15,7 @@ Root rules: [`../AGENTS.md`](../AGENTS.md); plan: [`../REFRESH_PLAN.md`](../REFR
 
 ## Dependencies
 
-- `org.neo4j:neo4j` 4.4.x (compile; the full embedded server). Surefire needs
+- `org.neo4j:neo4j` 4.4.x (compile; the full embedded server). Surefire needs (verified in Stage A11)
   `--add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED`.
 
 ## Tests

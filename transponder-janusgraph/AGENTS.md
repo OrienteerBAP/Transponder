@@ -15,8 +15,8 @@ major, otherwise the `parked` profile). Root rules: [`../AGENTS.md`](../AGENTS.m
 
 ## Dependencies
 
-- `janusgraph-core` 1.1.0 + `gremlin-core` 3.7.x (compile), `janusgraph-inmemory` (test). Surefire uses the same
-  `--add-opens` as neo4j (TinkerPop/JanusGraph internals).
+- `janusgraph-core` 1.1.0 + `gremlin-core` 3.7.x (compile), `janusgraph-inmemory` (test). No `--add-opens` needed by
+  the tests (same results with and without them on JDK 21/25, so they were removed in Stage A11).
 
 ## Tests
 
