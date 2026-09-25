@@ -50,6 +50,8 @@
 		<lombok.version>1.18.48</lombok.version>
 		<!-- Last 5.x: JUnit 6 deprecates the vintage engine that the JUnit 4 asserts still need (REFRESH_PLAN.md D5) -->
 		<junit.version>5.14.4</junit.version>
+		<!-- Must read/define Java 25 class files (1.15.x stops at Java 24). Consumers see it transitively (REFRESH_PLAN.md D6) -->
+		<bytebuddy.version>1.18.14</bytebuddy.version>
 	</properties>
 
 	<dependencyManagement>
@@ -79,7 +81,7 @@
 		<dependency>
 			<groupId>net.bytebuddy</groupId>
 			<artifactId>byte-buddy</artifactId>
-			<version>1.15.10</version>
+			<version>${bytebuddy.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.objenesis</groupId>
