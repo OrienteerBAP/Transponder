@@ -12,7 +12,9 @@ Root rules: [`../AGENTS.md`](../AGENTS.md); plan: [`../REFRESH_PLAN.md`](../REFR
 
 ## Dependencies
 
-- `arcadedb-engine` 23.12.x (compile). It pulls GraalVM 22.3.4 (`graal-sdk`, `js` runtime) for its script engine.
+- `arcadedb-engine` 23.12.x (compile). Its GraalVM 22.3.4 (script engine) finds no languages on JDK 22+, so the pom
+  excludes it and declares GraalJS `${graalvm.version}` in the same roles (`polyglot` compile, `js` pom runtime) —
+  plan D15. Keep exclusions and replacement together; check `command("js", …)` after touching them.
 
 ## Tests
 
