@@ -41,8 +41,10 @@ and is modernized in lockstep with it.
   `JAVA_HOME=~/.sdkman/candidates/java/25.0.4-tem ./mvnw clean verify`. JDK 27 is non-LTS.
 - CI: `.github/workflows/ci.yml` (push + PR, JDK 21/25, default reactor, surefire reports); Dependabot:
   `.github/dependabot.yml` (DB majors, JUnit 6, OrientDB 3.3+ held back). No publishing in CI.
-- Publishing: OSSRH (oss.sonatype.org) and jcenter are dead; the Central Portal setup is phase R. **Only the owner runs
-  `deploy`/releases**; agents never upload, push or tag. The `org.orienteer` namespace status is unconfirmed (plan D10).
+- Publishing: `central-publishing-maven-plugin` (server `${central.server.id}`, default `central`; the token is under `ossrh`
+  here) — `-SNAPSHOT`s to the Central Portal snapshots repo, releases as a portal bundle; parked drivers never published.
+  **Only the owner runs `deploy`/releases** (plan runbook, section R); agents never upload, push or tag. The `org.orienteer`
+  namespace status is unconfirmed (D10). `release:prepare`/`release:clean` need `-Pparked` so parked poms get the new version.
 
 ## Commands
 
@@ -51,6 +53,7 @@ and is modernized in lockstep with it.
 ./mvnw install                                       # parent pom + jars (+ core test-jar) into ~/.m2 for Orienteer
 ./mvnw -pl transponder-orientdb -am test             # one driver and what it needs
 ./mvnw -pl transponder-core test -Dtest=CoreSpecificTest   # single test class
+./mvnw -Prelease -Dgpg.skip verify                   # release artifacts (sources, javadoc) locally; never `deploy` (owner only)
 ```
 
 ## Layout and key classes

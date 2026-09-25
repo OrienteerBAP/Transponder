@@ -17,7 +17,7 @@ Started: 2026-09-25. Versions below were checked on Maven Central on that date �
 | A | Stage A: JDK 21/25 build with `--release 21` on the **same** majors (OrientDB 3.2.x, ByteBuddy 1.x, JUnit 5), `./mvnw install` as `1.1-SNAPSHOT` | P0 | P3 | done (local install; published artifact → R) |
 | B | Stage B (Orienteer P5, Wicket 9): no Wicket/servlet coupling → verification only | A | P5 | todo (expected: nothing to change) |
 | C | Stage C (Orienteer P6, jakarta): no `javax.*` → verification only | B | P6 | todo (expected: nothing to change) |
-| R | Release & CI: GitHub Actions, Maven Central via the Central Portal: `1.1-SNAPSHOT` now, `1.1` after Orienteer P3 is green (D2/D10) | A | P3 "resolvable from a real repo" | todo |
+| R | Release & CI: GitHub Actions, Maven Central via the Central Portal: `1.1-SNAPSHOT` now, `1.1` after Orienteer P3 is green (D2/D10) | A | P3 "resolvable from a real repo" | **prepared locally** (2026-09-25); snapshot deploy waits for the owner: `org.orienteer` namespace unconfirmed (D10) |
 | X | Cleanup, docs, parked drivers, known bugs | any time | — | todo |
 
 ## Guiding principles
@@ -53,6 +53,7 @@ Started: 2026-09-25. Versions below were checked on Maven Central on that date �
 ### Open questions (decide when the phase starts; record the answer above)
 
 - [ ] **`org.orienteer` namespace** on the Central Portal: verified? SNAPSHOTs enabled? (owner; blocks the first deploy, R)
+- [ ] **Publish `transponder-arcadedb` and `transponder-mongodb` too?** The default reactor (and so `deploy`) includes them; `transponder-arcadedb` 1.0 is on Central, `transponder-mongodb` was never published. If only core + orientdb should go out, add both to `excludeArtifacts` (one line each). (owner, before the first deploy)
 - [ ] **Parked drivers long-term:** port Neo4j to 5.26 LTS / 2026.x, ArcadeDB to 26.x, fix JanusGraph — or drop them? (owner, X)
 - [ ] **Unused GitHub secrets** `OSSRH_USERNAME`/`OSSRH_TOKEN` (used by the old `maven.yml` deploy): delete or rename after R? (owner)
 - [ ] **Stale remote branch** `origin/mongodb` (fully merged): delete? (owner, X)
@@ -143,10 +144,51 @@ Goal: confirm no `javax.servlet`/`javax.inject`/`javax.mail` in this library or 
 - [x] maven-release-plugin 2.5.3 → 3.x; tag format `v@{project.version}`; `pushChanges=false` (owner pushes) — 2026-09-25: 3.3.1, `pushChanges=false` + `localCheckout=true` (prepare commits/tags locally, the owner pushes; perform builds the local tag with `-Prelease` and runs `deploy`). Default next development version after `1.1` is `1.2-SNAPSHOT` (matches D2). Dry run in the validation item below
 - [x] `.github/dependabot.yml` (maven + github-actions, weekly, grouped); hold DB majors and JUnit 6 until decided — 2026-09-25: groups for Maven plugins, GraalVM and all GitHub Actions; ignored: JUnit major (D5), OrientDB minor/major (D3), ArcadeDB/MongoDB/flapdoodle majors (D7), Neo4j major, JanusGraph and TinkerPop minor/major (parked, D13/D14). ByteBuddy, Guava, Objenesis, Lombok get normal updates. Validated against the Dependabot v2 JSON schema; active once pushed
 - [x] JaCoCo report only (no thresholds) — 2026-09-25: `jacoco-maven-plugin` 0.8.15, `prepare-agent` + `report` at `verify`, instrumenting only `org/orienteer/transponder/**` (DB engines and ByteBuddy-generated `transponder.*` classes untouched). Root property `argLine` defaults to empty; neo4j's surefire flags became `@{argLine} --add-opens …` so the agent isn't dropped (verified: parked neo4j still gets its flags and writes `jacoco.exec`). Green on 21 and 25 (112/0). Baseline coverage (instructions/lines): core 74%/77% (32 classes), orientdb 72%/77%, arcadedb 79%/80%, mongodb 76%/85%. CI uploads the reports from the JDK 21 job. CodeQL not added (optional, owner's call)
-- [ ] Local validation without any upload: `-Prelease -Dgpg.skip`; list the bundle contents
-- [ ] Owner: confirm the `org.orienteer` namespace (verified, SNAPSHOTs enabled), then run the first `1.1-SNAPSHOT` deploy (D10)
+- [x] Local validation without any upload: `-Prelease -Dgpg.skip`; list the bundle contents — 2026-09-25: `./mvnw -B -Prelease -Dgpg.skip clean verify` green on JDK 21 and 25 (112/0; sources, test-sources (core), javadoc jars; 0 doclint messages). `release:prepare -DdryRun=true` (no commit, no tag — verified): **the parked modules are only version-bumped when `-Pparked` is active**, otherwise they'd keep parent `1.1-SNAPSHOT` after the release; with `-Pparked` and `-Darguments='-pl !transponder-neo4j,!transponder-janusgraph'` all 7 poms go `1.1` → `1.2-SNAPSHOT`, the forked `clean verify` runs the 4 default modules with tests, and every pom diff is only its version line (+ `<scm><tag>v1.1</tag>` in the root) after making the root pom's attributes single-line (the plugin's XML writer collapsed them). `release:clean` also needs `-Pparked`. The Central bundle can't be produced by the plugin without running `deploy` (0.11.0: `skipPublishing` drops artifacts before staging), so it was assembled offline exactly like the plugin does (Maven layout, no `maven-metadata`, md5/sha1/sha256/sha512) from a `-Prelease -Dgpg.skip verify` build of a throwaway `git archive` copy set to `1.1` (never installed): 19 artifacts + 76 checksums, required metadata OK on all 5 POMs, all class files major 65, no parked artifacts; only the `.asc` signatures are missing (gpg skipped). File list in the handoff (§11)
+- [ ] Owner: confirm the `org.orienteer` namespace (verified, SNAPSHOTs enabled), then run the first `1.1-SNAPSHOT` deploy (D10) — runbook below. The Portal token is in `~/.m2/settings.xml` under server id `ossrh` (checked: the entry exists; no `central` entry), hence `-Dcentral.server.id=ossrh`
 - [ ] Owner: release `1.1` once Orienteer P3 is green against `1.1-SNAPSHOT`; then `master` → `1.2-SNAPSHOT` (D2)
+- [ ] Optional, owner's call: publish from CI (GitHub secrets + a workflow on tags) and CodeQL — not implemented; CI only builds and tests
+- [ ] Owner, recommended: `~/.m2/settings.xml` is world-readable (`644`) with plain-text tokens → `chmod 600 ~/.m2/settings.xml` and/or encrypt (`mvn --encrypt-master-password`, `mvn --encrypt-password`). Optionally copy the Portal token to a server `central` to drop `-Dcentral.server.id=ossrh`. An always-active settings profile still declares a repository `archetype` on the dead oss.sonatype.org (harmless, but it shows up in offline-mode errors)
 - [ ] Exit check: `1.1-SNAPSHOT` (later `1.1`) resolves from the Central Portal in a clean `~/.m2`; Orienteer's "Stage A delivered" item can be ticked
+
+### Publishing runbook (owner only — D10)
+
+Prerequisites (one-off):
+1. **Namespace:** https://central.sonatype.com/publishing/namespaces → `org.orienteer` must be *Verified* (needs control of
+   `orienteer.org` DNS or the GitHub org), then ⋮ → *Enable SNAPSHOTs*. **Until this is confirmed, nothing is deployed.**
+2. **Central Portal user token** (https://central.sonatype.com → account → *Generate User Token*) in `~/.m2/settings.xml`.
+   It currently sits under server id `ossrh`, so every command below passes `-Dcentral.server.id=ossrh`; with a server
+   `central` the flag can be dropped:
+   ```xml
+   <server><id>central</id><username><!-- token username --></username><password><!-- token password --></password></server>
+   ```
+3. **GPG key (needed for `1.1`, not for snapshots):** `gpg --full-generate-key` (RSA 4096, `Ilia Naryzhny <phantom@ydn.ru>`),
+   `gpg --keyserver keyserver.ubuntu.com --send-keys <KEYID>` (Central also checks keys.openpgp.org). The same key can serve
+   wicket-orientdb, wicket-console and logger.
+4. **Push first** (the owner): the local commits on `master` (not pushed by agents), so CI runs once before publishing.
+
+Snapshot `1.1-SNAPSHOT` (now; repeat after every fix Orienteer P3 needs):
+```bash
+git switch master && git status                                           # clean tree at 1.1-SNAPSHOT
+./mvnw -B clean deploy -Prelease -Dgpg.skip -Dcentral.server.id=ossrh     # runs all tests; -SNAPSHOT → Central Portal snapshots
+curl -s https://central.sonatype.com/repository/maven-snapshots/org/orienteer/transponder/transponder-orientdb/1.1-SNAPSHOT/maven-metadata.xml
+```
+Uploads parent pom, core (jar, tests, sources, test-sources, javadoc), orientdb, arcadedb, mongodb (jar, sources,
+javadoc); never neo4j/janusgraph (D8). Snapshots aren't validated and expire after 90 days. Once a GPG key exists, drop
+`-Dgpg.skip` to sign snapshots too.
+
+Release `1.1` (only after Orienteer P3 is green against `1.1-SNAPSHOT` — D2). `-Pparked` is required so the parked
+modules get their versions bumped too; `-pl` keeps their known-red tests out of the preparation build:
+```bash
+./mvnw -B -Pparked release:prepare -DreleaseVersion=1.1 -DdevelopmentVersion=1.2-SNAPSHOT -Dtag=v1.1 \
+    '-Darguments=-pl !transponder-neo4j,!transponder-janusgraph'          # 2 local commits + local tag v1.1 only
+./mvnw -B release:perform -Darguments=-Dcentral.server.id=ossrh           # builds tag v1.1 (default reactor, -Prelease): signs, uploads the bundle, waits for validation
+# → https://central.sonatype.com/publishing/deployments : inspect "Transponder 1.1", then Publish (or Drop and fix)
+git push origin master && git push origin v1.1                            # after publishing
+```
+If validation fails before anything was pushed: Drop the deployment, `git tag -d v1.1`, `git reset --hard HEAD~2`
+(the two `[maven-release-plugin]` commits), `./mvnw -Pparked release:clean`, fix, repeat. Central releases are immutable.
+Not exercised (would upload or tag): the plugin's upload paths, a non-dry-run `release:prepare`, `release:perform`.
 
 ## X — Cleanup, docs, parked drivers, known bugs
 
@@ -254,12 +296,15 @@ Stage A exit (A12, surefire 3.6.0, JUnit 5.14.4, ByteBuddy 1.18.14, OrientDB 3.2
 ./mvnw -pl transponder-core test -Dtest=CoreSpecificTest                     # one test class
 ./mvnw -Pparked -pl transponder-neo4j -am verify                             # try a parked driver (once A10 parks it)
 javap -v -cp transponder-core/target/classes org.orienteer.transponder.Transponder | grep major
+./mvnw -B -Prelease -Dgpg.skip clean verify                                 # release artifacts locally (never `deploy`: owner only)
+./mvnw -B -Pparked release:prepare -DdryRun=true -DreleaseVersion=1.1 -DdevelopmentVersion=1.2-SNAPSHOT -Dtag=v1.1 \
+    '-Darguments=-DskipTests -pl !transponder-neo4j,!transponder-janusgraph' && ./mvnw -Pparked release:clean   # release rehearsal
 ```
 
 ## Handoff to Orienteer
 
-Stage A, 2026-09-25. **`1.1-SNAPSHOT` is installed locally only** (`~/.m2` of the dev machine); it is not published yet —
-see §8 (phase R) for what the owner has to do first. `1.1` is released after Orienteer P3 is green against the snapshot (D2).
+Stage A + phase R preparation, 2026-09-25. **`1.1-SNAPSHOT` is installed locally only** (`~/.m2` of the dev machine); it
+is not published yet — see §9 for what the owner has to do first. `1.1` is released after Orienteer P3 is green against the snapshot (D2).
 
 ### 1. Installed artifacts (`~/.m2/repository/org/orienteer/transponder/`)
 
@@ -315,7 +360,7 @@ see §8 (phase R) for what the owner has to do first. `1.1` is released after Or
    brings any Graal artifact to consumers (it was `provided` 21.3.5 before, now test-only 25.0.4), so nothing to add for it.
 3. **Sealed `@EntityType` interfaces** now work (A8 fix in `CommonUtils.listDeclaredMethods`); before, `Transponder.define`
    threw `UnsupportedOperationException: PermittedSubclasses requires ASM9` for any sealed interface.
-4. **Repository:** until `1.1-SNAPSHOT` is deployed (§8), Orienteer needs a local `./mvnw install` of this repo. After the
+4. **Repository:** until `1.1-SNAPSHOT` is deployed (§9), Orienteer needs a local `./mvnw install` of this repo. After the
    deploy, the Central Portal snapshots repository that Orienteer's root pom already declares (P1) resolves it.
 
 ### 5. Public API changes
@@ -356,3 +401,57 @@ Nothing is `@Disabled`/`@Ignore`d. Baseline (Appendix C): 111 of these passed on
 - **Stage C** (Orienteer P6, jakarta) — **nothing to change**, estimate **XS (< 1 h)**: same inventory; Wicket 10.11 uses
   ByteBuddy 1.18.4 (compatible). Optional: enforcer `bannedDependencies` for `javax.servlet`/`javax.inject`/`javax.mail`.
 - Any future change goes to `1.2-SNAPSHOT` (after the `1.1` release), never to `1.1-SNAPSHOT` (D2).
+
+### 9. Publishing the snapshot — what is needed from the owner
+
+Phase R is prepared locally (CI, Central Portal publishing, release profile, Dependabot, JaCoCo; section R). Nothing was
+deployed, pushed or tagged. Before the first deploy:
+1. **Confirm the `org.orienteer` namespace** on the Central Portal: *Verified* and **SNAPSHOTs enabled** (status unknown
+   today; hard stop, D10).
+2. Decide whether `transponder-arcadedb` and `transponder-mongodb` are published too (open question; default: yes).
+3. Push `master` (agents never push) and check the first CI run (JDK 21/25).
+4. Run the snapshot deploy (runbook, section R) — the exact command:
+   ```bash
+   ./mvnw -B clean deploy -Prelease -Dgpg.skip -Dcentral.server.id=ossrh
+   ```
+5. For the later `1.1` release: a GPG key on a keyserver, then the release commands in the runbook (`-Pparked` on `release:prepare`).
+
+After the deploy, Orienteer's existing `central-portal-snapshots` repository (its P1) resolves `transponder-orientdb:1.1-SNAPSHOT`;
+tick Orienteer's P1 "external libraries resolvable" item for transponder once `dependency:tree` there finds it.
+
+### 10. Open questions for the owner
+
+1. `org.orienteer` namespace verified with SNAPSHOTs enabled? (blocks the deploy)
+2. Publish `transponder-arcadedb` / `transponder-mongodb` alongside core and orientdb?
+3. Parked drivers long-term: port Neo4j to 5.26 LTS / 2026.x and fix JanusGraph, or drop them (X)?
+4. Old GitHub secrets `OSSRH_USERNAME`/`OSSRH_TOKEN`: now unused — delete? CI publishing (tags → Central) wanted later?
+5. Stale merged branch `origin/mongodb`: delete?
+6. `~/.m2/settings.xml` is `644` with plain-text tokens: `chmod 600` / encrypt (recommended).
+
+### 11. Phase R — Central bundle (local dry run, 2026-09-25)
+
+What the owner's `release:perform` for `1.1` will upload, minus the `.asc` signatures (every file below also gets `.asc`
+when signed). Each file has `.md5`, `.sha1`, `.sha256` and `.sha512` next to it (76 checksum files); 95 entries in total.
+The parked neo4j/janusgraph modules are excluded. A `1.1-SNAPSHOT` deploy uploads the same files with timestamped names.
+
+| Size (bytes) | Path |
+|---|---|
+| 14617 | `org/orienteer/transponder/transponder-parent/1.1/transponder-parent-1.1.pom` |
+| 1123 | `org/orienteer/transponder/transponder-core/1.1/transponder-core-1.1.pom` |
+| 85502 | `org/orienteer/transponder/transponder-core/1.1/transponder-core-1.1.jar` |
+| 56840 | `org/orienteer/transponder/transponder-core/1.1/transponder-core-1.1-tests.jar` |
+| 44782 | `org/orienteer/transponder/transponder-core/1.1/transponder-core-1.1-sources.jar` |
+| 17993 | `org/orienteer/transponder/transponder-core/1.1/transponder-core-1.1-test-sources.jar` |
+| 345839 | `org/orienteer/transponder/transponder-core/1.1/transponder-core-1.1-javadoc.jar` |
+| 2555 | `org/orienteer/transponder/transponder-orientdb/1.1/transponder-orientdb-1.1.pom` |
+| 13924 | `org/orienteer/transponder/transponder-orientdb/1.1/transponder-orientdb-1.1.jar` |
+| 8685 | `org/orienteer/transponder/transponder-orientdb/1.1/transponder-orientdb-1.1-sources.jar` |
+| 125268 | `org/orienteer/transponder/transponder-orientdb/1.1/transponder-orientdb-1.1-javadoc.jar` |
+| 2076 | `org/orienteer/transponder/transponder-arcadedb/1.1/transponder-arcadedb-1.1.pom` |
+| 11095 | `org/orienteer/transponder/transponder-arcadedb/1.1/transponder-arcadedb-1.1.jar` |
+| 7060 | `org/orienteer/transponder/transponder-arcadedb/1.1/transponder-arcadedb-1.1-sources.jar` |
+| 116702 | `org/orienteer/transponder/transponder-arcadedb/1.1/transponder-arcadedb-1.1-javadoc.jar` |
+| 1244 | `org/orienteer/transponder/transponder-mongodb/1.1/transponder-mongodb-1.1.pom` |
+| 10026 | `org/orienteer/transponder/transponder-mongodb/1.1/transponder-mongodb-1.1.jar` |
+| 6388 | `org/orienteer/transponder/transponder-mongodb/1.1/transponder-mongodb-1.1-sources.jar` |
+| 112543 | `org/orienteer/transponder/transponder-mongodb/1.1/transponder-mongodb-1.1-javadoc.jar` |
