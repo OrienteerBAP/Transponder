@@ -41,9 +41,10 @@ Transponder can be used for
 | **Currently Supported** |
 | [OrientDB](https://github.com/orientechnologies/orientdb) | ✅ | Multi-Model | Medium | Excellent | Strong | High | `org.orienteer.transponder:transponder-orientdb` |
 | [ArcadeDB](https://github.com/ArcadeData/arcadedb) | ✅ | Multi-Model | Medium | Good | Growing | High | `org.orienteer.transponder:transponder-arcadedb` |
-| [Neo4j](https://github.com/neo4j/neo4j) | ✅ | Graph | Medium | Excellent | Very Strong | High | `org.orienteer.transponder:transponder-neo4j` |
-| [JanusGraph](https://github.com/JanusGraph/janusgraph) | ✅ | Graph | Low | Excellent | Strong | High | `org.orienteer.transponder:transponder-janusgraph` |
 | [MongoDB](https://github.com/mongodb/mongo) | ✅ | Document | Medium | Good | Very Strong | High | `org.orienteer.transponder:transponder-mongodb` |
+| **Parked (not built by default, not published)** |
+| [Neo4j](https://github.com/neo4j/neo4j) | ⏸️ | Graph | Medium | Excellent | Very Strong | High | `org.orienteer.transponder:transponder-neo4j` |
+| [JanusGraph](https://github.com/JanusGraph/janusgraph) | ⏸️ | Graph | Low | Excellent | Strong | High | `org.orienteer.transponder:transponder-janusgraph` |
 | **High Priority - Recommended Next** |
 | [ArangoDB](https://github.com/arangodb/arangodb) | 🔄 | Multi-Model | Medium | Good | Very Strong | High | `org.orienteer.transponder:transponder-arangodb` |
 | [CouchDB](https://github.com/apache/couchdb) | 🔄 | Document | Low | Good | Strong | Medium | `org.orienteer.transponder:transponder-couchdb` |
@@ -58,6 +59,7 @@ Transponder can be used for
 
 **Legend:**
 - ✅ **Currently Supported** - Ready to use
+- ⏸️ **Parked** - Code kept, but the driver doesn't build/test on Java 21 with its current DB version (see [Java Version Requirements](#java-version-requirements))
 - 🔄 **High Priority** - Recommended for next implementation based on similarity to existing drivers and ecosystem fit
 - 📋 **Planned** - Future consideration based on community demand and strategic value
 
@@ -65,42 +67,23 @@ Please create an [issue](https://github.com/OrienteerBAP/Transponder/issues) or 
 
 ## Java Version Requirements
 
-**Important**: Different Transponder modules have specific Java version requirements based on their underlying database dependencies:
+Transponder requires **Java 21 or newer** (bytecode level 21); it is built and tested on Java 21 and Java 25.
+Java 8, 11 and 17 are no longer supported (use Transponder 1.0 there).
 
-- **transponder-core**: Java 8+ (tested up to Java 21)
-- **transponder-orientdb**: Java 8+ (OrientDB 3.2.36 works with Java 8-21)
-- **transponder-arcadedb**: Java 11+ (ArcadeDB 23.12.1 requirement, works with Java 17+)
-- **transponder-neo4j**: Java 8-17 (Neo4j 4.4.38 fails with Java 21)
-- **transponder-janusgraph**: Java 8-11 (JanusGraph 1.1.0 limitation - requires explicit Java 11 compiler config)
-- **transponder-mongodb**: Java 8+ (MongoDB Java Driver 5.2.1 works with all Java versions)
+| Module | Java 21 | Java 25 | Notes |
+|--------|---------|---------|-------|
+| **transponder-core** | ✅ | ✅ | ByteBuddy 1.18 |
+| **transponder-orientdb** | ✅ | ✅ | Tested with OrientDB 3.2.56 (`provided`: bring your own `orientdb-core`). On Java 22+ replace the GraalVM 21.3.5 that OrientDB 3.2 pulls in by GraalJS 25 (see the exclusions in `transponder-orientdb/pom.xml`) |
+| **transponder-arcadedb** | ✅ | ✅ | ArcadeDB 23.12.1; its GraalVM 22.3.4 is replaced by GraalJS 25 so the `js` query engine works on Java 25 |
+| **transponder-mongodb** | ✅ | ✅ | MongoDB Java Driver 5.2.1 |
+| **transponder-neo4j** | ❌ | ❌ | **Parked**: embedded Neo4j 4.4 can't start on Java 21+; needs a port to Neo4j 5 |
+| **transponder-janusgraph** | ⚠️ | ⚠️ | **Parked**: builds, but 6 of 20 universal tests fail (JanusGraph 1.1.0) |
 
-### Tested Java Version Compatibility Matrix
-
-| Module | Java 8 | Java 11 | Java 17 | Java 21 | Notes |
-|--------|---------|---------|---------|---------|-------|
-| **transponder-core** | ⚠️* | ✅ | ✅ | ✅ | *Requires Maven compiler config changes for Java 8 |
-| **transponder-orientdb** | ⚠️* | ✅ | ✅ | ✅ | *Requires Maven compiler config changes for Java 8 |
-| **transponder-arcadedb** | ❌ | ✅ | ✅ | ✅ | Minimum Java 11 required |
-| **transponder-neo4j** | ⚠️* | ✅ | ✅ | ❌ | *Requires Maven compiler config changes for Java 8; **Fails on Java 21** |
-| **transponder-janusgraph** | ⚠️* | ✅ | ❌ | ❌ | *Requires Maven compiler config changes for Java 8; Uses Java 11 compiler config |
-| **transponder-mongodb** | ⚠️* | ✅ | ✅ | ✅ | *Requires Maven compiler config changes for Java 8 |
-
-### Recommended Java Versions by Use Case
-
-#### For Maximum Compatibility
-Use **Java 11** - all modules work perfectly with Java 11.
-
-#### For Latest Java Features  
-Use **Java 17** with modules: core, orientdb, arcadedb, mongodb (excludes neo4j and janusgraph).
-
-#### Production Environments
-- **Java 11**: Safest choice, all modules tested and working
-- **Java 17**: Good choice if not using Neo4j or JanusGraph  
-- **Java 21**: Limited to core, orientdb, arcadedb, mongodb modules only
+Parked drivers are only built with the `parked` Maven profile: `./mvnw -Pparked verify`.
 
 ### JanusGraph Distributed Graph Database
 
-The JanusGraph module provides enterprise-grade distributed graph database capabilities that scale beyond Neo4j limitations:
+*(The driver is currently parked, see above.)* The JanusGraph module provides enterprise-grade distributed graph database capabilities that scale beyond Neo4j limitations:
 
 - **Massive Scalability**: Handle graphs with billions of vertices and edges across multiple machines
 - **Multiple Storage Backends**: Choose from Cassandra, HBase, or BerkeleyDB for storage
@@ -109,8 +92,6 @@ The JanusGraph module provides enterprise-grade distributed graph database capab
 - **High Availability**: Built-in replication and fault tolerance
 
 Use JanusGraph when you need distributed graph processing or when your graph data exceeds single-machine capabilities.
-
-For development environments with multiple Java versions, consider using tools like `jenv` or `SDKMAN!` to manage Java versions per project.
 
 ## Getting Started
 

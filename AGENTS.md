@@ -20,19 +20,23 @@ and is modernized in lockstep with it.
 
 ## Stack
 
-| Area | Now | Target (plan) |
-|---|---|---|
-| Java | `release` 8 (arcadedb/neo4j/janusgraph: 11) | `--release 21`, verified on JDK 21 **and** 25 (Stage A) |
-| Core | ByteBuddy 1.15.10, Objenesis 3.2, Guava 33.4, Lombok 1.18.34 `provided` | ByteBuddy 1.18.x (Java 25), Lombok 1.18.48 |
-| OrientDB driver | `orientdb-core` 3.2.36 `provided` | 3.2.56; GraalJS 25.0.4 replaces OrientDB's Graal 21.3.5 in tests |
-| Other drivers | ArcadeDB 23.12, Neo4j 4.4 (embedded), JanusGraph 1.1 + TinkerPop 3.7, MongoDB driver 5.2 | same majors; park if red (plan D7) |
-| Tests | JUnit Jupiter + vintage 5.11, Hamcrest 3 | Jupiter + vintage 5.14.4 |
+| Area | Current (Stage A) |
+|---|---|
+| Java | `--release 21` (`maven.compiler.release`, `-parameters`), built/tested on JDK 21 **and** 25 |
+| Core | ByteBuddy 1.18.14 (reads/writes Java 25 class files), Objenesis 3.2, Guava 33.4.8, Lombok 1.18.48 `provided` (annotation processor path) |
+| OrientDB driver | `orientdb-core` 3.2.56 `provided`; its GraalVM 21.3.5 is excluded, GraalJS 25.0.4 in `test` scope (plan D4) |
+| Other drivers | ArcadeDB 23.12.1 (+ GraalJS 25.0.4, D15), MongoDB driver 5.2.1; parked: Neo4j 4.4.38, JanusGraph 1.1.0 |
+| Tests | JUnit Jupiter + vintage 5.14.4 (`junit-bom`), Hamcrest 3.0 |
+| Build | Maven Wrapper 3.9.16; every plugin version pinned once in the root `<pluginManagement>`; enforcer: Maven ≥ 3.9, JDK ≥ 21 |
 
 ## Build status — read first
 
-- Stage A in progress (plan section A). Default reactor: parent, core, orientdb, arcadedb, mongodb — green on JDK 21.
-  **Parked** (opt-in profile `parked`, never published): neo4j (Neo4j 4.4 can't run on JDK 21, D13) and janusgraph
-  (6 failing tests, D14). `./mvnw -Pparked verify` still tries them.
+- **Stage A done (2026-09-25):** `./mvnw clean verify` green on Temurin 21.0.11 and 25.0.4 (112 tests, 0 failures, no
+  `--add-opens`); `./mvnw install` puts `1.1-SNAPSHOT` (parent, core + test-jar, orientdb, arcadedb, mongodb) into `~/.m2`.
+  Default reactor: parent, core, orientdb, arcadedb, mongodb. **Parked** (opt-in profile `parked`, never published):
+  neo4j (Neo4j 4.4 can't run on JDK 21, D13) and janusgraph (6 failing tests, D14). `./mvnw -Pparked verify` tries them.
+- **Stage B/C need no code** (no Wicket/servlet/`javax.*`). Never install or publish post-Stage-A work as `1.1-SNAPSHOT`:
+  `1.1` is released after Orienteer P3 is green, then `master` → `1.2-SNAPSHOT` (plan D2).
 - JDK 8 is gone: don't support it. `.sdkmanrc` pins Temurin 21.0.11; Temurin 25.0.4 for verification:
   `JAVA_HOME=~/.sdkman/candidates/java/25.0.4-tem ./mvnw clean verify`. JDK 27 is non-LTS.
 - Publishing: OSSRH (oss.sonatype.org) and jcenter are dead; the Central Portal setup is phase R. **Only the owner runs

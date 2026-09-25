@@ -14,7 +14,7 @@ Started: 2026-09-25. Versions below were checked on Maven Central on that date �
 | Phase | Goal | Depends on | Unblocks Orienteer | Status |
 |---|---|---|---|---|
 | P0 | AI initialization: AGENTS.md files + this plan | — | — | done |
-| A | Stage A: JDK 21/25 build with `--release 21` on the **same** majors (OrientDB 3.2.x, ByteBuddy 1.x, JUnit 5), `./mvnw install` as `1.1-SNAPSHOT` | P0 | P3 | todo |
+| A | Stage A: JDK 21/25 build with `--release 21` on the **same** majors (OrientDB 3.2.x, ByteBuddy 1.x, JUnit 5), `./mvnw install` as `1.1-SNAPSHOT` | P0 | P3 | done (local install; published artifact → R) |
 | B | Stage B (Orienteer P5, Wicket 9): no Wicket/servlet coupling → verification only | A | P5 | todo (expected: nothing to change) |
 | C | Stage C (Orienteer P6, jakarta): no `javax.*` → verification only | B | P6 | todo (expected: nothing to change) |
 | R | Release & CI: GitHub Actions, Maven Central via the Central Portal: `1.1-SNAPSHOT` now, `1.1` after Orienteer P3 is green (D2/D10) | A | P3 "resolvable from a real repo" | todo |
@@ -106,11 +106,11 @@ janusgraph 6/20 tests fail and 2 Checkstyle violations. JDK 25 — core doesn't 
 - [x] A10 ArcadeDB on JDK 25: its GraalVM 22.3.4 logs `GraalVM Polyglot Engine: no languages found` (JS unusable; tests don't run JS) → GraalJS 25.0.4 swap for `arcadedb-engine` (compile scope there: ArcadeDB's own scripting), verified with a JS query on 21 and 25 — 2026-09-25 (D15): throwaway probe `command("js", "20 + 22")` → before: 42 on JDK 21, `Query engine 'js' was not found` on 25; after: 42 on both. 23.12.2 (the only newer 23.12 patch) still has Graal 22.3.4, so no version bump. Default reactor 112/0 on 21 and 25, no "no languages found" any more
 - [x] A11 Surefire `argLine`: keep/add `--add-opens` only where a test run proves it's needed; list them in the handoff — 2026-09-25: default reactor needs **none** (112/0 on 21 and 25 without any flag). Parked drivers, tested with the pom `argLine` removed (a `-DargLine=` override doesn't beat pom config): neo4j **needs** its 3 `--add-opens` (otherwise `IllegalAccessException: java.base does not open java.nio` before the known D13 failure) → kept, with a comment; janusgraph gives the same 14/20 with and without them on 21 and 25 → removed
 - [x] A11 Library hygiene: Lombok `provided`; no logging binding or logging config in any main jar (`jar tf`); no servlet API; no needless hard pins — 2026-09-25: main jars = classes + Maven metadata only; test-jar = classes + `META-INF/transponder/polyglot.properties`. Compile/runtime scope of core/orientdb: Guava 33.4.8 (+ its annotations), ByteBuddy 1.18.14, Objenesis 3.2 — no logging, servlet, `javax.*`/`jakarta.*` or Lombok; OrientDB stays `provided`, GraalJS `test`. The only version pins consumers see are ordinary dependency versions (overridable via their `dependencyManagement`); the parent pom has no `<repositories>` any more
-- [ ] A12 `./mvnw clean verify` green on JDK 21 **and** 25; record test counts in Appendix C
-- [ ] A12 `./mvnw install`; confirm `~/.m2/repository/org/orienteer/transponder/`: parent pom, core jar + `-tests.jar`, orientdb jar; class files major version 65
-- [ ] A12 Public API diff of core and orientdb vs the baseline `javap` snapshot (expected: none)
-- [ ] A12 Update `AGENTS.md` files and README (Java 21), write "Handoff to Orienteer" below
-- [ ] Exit check: `./mvnw clean verify` green on JDK 21 and 25; `./mvnw install` done; test results match Appendix C (differences explained)
+- [x] A12 `./mvnw clean verify` green on JDK 21 **and** 25; record test counts in Appendix C — 2026-09-25: both 112 run / 0 failures / 0 errors / 0 skipped; Checkstyle 0 violations in all 5 modules
+- [x] A12 `./mvnw install`; confirm `~/.m2/repository/org/orienteer/transponder/`: parent pom, core jar + `-tests.jar`, orientdb jar; class files major version 65 — 2026-09-25: parent pom, core jar (59 classes) + `-tests.jar` (52), orientdb jar (6), arcadedb (5), mongodb (4); every class file major 65; manifests `Build-Jdk-Spec: 21`
+- [x] A12 Public API diff of core and orientdb vs the baseline `javap` snapshot (expected: none) — 2026-09-25: **no change** in any public/protected member of core, orientdb, arcadedb, mongodb. The only `javap` difference is the synthetic `package-info` classes that javac emits for `--release 9+` (Javadoc-only `package-info.java` files existed before; no annotations in them)
+- [x] A12 Update `AGENTS.md` files and README (Java 21), write "Handoff to Orienteer" below — 2026-09-25: README "Java Version Requirements" rewritten (Java 21+, 21/25 matrix, parked drivers); the Travis badge and OSSRH snippet are phase R
+- [x] Exit check: `./mvnw clean verify` green on JDK 21 and 25; `./mvnw install` done; test results match Appendix C (differences explained) — 2026-09-25: 112 = baseline's 111 green tests + 1 new (`UtilsTest`, A8); parked neo4j/janusgraph fail exactly as in the baseline (Appendix C). **Stage A done**
 
 ## B — Stage B: Orienteer P5 (Wicket 9, still javax)
 
@@ -222,6 +222,18 @@ annotation, not JUnit). The 20 tests of `AbstractUniversalTest` (core test-jar) 
 | mongodb | `MongoDBUniversalTest` 20 (flapdoodle downloads MongoDB 5.0) | 20 | 20 / 0 / 0 | not reached |
 | **total** | | **151** | **132 pass, 6 fail, 1 error** (neo4j's 19 others never ran) | build fails in core |
 
+Stage A exit (A12, surefire 3.6.0, JUnit 5.14.4, ByteBuddy 1.18.14, OrientDB 3.2.56, GraalJS 25.0.4):
+
+| Module | JDK 21.0.11: run / fail / error / skipped | JDK 25.0.4 | Notes |
+|---|---|---|---|
+| core | 37 / 0 / 0 / 0 | 37 / 0 / 0 / 0 | +1 `UtilsTest.testListDeclaredMethodsOfSealedInterface` (A8) |
+| orientdb | 33 / 0 / 0 / 0 | 33 / 0 / 0 / 0 | JDK 25 needed the GraalJS swap (A9) |
+| arcadedb | 22 / 0 / 0 / 0 | 22 / 0 / 0 / 0 | 2 via vintage |
+| mongodb | 20 / 0 / 0 / 0 | 20 / 0 / 0 / 0 | |
+| **default reactor** | **112 / 0 / 0 / 0** | **112 / 0 / 0 / 0** | nothing skipped or disabled |
+| neo4j (parked, `-Pparked`) | 1 / 0 / 1 | 1 / 0 / 1 | D13: DB can't start on JDK 21+ |
+| janusgraph (parked, `-Pparked`) | 20 / 6 / 0 | 20 / 6 / 0 | D14: same 6 as the baseline |
+
 ## Appendix D — Stage B/C inventory (2026-09-25, `rg` over `transponder-*/src`)
 
 | Item | Where | Stage |
@@ -241,3 +253,101 @@ annotation, not JUnit). The 20 tests of `AbstractUniversalTest` (core test-jar) 
 ./mvnw -Pparked -pl transponder-neo4j -am verify                             # try a parked driver (once A10 parks it)
 javap -v -cp transponder-core/target/classes org.orienteer.transponder.Transponder | grep major
 ```
+
+## Handoff to Orienteer
+
+Stage A, 2026-09-25. **`1.1-SNAPSHOT` is installed locally only** (`~/.m2` of the dev machine); it is not published yet —
+see §8 (phase R) for what the owner has to do first. `1.1` is released after Orienteer P3 is green against the snapshot (D2).
+
+### 1. Installed artifacts (`~/.m2/repository/org/orienteer/transponder/`)
+
+| Coordinates | File |
+|---|---|
+| `org.orienteer.transponder:transponder-parent:1.1-SNAPSHOT:pom` | `transponder-parent/1.1-SNAPSHOT/transponder-parent-1.1-SNAPSHOT.pom` |
+| `org.orienteer.transponder:transponder-core:1.1-SNAPSHOT:jar` | `transponder-core/1.1-SNAPSHOT/transponder-core-1.1-SNAPSHOT.jar` (59 classes) |
+| `org.orienteer.transponder:transponder-core:1.1-SNAPSHOT:test-jar` (classifier `tests`) | `transponder-core/1.1-SNAPSHOT/transponder-core-1.1-SNAPSHOT-tests.jar` (52 classes; driver test suite, not needed by Orienteer) |
+| `org.orienteer.transponder:transponder-orientdb:1.1-SNAPSHOT:jar` | `transponder-orientdb/1.1-SNAPSHOT/transponder-orientdb-1.1-SNAPSHOT.jar` (6 classes) |
+| (not used by Orienteer) `transponder-arcadedb`, `transponder-mongodb` `1.1-SNAPSHOT:jar` | `transponder-{arcadedb,mongodb}/1.1-SNAPSHOT/` |
+| parked, **not installed/published**: `transponder-neo4j`, `transponder-janusgraph` | — (D8, D13, D14) |
+
+- **Bytecode:** `--release 21`, so every class file is major version **65**; manifests say `Build-Jdk-Spec: 21`. JDK 17 can't load them.
+- **Built and tested with:** Temurin 21.0.11 and Temurin 25.0.4, Maven 3.9.16 through `./mvnw`.
+
+### 2. Versions compiled against
+
+| Library | Version | Scope in the library pom |
+|---|---|---|
+| ByteBuddy (`net.bytebuddy:byte-buddy`) | **1.18.14** (was 1.15.10) | compile (core, inherited by every module) |
+| Objenesis | 3.2 | compile |
+| Guava | 33.4.8-jre | compile (core) |
+| OrientDB `orientdb-core` | **3.2.56** (was 3.2.36) | **provided** — Orienteer's version wins |
+| GraalJS (`polyglot`, `js-scriptengine`, `js` pom) | 25.0.4, replacing OrientDB's GraalVM 21.3.5 | **test** only (D4) |
+| Lombok | 1.18.48 (annotation processor path) | provided |
+| JUnit Jupiter + vintage / Hamcrest | 5.14.4 / 3.0 | test |
+| Servlet API, Wicket, Guice, `javax.*`, logging | not used | — |
+
+### 3. JVM flags Orienteer must mirror
+
+- **Required: none.** All 112 tests pass on JDK 21 and 25 without `--add-opens`/`--add-exports` (ByteBuddy defines the
+  generated classes with `ClassLoadingStrategy.Default.WRAPPER`, a plain child class loader — no `Unsafe`, no `Lookup` injection).
+- JDK 25 prints `sun.misc.Unsafe::objectFieldOffset` deprecation warnings from Lombok (build time only) and from OrientDB's
+  `concurrentlinkedhashmap-lru` 1.4.2 — informational; `--sun-misc-unsafe-memory-access=allow` silences them (JDK 23+ only;
+  JDK 21 refuses the flag). Truffle's `System::load` warning: `--enable-native-access=ALL-UNNAMED`. Same list as wicket-orientdb's handoff.
+
+### 4. Actions required in Orienteer (P1/P3)
+
+1. **Pin ByteBuddy** (D6, accepted by the owner for P3). Transponder needs `byte-buddy` ≥ 1.18.x on JDK 25, but Orienteer's
+   nearest-wins resolution picks older copies: `mockito-core` 2.22.0 (orienteer-core, test) brings **1.8.21**, and from P5
+   `wicket-ioc` 9.24 brings 1.14.12 (neither reads Java 25 class files; 1.8.21 doesn't even know Java 21). Add to the
+   root `dependencyManagement` (and keep it ≥ this version when Mockito 5 / Wicket 10 bring their own):
+   ```xml
+   <dependency><groupId>net.bytebuddy</groupId><artifactId>byte-buddy</artifactId><version>1.18.14</version></dependency>
+   <dependency><groupId>net.bytebuddy</groupId><artifactId>byte-buddy-agent</artifactId><version>1.18.14</version></dependency>
+   ```
+   Check with `./mvnw -pl orienteer-core dependency:tree -Dincludes=net.bytebuddy -Dscope=test` (all entries 1.18.14).
+   Two Orienteer files use `net.bytebuddy.asm.Advice` directly (`TestDAOMethodHandler`, logger-server `IOLoggerEventModel`): unaffected.
+2. **GraalVM exclusions on Orienteer's own `orientdb-core`**: already planned (Orienteer D8, P3). Transponder no longer
+   brings any Graal artifact to consumers (it was `provided` 21.3.5 before, now test-only 25.0.4), so nothing to add for it.
+3. **Sealed `@EntityType` interfaces** now work (A8 fix in `CommonUtils.listDeclaredMethods`); before, `Transponder.define`
+   threw `UnsupportedOperationException: PermittedSubclasses requires ASM9` for any sealed interface.
+4. **Repository:** until `1.1-SNAPSHOT` is deployed (§8), Orienteer needs a local `./mvnw install` of this repo. After the
+   deploy, the Central Portal snapshots repository that Orienteer's root pom already declares (P1) resolves it.
+
+### 5. Public API changes
+
+- **None** in `transponder-core` and `transponder-orientdb` (verified by diffing `javap -protected` of every class
+  against the pre-Stage-A build). `OrienteerDriver`'s overridden methods and `ODriver`'s protected `getSession`/`getSchema` are unchanged.
+- Main-source changes (implementation/Javadoc only): `CommonUtils.listDeclaredMethods` visitor API level `ASM7` → `ASM9`
+  (A8); `{@link Object[]}` → `{@code Object[]}` in `CommonUtils.toMap` Javadoc (A6); janusgraph (parked, never published):
+  `package-info.java`, private constructor for `JanusGraphUtils`.
+
+### 6. Transitive dependency changes Orienteer can see
+
+For a consumer declaring only `transponder-orientdb` (throwaway consumer pom resolved against `~/.m2`):
+
+| Change | Artifacts |
+|---|---|
+| upgraded | `net.bytebuddy:byte-buddy` 1.15.10 → **1.18.14** |
+| unchanged | `transponder-core`, Guava 33.4.8-jre (+ failureaccess 1.0.3, listenablefuture, jspecify 1.0.0, error_prone_annotations 2.36.0, j2objc-annotations 3.0.0), Objenesis 3.2 |
+| not transitive (as before) | `orientdb-core` (`provided`), Lombok (`provided`), GraalJS (`test`), JUnit/Hamcrest (`test`) |
+
+The parent pom no longer declares `<repositories>` (the dead oss.sonatype.org entry is gone), so consumers inherit none.
+
+### 7. Test results
+
+| JDK | Default reactor (core, orientdb, arcadedb, mongodb) | Parked (`-Pparked`) |
+|---|---|---|
+| Temurin 21.0.11 | 112 run, 0 failures, 0 errors, 0 skipped | neo4j 1 error (DB can't start), janusgraph 6/20 fail |
+| Temurin 25.0.4 | 112 run, 0 failures, 0 errors, 0 skipped | same |
+
+Nothing is `@Disabled`/`@Ignore`d. Baseline (Appendix C): 111 of these passed on JDK 21, JDK 25 didn't compile;
++1 test added (A8). The parked drivers fail exactly as before Stage A (D13, D14). Checkstyle 14.1.0: 0 violations.
+
+### 8. Work for Stages B and C
+
+- **Stage B** (Orienteer P5, Wicket 9) — **nothing to change**, estimate **XS (< 1 h)** to re-verify: no Wicket, servlet,
+  Guice or `javax.*` in the code or in compile/runtime dependencies (Appendix D). Only Orienteer-side: keep the ByteBuddy
+  pin ≥ 1.18.14 because `wicket-ioc` 9.24 brings 1.14.12.
+- **Stage C** (Orienteer P6, jakarta) — **nothing to change**, estimate **XS (< 1 h)**: same inventory; Wicket 10.11 uses
+  ByteBuddy 1.18.4 (compatible). Optional: enforcer `bannedDependencies` for `javax.servlet`/`javax.inject`/`javax.mail`.
+- Any future change goes to `1.2-SNAPSHOT` (after the `1.1` release), never to `1.1-SNAPSHOT` (D2).
