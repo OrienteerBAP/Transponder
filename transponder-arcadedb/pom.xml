@@ -31,11 +31,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<repositories>
-		<repository>
-			<id>arcadedb</id>
-			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-		</repository>
-	</repositories>
 
 </project>
