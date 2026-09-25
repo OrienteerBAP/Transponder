@@ -1,0 +1,51 @@
+# Weekly dependency update PRs (REFRESH_PLAN.md, phase R).
+# DB majors of the drivers are ported only by decision (D7), JUnit stays on 5.x (D5), OrientDB on 3.2.x (D3),
+# so those updates are ignored here. Review every PR against the Orienteer contract before merging.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      maven-plugins:
+        patterns:
+          - "org.apache.maven.plugins:*"
+          - "org.codehaus.mojo:*"
+          - "org.jacoco:*"
+          - "org.sonatype.central:*"
+          - "com.puppycrawl.tools:*"
+      graalvm:
+        patterns:
+          - "org.graalvm.*"
+    ignore:
+      # D5: JUnit 6 deprecates the vintage engine still needed by the JUnit 4 asserts
+      - dependency-name: "org.junit:junit-bom"
+        update-types: ["version-update:semver-major"]
+      # D3: stays on OrientDB 3.2.x (provided); Orienteer decides the runtime version
+      - dependency-name: "com.orientechnologies:*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # D7: no DB-major ports of the other drivers without a decision (plan X)
+      - dependency-name: "com.arcadedb:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.mongodb:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "de.flapdoodle.embed:*"
+        update-types: ["version-update:semver-major"]
+      # Parked drivers (D13/D14): Neo4j 5+/2026.x and TinkerPop 3.8+ are ports, not updates
+      - dependency-name: "org.neo4j:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.janusgraph:*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "org.apache.tinkerpop:*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
