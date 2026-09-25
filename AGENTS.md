@@ -39,6 +39,7 @@ and is modernized in lockstep with it.
   `1.1` is released after Orienteer P3 is green, then `master` → `1.2-SNAPSHOT` (plan D2).
 - JDK 8 is gone: don't support it. `.sdkmanrc` pins Temurin 21.0.11; Temurin 25.0.4 for verification:
   `JAVA_HOME=~/.sdkman/candidates/java/25.0.4-tem ./mvnw clean verify`. JDK 27 is non-LTS.
+- CI: `.github/workflows/ci.yml` (push + PR, JDK 21/25, default reactor, surefire reports). No publishing in CI.
 - Publishing: OSSRH (oss.sonatype.org) and jcenter are dead; the Central Portal setup is phase R. **Only the owner runs
   `deploy`/releases**; agents never upload, push or tag. The `org.orienteer` namespace status is unconfirmed (plan D10).
 

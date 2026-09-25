@@ -1,4 +1,4 @@
-[![Java CI](https://github.com/OrienteerBAP/Transponder/actions/workflows/maven.yml/badge.svg)](https://github.com/OrienteerBAP/Transponder/actions/workflows/maven.yml) [![Build Status](https://app.travis-ci.com/OrienteerBAP/Transponder.svg?branch=master)](https://app.travis-ci.com/OrienteerBAP/Transponder)
+[![CI](https://github.com/OrienteerBAP/Transponder/actions/workflows/ci.yml/badge.svg)](https://github.com/OrienteerBAP/Transponder/actions/workflows/ci.yml)
 
 ![Transponder_Logo](https://user-images.githubusercontent.com/1199285/138948483-27e0ad55-15c3-4eef-b39e-94b68c37660e.png)
 
@@ -107,12 +107,12 @@ Add the following dependency into your `pom.xml`:
 </dependency>
 ```
 
-If you are using `SNAPSHOT` version, please make sure that the following repository is included into your `pom.xml`:
+If you are using `SNAPSHOT` version, please make sure that the following repository (Maven Central snapshots, published through the Sonatype Central Portal) is included into your `pom.xml`:
 
 ```xml
 <repository>
-	<id>Sonatype Nexus</id>
-	<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+	<id>central-portal-snapshots</id>
+	<url>https://central.sonatype.com/repository/maven-snapshots/</url>
 	<releases>
 		<enabled>false</enabled>
 	</releases>
