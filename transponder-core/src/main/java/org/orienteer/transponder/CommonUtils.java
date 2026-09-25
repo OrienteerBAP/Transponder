@@ -67,7 +67,7 @@ public class CommonUtils {
 	 * { "key1": "value1", "key2": "value2" }
 	 * Call method with not pair arguments will throw {@link IllegalStateException}.
 	 * For example: toMap("key1", "value1", "key2") - throws {@link IllegalStateException}
-	 * @param objects {@link Object[]} array of objects which will be used for create new map
+	 * @param objects {@code Object[]} array of objects which will be used for create new map
 	 * @param <K> type of map key
 	 * @param <V> type of map value
 	 * @return {@link Map} created from objects

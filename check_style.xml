@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
  <!DOCTYPE module PUBLIC
-   "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
-   "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+   "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+   "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <!--keep the file in project root although NetBeans 8.0.2 doesn't find it there and allow to add additional project files (don't skip a proper project structure in favour of IDE deficies)-->
+<!-- Migrated from Checkstyle 9.0.1 to 14.x in 2026-09 with the same rules (see REFRESH_PLAN.md, Stage A6) -->
 <module name="Checker">
     <module name="TreeWalker">
 	<module name="MissingJavadocPackage"/>
@@ -17,7 +18,7 @@
             <property name="scope" value="public"/>
         </module>
         <!-- Checks for Naming Conventions.              -->
-        <!-- See http://checkstyle.sourceforge.net/config_naming.html -->
+        <!-- See https://checkstyle.org/checks/naming/index.html -->
         <!-- Sun Naming Conventions -->
         <module name="ConstantName"/>
         <module name="LocalFinalVariableName"/>
