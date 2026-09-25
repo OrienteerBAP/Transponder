@@ -52,6 +52,8 @@
 		<junit.version>5.14.4</junit.version>
 		<!-- Must read/define Java 25 class files (1.15.x stops at Java 24). Consumers see it transitively (REFRESH_PLAN.md D6) -->
 		<bytebuddy.version>1.18.14</bytebuddy.version>
+		<!-- transponder-orientdb compiles/tests against it; `provided`, so Orienteer decides the runtime version -->
+		<orientdb.version>3.2.56</orientdb.version>
 	</properties>
 
 	<dependencyManagement>
