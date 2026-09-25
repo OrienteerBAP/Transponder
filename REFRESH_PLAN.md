@@ -38,7 +38,7 @@ Started: 2026-09-25. Versions below were checked on Maven Central on that date �
 | D3 | 2026-09-25 | `transponder-orientdb` compiles and tests against **OrientDB 3.2.56** (Orienteer contract row). `orientdb-core` stays `provided`: Orienteer's `dependencyManagement` decides the runtime version. | accepted |
 | D4 | 2026-09-25 | **GraalJS swap, test scope only** (Orienteer D8): exclude `org.graalvm.{sdk,truffle,js,tools}` from `orientdb-core` and add GraalJS 25.0.4 (`polyglot`, `js-scriptengine`, `js` pom) with `test` scope. Since `orientdb-core` is `provided`, compile scope would push GraalJS onto Orienteer for nothing (Orienteer gets it from wicket-orientdb). | accepted (owner, 2026-09-25) |
 | D5 | 2026-09-25 | Tests stay on JUnit 5: **Jupiter + vintage 5.14.4** via `junit-bom` (last 5.x). JUnit 6.x (6.1.3 seen) deprecates the vintage engine that the JUnit 4 asserts in the core test-jar and `ArcadeDBUniversalTest` still need. Mockito is not used. | accepted (owner, 2026-09-25) |
-| D6 | 2026-09-25 | **ByteBuddy 1.15.10 → 1.18.14** (current): 1.15.x can't handle Java 25 class files. ByteBuddy is a compile dependency, so Orienteer sees it transitively — and its nearest-wins resolution picks Mockito 2.22's ByteBuddy 1.8.21 (and later Wicket 9's 1.14.12) instead → Orienteer pins `byte-buddy` (+ `byte-buddy-agent`) in its P3. | accepted (owner, 2026-09-25: Orienteer pins in P3) |
+| D6 | 2026-09-25 | **ByteBuddy 1.15.10 → 1.18.14** (current): 1.15.x can't handle Java 25 class files. ByteBuddy is a compile dependency, so Orienteer sees it transitively → Orienteer pins `byte-buddy` (+ `byte-buddy-agent`) in its P3. *Correction after measuring (2026-09-25, throwaway consumer pom with orienteer-core's declaration order):* in orienteer-core, `byte-buddy` and Mockito 2.22's are both at depth 2 and `transponder-orientdb` is declared first, so **1.18.14 wins today**; but `byte-buddy-agent` resolves to Mockito's **1.8.21** (mismatched pair), and the result depends on declaration order (Mockito 5.24 brings 1.17.7). The pin makes it deterministic. | accepted (owner, 2026-09-25: Orienteer pins in P3) |
 | D7 | 2026-09-25 | **Other drivers** (arcadedb, neo4j, janusgraph, mongodb — not used by Orienteer): keep them building with fixes inside the same DB major (patch/minor bumps, the D4 GraalJS swap, Javadoc/`package-info` fixes). A driver that stays red moves to the opt-in Maven profile **`parked`** (never deleted; `./mvnw -Pparked …` still tries it). No DB-major ports in Stage A (→ X). | accepted (owner, 2026-09-25) |
 | D8 | 2026-09-25 | **Parked modules are never published**, not even when built with `-Pparked` (excluded from Central publishing). | accepted (owner, 2026-09-25) |
 | D9 | 2026-09-25 | POM `url` → `https://github.com/OrienteerBAP/Transponder` (was `https://orienteer.org`), like wicket-orientdb. | accepted (owner, 2026-09-25) |
@@ -296,10 +296,13 @@ see §8 (phase R) for what the owner has to do first. `1.1` is released after Or
 
 ### 4. Actions required in Orienteer (P1/P3)
 
-1. **Pin ByteBuddy** (D6, accepted by the owner for P3). Transponder needs `byte-buddy` ≥ 1.18.x on JDK 25, but Orienteer's
-   nearest-wins resolution picks older copies: `mockito-core` 2.22.0 (orienteer-core, test) brings **1.8.21**, and from P5
-   `wicket-ioc` 9.24 brings 1.14.12 (neither reads Java 25 class files; 1.8.21 doesn't even know Java 21). Add to the
-   root `dependencyManagement` (and keep it ≥ this version when Mockito 5 / Wicket 10 bring their own):
+1. **Pin ByteBuddy** (D6, accepted by the owner for P3). Transponder is built and tested with `byte-buddy` 1.18.14.
+   Measured with a throwaway pom that copies orienteer-core's declaration order (transponder-orientdb before
+   `mockito-core` 2.22.0 test): `byte-buddy` resolves to **1.18.14** (equal depth 2, first declaration wins), but
+   `byte-buddy-agent` resolves to Mockito's **1.8.21** — a mismatched pair in orienteer-core's tests, and a result that
+   flips if the dependencies are reordered. Mockito 5.24 (Orienteer P3) brings 1.17.7 (reads Java 25, but older than
+   what Transponder is tested with); `wicket-ioc` 9.24 (P5) brings 1.14.12 (can't read Java 25 class files), at depth 3
+   in orienteer-core, so it loses today. Pin both in the root `dependencyManagement` so no order or upgrade can change it:
    ```xml
    <dependency><groupId>net.bytebuddy</groupId><artifactId>byte-buddy</artifactId><version>1.18.14</version></dependency>
    <dependency><groupId>net.bytebuddy</groupId><artifactId>byte-buddy-agent</artifactId><version>1.18.14</version></dependency>
