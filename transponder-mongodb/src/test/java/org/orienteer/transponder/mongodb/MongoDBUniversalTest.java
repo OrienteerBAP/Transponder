@@ -40,7 +40,7 @@ public class MongoDBUniversalTest extends AbstractUniversalTest {
 	public static MongoDatabase getMongoDatabase() {
 		if (mongoDb == null) {
 			try {
-				running = Mongod.instance().start(Version.Main.V5_0);
+				running = Mongod.instance().start(Version.Main.V7_0);
 				mongo = MongoClients.create("mongodb://"+running.current().getServerAddress());
 				mongoDb = mongo.getDatabase("test-db");
 			} catch (Exception e) {

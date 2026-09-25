@@ -17,5 +17,6 @@ Root rules: [`../AGENTS.md`](../AGENTS.md); plan: [`../REFRESH_PLAN.md`](../REFR
 
 ## Tests
 
-- `MongoDBUniversalTest` (20): flapdoodle downloads a MongoDB 5.0 server binary once (into `~/.embedmongo`) and starts
-  it on a free port — the first run needs network access.
+- `MongoDBUniversalTest` (20): flapdoodle downloads a MongoDB 7.0 server binary once (into `~/.embedmongo`) and starts
+  it on a free port — the first run needs network access. Don't go back to 5.0: its Linux build for current Ubuntu
+  needs OpenSSL 1.1 and can't start on GitHub runners (plan D16).
