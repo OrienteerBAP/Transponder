@@ -54,6 +54,8 @@
 		<bytebuddy.version>1.18.14</bytebuddy.version>
 		<!-- transponder-orientdb compiles/tests against it; `provided`, so Orienteer decides the runtime version -->
 		<orientdb.version>3.2.56</orientdb.version>
+		<!-- GraalJS replacing the GraalVM 21.3.5 that OrientDB 3.2.x brings (fails on JDK 22+); test scope only (REFRESH_PLAN.md D4) -->
+		<graalvm.version>25.0.4</graalvm.version>
 	</properties>
 
 	<dependencyManagement>
