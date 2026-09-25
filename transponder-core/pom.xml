@@ -10,7 +10,11 @@
 	<artifactId>transponder-core</artifactId>
 
 	<name>transponder-core</name>
-	<!-- FIXME change it to the project's website -->
+
+	<properties>
+		<!-- The test-jar is published (driver test suite), so -Prelease also attaches its sources -->
+		<release.testSources.skip>false</release.testSources.skip>
+	</properties>
 
 	<dependencies>
 		<dependency>

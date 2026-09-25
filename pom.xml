@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+		child.project.url.inherit.append.path="false">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.orienteer.transponder</groupId>
@@ -9,10 +10,12 @@
 
 	<name>Transponder</name>
 	<description>Transponder - It's a Hibernate for NoSQL World</description>
-	<url>https://orienteer.org</url>
-	<scm>
+	<url>https://github.com/OrienteerBAP/Transponder</url>
+	<!-- Modules inherit url/scm unchanged (no "/<artifactId>" appended): required for valid Central metadata -->
+	<scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false"
+			child.scm.url.inherit.append.path="false">
 		<url>https://github.com/OrienteerBAP/Transponder</url>
-		<connection>scm:git:ssh://github.com/OrienteerBAP/Transponder.git</connection>
+		<connection>scm:git:https://github.com/OrienteerBAP/Transponder.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/OrienteerBAP/Transponder.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
@@ -30,7 +33,7 @@
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
@@ -50,6 +53,7 @@
 		<central.snapshots.url>https://central.sonatype.com/repository/maven-snapshots/</central.snapshots.url>
 		<!-- settings.xml server holding the Central Portal user token; override with -Dcentral.server.id=<id> -->
 		<central.server.id>central</central.server.id>
+		<release.testSources.skip>true</release.testSources.skip>
 	</properties>
 
 	<dependencyManagement>
@@ -165,6 +169,8 @@
 					</excludeArtifacts>
 				</configuration>
 			</plugin>
+			<!-- release:prepare commits and tags locally only (pushChanges=false): the owner reviews, then pushes the commits
+			     and the tag. release:perform builds the tag from the local clone (localCheckout) with -Prelease and runs deploy. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
@@ -173,6 +179,8 @@
 					<releaseProfiles>release</releaseProfiles>
 					<goals>deploy</goals>
 					<tagNameFormat>v@{project.version}</tagNameFormat>
+					<pushChanges>false</pushChanges>
+					<localCheckout>true</localCheckout>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -268,6 +276,11 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>3.12.0</version>
+					<configuration>
+						<!-- Real Javadoc errors fail the build; missing comments are Checkstyle's business -->
+						<doclint>all,-missing</doclint>
+						<quiet>true</quiet>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -277,7 +290,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
-					<version>2.5.3</version>
+					<version>3.3.1</version>
 				</plugin>
 				<plugin>
 					<groupId>org.sonatype.central</groupId>
@@ -318,6 +331,8 @@
 				<module>transponder-janusgraph</module>
 			</modules>
 		</profile>
+		<!-- Release artifacts for Maven Central: sources, javadoc, GPG signatures. Used by `release:perform` (releaseProfiles)
+		     and for manual deploys: ./mvnw -Prelease deploy (owner only, D10). Local check without a key: -Prelease -Dgpg.skip -->
 		<profile>
 			<id>release</id>
 			<build>
@@ -331,6 +346,16 @@
 								<goals>
 									<goal>jar-no-fork</goal>
 								</goals>
+							</execution>
+							<!-- test-sources only where a test-jar is published (transponder-core sets the property to false) -->
+							<execution>
+								<id>attach-test-sources</id>
+								<goals>
+									<goal>test-jar-no-fork</goal>
+								</goals>
+								<configuration>
+									<skipSource>${release.testSources.skip}</skipSource>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>

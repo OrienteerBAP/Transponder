@@ -10,7 +10,6 @@
 	<artifactId>transponder-arcadedb</artifactId>
 
 	<name>transponder-arcadedb</name>
-	<!-- FIXME change it to the project's website -->
 
 	<dependencies>
 		<dependency>
