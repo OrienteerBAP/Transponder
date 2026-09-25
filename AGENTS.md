@@ -46,7 +46,6 @@ and is modernized in lockstep with it.
 ./mvnw -pl transponder-orientdb -am test             # one driver and what it needs
 ./mvnw -pl transponder-core test -Dtest=CoreSpecificTest   # single test class
 ```
-(Until the wrapper lands in Stage A1, use `mvn`.)
 
 ## Layout and key classes
 

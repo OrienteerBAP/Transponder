@@ -85,8 +85,8 @@ Goal: `./mvnw clean verify` green on JDK 21 and 25 with `--release 21`; `./mvnw 
 Baseline (2026-09-25, Appendix C): JDK 21 — core, orientdb, arcadedb, mongodb green; neo4j fails to start the DB;
 janusgraph 6/20 tests fail and 2 Checkstyle violations. JDK 25 — core doesn't compile (Lombok not run, JDK 23+).
 
-- [ ] A1 Maven Wrapper 3.9.16 (`mvn wrapper:wrapper -Dmaven=3.9.16 -Dtype=only-script`): commit `mvnw`, `mvnw.cmd`, `.mvn/wrapper/maven-wrapper.properties`
-- [ ] A1 `.sdkmanrc` (`java=21.0.11-tem`) and a minimal `.editorconfig` (UTF-8, LF, tabs for `*.java`/`*.xml`; no trailing-whitespace or final-newline enforcement — 28 tracked files lack one; **no reformat**)
+- [x] A1 Maven Wrapper 3.9.16 (`mvn wrapper:wrapper -Dmaven=3.9.16 -Dtype=only-script`): commit `mvnw`, `mvnw.cmd`, `.mvn/wrapper/maven-wrapper.properties` — 2026-09-25, wrapper plugin 3.3.4 (scripts identical to wicket-orientdb's)
+- [x] A1 `.sdkmanrc` (`java=21.0.11-tem`) and a minimal `.editorconfig` (UTF-8, LF, tabs for `*.java`/`*.xml`; no trailing-whitespace or final-newline enforcement — 28 tracked files lack one; **no reformat**) — 2026-09-25; also 2-space YAML (workflows) and CRLF for `*.cmd`
 - [ ] A2 Compiler: `maven.compiler.release=21` replaces `source/target 1.8` and `<release>8</release>`; remove the `release 11` overrides in arcadedb, neo4j, janusgraph; keep `-parameters` (query parameters bind by name); compiler plugin 3.8.1 → 3.16.0
 - [ ] A2 Lombok 1.18.34 → 1.18.48, declared in `maven-compiler-plugin` `annotationProcessorPaths` (required from JDK 23)
 - [ ] A3 Remove dead repositories: root `snapshots-repo` (oss.sonatype.org, inherited by every module) and arcadedb's `s01.oss.sonatype.org`; `distributionManagement` stays until R (D11)
