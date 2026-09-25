@@ -31,12 +31,13 @@ Root rules: [`../AGENTS.md`](../AGENTS.md); plan: [`../REFRESH_PLAN.md`](../REFR
 
 ## Tests
 
-- `CoreUniversalTest` (20, in-memory `TestDriver`), `CoreSpecificTest` (9), `ByteBuddyTest` (5), `UtilsTest` (2).
+- `CoreUniversalTest` (20, in-memory `TestDriver`), `CoreSpecificTest` (9), `ByteBuddyTest` (5), `UtilsTest` (3).
 - Test-jar content: `AbstractUniversalTest`, `ITestDriver` (JUnit 4 `Assert`), `TestDriver`, `datamodel/*`.
   Changing it changes every driver's suite.
 
 ## Pitfalls
 
 - `listDeclaredMethods` must keep reading class files the JDK produces (Java 21 target, JDK 25 runtime) — schema
-  property order depends on it; `DAOTest.testProperMethodListOrder` covers it.
+  property order depends on it; `DAOTest.testProperMethodListOrder` and `UtilsTest` (sealed interface) cover it.
+  Keep its `ClassVisitor` at the newest `Opcodes.ASM*` level: lower levels throw on newer attributes.
 - Generated class names are fixed per entity type; `additionalInterfaces` add a random `$suffix`.

@@ -2,6 +2,7 @@ package org.orienteer.transponder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,25 @@ public class UtilsTest {
 		assertEquals(Integer.class, CommonUtils.typeToRequiredClass(getType("simpleInt")));
 		assertEquals(Integer.class, CommonUtils.typeToRequiredClass(getType("list")));
 		assertEquals(String.class, CommonUtils.typeToRequiredClass(getType("map")));
+	}
+	
+	/** Java 17+ class file features (PermittedSubclasses) must not break reading the source order */
+	public sealed interface ISealedEntity permits ISealedEntityChild {
+		public String getName();
+		public void setName(String value);
+		public Integer getValue();
+	}
+	
+	public non-sealed interface ISealedEntityChild extends ISealedEntity {
+	}
+	
+	@Test
+	public void testListDeclaredMethodsOfSealedInterface() throws Exception {
+		List<Method> methods = CommonUtils.listDeclaredMethods(ISealedEntity.class);
+		assertEquals(3, methods.size());
+		assertEquals("getName", methods.get(0).getName());
+		assertEquals("setName", methods.get(1).getName());
+		assertEquals("getValue", methods.get(2).getName());
 	}
 
 }

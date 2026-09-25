@@ -404,7 +404,7 @@ public class CommonUtils {
 		List<Method> sortedMethods = new ArrayList<Method>(unsortedMethods.length);
 		try(InputStream in = clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class")) {
 	      if (in != null) {
-	          new ClassReader(in).accept(new ClassVisitor(Opcodes.ASM7) {
+	          new ClassReader(in).accept(new ClassVisitor(Opcodes.ASM9) {
 	        	  @Override
 		        	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
 		        			String[] exceptions) {
