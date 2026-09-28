@@ -14,10 +14,10 @@ Started: 2026-09-25. Versions below were checked on Maven Central on that date �
 | Phase | Goal | Depends on | Unblocks Orienteer | Status |
 |---|---|---|---|---|
 | P0 | AI initialization: AGENTS.md files + this plan | — | — | done |
-| A | Stage A: JDK 21/25 build with `--release 21` on the **same** majors (OrientDB 3.2.x, ByteBuddy 1.x, JUnit 5), `./mvnw install` as `1.1-SNAPSHOT` | P0 | P3 | done (local install; published artifact → R) |
+| A | Stage A: JDK 21/25 build with `--release 21` on the **same** majors (OrientDB 3.2.x, ByteBuddy 1.x, JUnit 5), `./mvnw install` as `1.1-SNAPSHOT` | P0 | P3 | done; `1.1-SNAPSHOT` published (R, 2026-09-28) |
 | B | Stage B (Orienteer P5, Wicket 9): no Wicket/servlet coupling → verification only | A | P5 | todo (expected: nothing to change) |
 | C | Stage C (Orienteer P6, jakarta): no `javax.*` → verification only | B | P6 | todo (expected: nothing to change) |
-| R | Release & CI: GitHub Actions, Maven Central via the Central Portal: `1.1-SNAPSHOT` now, `1.1` after Orienteer P3 is green (D2/D10) | A | P3 "resolvable from a real repo" | **prepared locally** (2026-09-25); snapshot deploy waits for the owner: `org.orienteer` namespace unconfirmed (D10) |
+| R | Release & CI: GitHub Actions, Maven Central via the Central Portal: `1.1-SNAPSHOT` now, `1.1` after Orienteer P3 is green (D2/D10) | A | P3 "resolvable from a real repo" | `1.1-SNAPSHOT` **published** to the Central Portal snapshots repo (2026-09-28, build `1.1-20260928.231316-1`; deleted after 90 days → redeploy or release `1.1` before ~2026-12-27); `1.1` release pending (Orienteer P3, GPG key) |
 | X | Cleanup, docs, parked drivers, known bugs | any time | — | todo |
 
 ## Guiding principles
@@ -42,21 +42,23 @@ Started: 2026-09-25. Versions below were checked on Maven Central on that date �
 | D7 | 2026-09-25 | **Other drivers** (arcadedb, neo4j, janusgraph, mongodb — not used by Orienteer): keep them building with fixes inside the same DB major (patch/minor bumps, the D4 GraalJS swap, Javadoc/`package-info` fixes). A driver that stays red moves to the opt-in Maven profile **`parked`** (never deleted; `./mvnw -Pparked …` still tries it). No DB-major ports in Stage A (→ X). | accepted (owner, 2026-09-25) |
 | D8 | 2026-09-25 | **Parked modules are never published**, not even when built with `-Pparked` (excluded from Central publishing). | accepted (owner, 2026-09-25) |
 | D9 | 2026-09-25 | POM `url` → `https://github.com/OrienteerBAP/Transponder` (was `https://orienteer.org`), like wicket-orientdb. | accepted (owner, 2026-09-25) |
-| D10 | 2026-09-25 | **Publishing** via the Central Portal (`central-publishing-maven-plugin`, server id property `central.server.id`, default `central`). Agents prepare and validate locally only; every upload is run/approved by the owner. **The `org.orienteer` namespace status on the Central Portal is unconfirmed** → the snapshot deploy is a hard stop until the owner confirms the namespace is verified **with SNAPSHOTs enabled**. | accepted; namespace **open** |
+| D10 | 2026-09-25 | **Publishing** via the Central Portal (`central-publishing-maven-plugin`, server id property `central.server.id`, default `central`). Agents prepare and validate locally only; every upload is run/approved by the owner. **The `org.orienteer` namespace status on the Central Portal is unconfirmed** → the snapshot deploy is a hard stop until the owner confirms the namespace is verified **with SNAPSHOTs enabled**. | accepted; namespace confirmed in practice: the owner-approved `1.1-SNAPSHOT` deploy was accepted by the Central Portal snapshots repository (2026-09-28) |
 | D11 | 2026-09-25 | Publishing config (`distributionManagement`, `release` profile, nexus-staging, release plugin) stays untouched in Stage A and is replaced in phase R. Only dead `<repositories>` are removed in A. Checkstyle is upgraded in A with a semantically equivalent config. | accepted |
 | D12 | 2026-09-25 | `AGENTS.md` (root + per module) is the canonical agent guide; `CLAUDE.md` is only a pointer to it, so nothing is duplicated. | accepted |
 | D13 | 2026-09-25 | **`transponder-neo4j` is parked** (D7). Neo4j 4.4 (4.4.38 and the last patch 4.4.48 tried) can't start on JDK 21: `UnsafeUtil.initDirectByteBuffer` writes `java.nio.Buffer.capacity` through a `VarHandle`, and that field is `final` since JDK 21 (`UnsupportedOperationException: set`); every page-cache read/write goes through it, no Neo4j toggle avoids it, and no `--add-opens` can make a final field writable. Neo4j 4.4 supports Java 11/17 only; JDK 21 needs Neo4j 5.x (DB-major port → X). Stays on 4.4.38 (the patch bump fixed nothing). | accepted (policy D7) |
+| D14 | 2026-09-25 | **`transponder-janusgraph` is parked** (D7). 6 of its 20 universal tests fail on JDK 21 exactly as in the baseline (query translation/wrapping gaps, not a JDK issue; JanusGraph 1.1.0 is the latest release). Its 2 Checkstyle violations are fixed (Javadoc-only `package-info.java`; private constructor for the static-only `JanusGraphUtils` — the module was never published) so `-Pparked` shows only the real test failures. | accepted (policy D7) |
 | D15 | 2026-09-25 | **ArcadeDB gets the GraalJS swap too** (D7 allows it): ArcadeDB 23.12.x (23.12.2 as well) brings GraalVM 22.3.4; on JDK 25 Truffle finds no languages and `command("js", …)` fails with `Query engine 'js' was not found` (works on 21). Exclusions `org.graalvm.{sdk,truffle,js,regex}` on `arcadedb-engine` + GraalJS 25.0.4 in ArcadeDB's own roles: `polyglot` **compile** (was `graal-sdk` compile), `js` pom **runtime**. Unlike OrientDB (D4) the engine is a compile dependency here, so the replacement is too. | accepted (policy D7) |
 | D16 | 2026-09-25 | **MongoDB test server 5.0 → 7.0** (test fixture only; the driver stays `mongodb-driver-sync` 5.2.1, which supports servers 4.0–8.0). flapdoodle's own resolver maps 5.0 on Ubuntu 22.04/24.04 (GitHub `ubuntu-latest`) to the `ubuntu2004` 5.0.26 build, which needs OpenSSL 1.1 — not shipped on those systems, so `mongod` can't start in CI. 7.0 resolves to the `ubuntu2204` 7.0.12 build (OpenSSL 3). MongoDB 5.0 is also EOL. Verified on macOS arm64 (7.0.12) with JDK 21 and 25; first Linux run is the first CI run. | accepted (policy D7) |
-| D14 | 2026-09-25 | **`transponder-janusgraph` is parked** (D7). 6 of its 20 universal tests fail on JDK 21 exactly as in the baseline (query translation/wrapping gaps, not a JDK issue; JanusGraph 1.1.0 is the latest release). Its 2 Checkstyle violations are fixed (Javadoc-only `package-info.java`; private constructor for the static-only `JanusGraphUtils` — the module was never published) so `-Pparked` shows only the real test failures. | accepted (policy D7) |
+| D17 | 2026-09-28 | **`transponder-arcadedb` and `transponder-mongodb` are published** together with parent, core and orientdb (the default of the reactor; the owner did not object before the first deploy). Parked neo4j/janusgraph stay unpublished (D8). | accepted (2026-09-28) |
 
 ### Open questions (decide when the phase starts; record the answer above)
 
-- [ ] **`org.orienteer` namespace** on the Central Portal: verified? SNAPSHOTs enabled? (owner; blocks the first deploy, R)
-- [ ] **Publish `transponder-arcadedb` and `transponder-mongodb` too?** The default reactor (and so `deploy`) includes them; `transponder-arcadedb` 1.0 is on Central, `transponder-mongodb` was never published. If only core + orientdb should go out, add both to `excludeArtifacts` (one line each). (owner, before the first deploy)
+- [x] **`org.orienteer` namespace** on the Central Portal: verified? SNAPSHOTs enabled? (owner; blocks the first deploy, R) — 2026-09-28: yes in practice, the `1.1-SNAPSHOT` deploy was accepted and is served (D10)
+- [x] **Publish `transponder-arcadedb` and `transponder-mongodb` too?** The default reactor (and so `deploy`) includes them; `transponder-arcadedb` 1.0 is on Central, `transponder-mongodb` was never published. If only core + orientdb should go out, add both to `excludeArtifacts` (one line each). (owner, before the first deploy) — 2026-09-28: published (default kept, no objection) → D17
 - [ ] **Parked drivers long-term:** port Neo4j to 5.26 LTS / 2026.x, ArcadeDB to 26.x, fix JanusGraph — or drop them? (owner, X)
 - [ ] **Unused GitHub secrets** `OSSRH_USERNAME`/`OSSRH_TOKEN` (used by the old `maven.yml` deploy): delete or rename after R? (owner)
 - [ ] **Stale remote branch** `origin/mongodb` (fully merged): delete? (owner, X)
+- [ ] **Dependabot PRs #18–#25** (opened 2026-09-25, all CI-green, none merged): review against the contract. #18 bumps GraalJS 25.0.4 → 25.4.4.1.1 (test scope here, compile in arcadedb) — keep it in lockstep with wicket-orientdb/Orienteer D8 (25.0.4) or move all three together; #23 (Neo4j 4.4.48) doesn't un-park neo4j (D13). (owner)
 
 ## Contract with Orienteer (from Orienteer's "External dependency requirements")
 
@@ -137,25 +139,29 @@ Goal: confirm no `javax.servlet`/`javax.inject`/`javax.mail` in this library or 
 ## R — Release & CI
 
 - [x] Prerequisite for CI: MongoDB test server 5.0 → 7.0 (D16) — 2026-09-25: `MongoDBUniversalTest` 20/0 on JDK 21 and 25 (macOS arm64, `mongodb-macos-arm64-7.0.12`)
-- [x] GitHub Actions `ci.yml`: push + PR, matrix JDK 21/25 (`actions/setup-java`, `distribution: temurin`, `cache: maven`), `./mvnw -B verify`, surefire reports, `concurrency`; no publishing in CI (D10). Remove the old `maven.yml` (deploys to dead OSSRH with JDK 11 on every push) — 2026-09-25: push to any branch, PR, manual; `actions/checkout@v7`, `setup-java@v6`, `cache@v6` (`~/.embedmongo`, the flapdoodle MongoDB binary), `upload-artifact@v7` (latest majors per the GitHub API); `contents: read`; default reactor only. Validated against the GitHub workflow JSON schema; first real run when the owner pushes. The last `maven.yml` run (2025-08-15) had failed after 15 s (log expired). The `OSSRH_USERNAME`/`OSSRH_TOKEN` secrets are no longer referenced (open question)
+- [x] GitHub Actions `ci.yml`: push + PR, matrix JDK 21/25 (`actions/setup-java`, `distribution: temurin`, `cache: maven`), `./mvnw -B verify`, surefire reports, `concurrency`; no publishing in CI (D10). Remove the old `maven.yml` (deploys to dead OSSRH with JDK 11 on every push) — 2026-09-25: push to any branch, PR, manual; `actions/checkout@v7`, `setup-java@v6`, `cache@v6` (`~/.embedmongo`, the flapdoodle MongoDB binary), `upload-artifact@v7` (latest majors per the GitHub API); `contents: read`; default reactor only. Validated against the GitHub workflow JSON schema; first real run when the owner pushes — 2026-09-28: the push run for `e47d4b9` on `master` passed (run 36196281855, 2026-09-25 22:21 UTC, JDK 21 and 25). The last `maven.yml` run (2025-08-15) had failed after 15 s (log expired). The `OSSRH_USERNAME`/`OSSRH_TOKEN` secrets are no longer referenced (open question)
 - [x] Remove `.travis.yml`; remove the Travis badge from `README.md`; README snapshot-repository snippet → Central Portal snapshots — 2026-09-25; README shows the `ci.yml` badge
 - [x] Replace OSSRH `distributionManagement` and `nexus-staging-maven-plugin` with `org.sonatype.central:central-publishing-maven-plugin` (0.11.0 seen), server id `${central.server.id}` (default `central`); exclude parked modules (D8) — 2026-09-25: build extension in the root `<build><plugins>` (version in `pluginManagement`), `publishingServerId=${central.server.id}`, `centralSnapshotsUrl=${central.snapshots.url}`, `autoPublish` default false (manual Publish in the portal), `deploymentName` = `Transponder <version>`; `distributionManagement` removed entirely (the plugin would otherwise fall back to it for snapshots). `excludeArtifacts` = `transponder-neo4j`, `transponder-janusgraph` — checked in the 0.11.0 bytecode: the filter compares the artifactId on both the snapshot and the release path, so the parked drivers stay out even with `-Pparked deploy`. Lifecycle checked **without running deploy** (`buildplan-maven-plugin:1.5:list -Dbuildplan.tasks=deploy`): every module binds `deploy` to `central-publishing-maven-plugin:publish`, no `maven-deploy-plugin`; effective pom with `-Dcentral.server.id=ossrh` shows `publishingServerId=ossrh`
 - [x] Release profile: sources + test-sources + javadoc jars (fix doclint errors), GPG signing (`maven-gpg-plugin` 3.x), required POM metadata (name, description, url (D9), licenses, developers, scm) valid in every published module — 2026-09-25: profile `release` = sources + javadoc jars for every module, test-sources only for `transponder-core` (the only published test-jar; property `release.testSources.skip`), `gpg:sign` 3.2.8 at `verify` (without a key it fails with "No secret key", as expected; no key exists on this machine). Javadoc `doclint=all,-missing`: 0 errors/warnings (the only real error, `{@link Object[]}`, was fixed in A6); a throwaway probe with a broken `{@link}` and an unclosed tag fails the build. POM metadata: `url` → GitHub (D9), license URL https, scm `connection` fixed (`scm:git:https://…`), `url`/`scm` inherited without `/<artifactId>` (`child.*.inherit.append.path=false`); effective POMs of parent, core, orientdb, arcadedb, mongodb all have name, description, url, license, developer, scm. Removed the stale "FIXME change it to the project's website" comments. The parent declares no `<repositories>` and no `<distributionManagement>`
 - [x] maven-release-plugin 2.5.3 → 3.x; tag format `v@{project.version}`; `pushChanges=false` (owner pushes) — 2026-09-25: 3.3.1, `pushChanges=false` + `localCheckout=true` (prepare commits/tags locally, the owner pushes; perform builds the local tag with `-Prelease` and runs `deploy`). Default next development version after `1.1` is `1.2-SNAPSHOT` (matches D2). Dry run in the validation item below
-- [x] `.github/dependabot.yml` (maven + github-actions, weekly, grouped); hold DB majors and JUnit 6 until decided — 2026-09-25: groups for Maven plugins, GraalVM and all GitHub Actions; ignored: JUnit major (D5), OrientDB minor/major (D3), ArcadeDB/MongoDB/flapdoodle majors (D7), Neo4j major, JanusGraph and TinkerPop minor/major (parked, D13/D14). ByteBuddy, Guava, Objenesis, Lombok get normal updates. Validated against the Dependabot v2 JSON schema; active once pushed
+- [x] `.github/dependabot.yml` (maven + github-actions, weekly, grouped); hold DB majors and JUnit 6 until decided — 2026-09-25: groups for Maven plugins, GraalVM and all GitHub Actions; ignored: JUnit major (D5), OrientDB minor/major (D3), ArcadeDB/MongoDB/flapdoodle majors (D7), Neo4j major, JanusGraph and TinkerPop minor/major (parked, D13/D14). ByteBuddy, Guava, Objenesis, Lombok get normal updates. Validated against the Dependabot v2 JSON schema; active once pushed — active since the push: 8 PRs (#18–#25), see open questions
 - [x] JaCoCo report only (no thresholds) — 2026-09-25: `jacoco-maven-plugin` 0.8.15, `prepare-agent` + `report` at `verify`, instrumenting only `org/orienteer/transponder/**` (DB engines and ByteBuddy-generated `transponder.*` classes untouched). Root property `argLine` defaults to empty; neo4j's surefire flags became `@{argLine} --add-opens …` so the agent isn't dropped (verified: parked neo4j still gets its flags and writes `jacoco.exec`). Green on 21 and 25 (112/0). Baseline coverage (instructions/lines): core 74%/77% (32 classes), orientdb 72%/77%, arcadedb 79%/80%, mongodb 76%/85%. CI uploads the reports from the JDK 21 job. CodeQL not added (optional, owner's call)
 - [x] Local validation without any upload: `-Prelease -Dgpg.skip`; list the bundle contents — 2026-09-25: `./mvnw -B -Prelease -Dgpg.skip clean verify` green on JDK 21 and 25 (112/0; sources, test-sources (core), javadoc jars; 0 doclint messages). `release:prepare -DdryRun=true` (no commit, no tag — verified): **the parked modules are only version-bumped when `-Pparked` is active**, otherwise they'd keep parent `1.1-SNAPSHOT` after the release; with `-Pparked` and `-Darguments='-pl !transponder-neo4j,!transponder-janusgraph'` all 7 poms go `1.1` → `1.2-SNAPSHOT`, the forked `clean verify` runs the 4 default modules with tests, and every pom diff is only its version line (+ `<scm><tag>v1.1</tag>` in the root) after making the root pom's attributes single-line (the plugin's XML writer collapsed them). `release:clean` also needs `-Pparked`. The Central bundle can't be produced by the plugin without running `deploy` (0.11.0: `skipPublishing` drops artifacts before staging), so it was assembled offline exactly like the plugin does (Maven layout, no `maven-metadata`, md5/sha1/sha256/sha512) from a `-Prelease -Dgpg.skip verify` build of a throwaway `git archive` copy set to `1.1` (never installed): 19 artifacts + 76 checksums, required metadata OK on all 5 POMs, all class files major 65, no parked artifacts; only the `.asc` signatures are missing (gpg skipped). File list in the handoff (§11)
-- [ ] Owner: confirm the `org.orienteer` namespace (verified, SNAPSHOTs enabled), then run the first `1.1-SNAPSHOT` deploy (D10) — runbook below. The Portal token is in `~/.m2/settings.xml` under server id `ossrh` (checked: the entry exists; no `central` entry), hence `-Dcentral.server.id=ossrh`
+- [x] Owner: confirm the `org.orienteer` namespace (verified, SNAPSHOTs enabled), then run the first `1.1-SNAPSHOT` deploy (D10) — runbook below. The Portal token is in `~/.m2/settings.xml` under server id `ossrh` (checked: the entry exists; no `central` entry), hence `-Dcentral.server.id=ossrh` — 2026-09-28 ~23:12 UTC, run by the Orienteer session with the owner's approval from a clean `master` at `e47d4b9` (level with `origin/master`) on JDK 21.0.11: `./mvnw -B clean deploy -Prelease -Dgpg.skip -Dcentral.server.id=ossrh` → BUILD SUCCESS, 112 tests green. Uploaded build **`1.1-20260928.231316-1`** (unsigned, no GPG key yet): `transponder-parent` pom; `transponder-core` pom, jar, `tests`, `sources`, `test-sources`, `javadoc`; `transponder-orientdb`, `transponder-arcadedb`, `transponder-mongodb` pom, jar, `sources`, `javadoc` (checked in each `maven-metadata.xml`). `transponder-neo4j` / `transponder-janusgraph`: HTTP 404 (not published, D8)
 - [ ] Owner: release `1.1` once Orienteer P3 is green against `1.1-SNAPSHOT`; then `master` → `1.2-SNAPSHOT` (D2)
+- [ ] Owner: **before ~2026-12-27** either redeploy `1.1-SNAPSHOT` (same command, runbook) or release `1.1` — the Central Portal deletes snapshots 90 days after upload (first upload 2026-09-28), and Orienteer resolves Transponder from there
 - [ ] Optional, owner's call: publish from CI (GitHub secrets + a workflow on tags) and CodeQL — not implemented; CI only builds and tests
 - [ ] Owner, recommended: `~/.m2/settings.xml` is world-readable (`644`) with plain-text tokens → `chmod 600 ~/.m2/settings.xml` and/or encrypt (`mvn --encrypt-master-password`, `mvn --encrypt-password`). Optionally copy the Portal token to a server `central` to drop `-Dcentral.server.id=ossrh`. An always-active settings profile still declares a repository `archetype` on the dead oss.sonatype.org (harmless, but it shows up in offline-mode errors)
-- [ ] Exit check: `1.1-SNAPSHOT` (later `1.1`) resolves from the Central Portal in a clean `~/.m2`; Orienteer's "Stage A delivered" item can be ticked
+- [x] Exit check: `1.1-SNAPSHOT` (later `1.1`) resolves from the Central Portal in a clean `~/.m2`; Orienteer's "Stage A delivered" item can be ticked — 2026-09-28 (snapshot): a throwaway consumer pom whose only extra repository is `https://central.sonatype.com/repository/maven-snapshots/`, run with an empty local repository (`-Dmaven.repo.local=<empty temp dir>`) and an empty settings file (so the personal `~/.m2/settings.xml` profile repositories don't take part), resolved `transponder-orientdb`, `transponder-core` and the core test-jar `1.1-SNAPSHOT` (→ `1.1-20260928.231316-1`, parent pom included) from `central-portal-snapshots` and their 8 third-party dependencies from Maven Central: ByteBuddy 1.18.14, Objenesis 3.2, Guava 33.4.8-jre + 5 Guava annotations/stubs — no OrientDB, GraalVM, Lombok or JUnit. Comparison with the local build: the published jars are byte-identical (SHA-1) to the deploy run's own `~/.m2` copies, and entry-by-entry identical to a fresh JDK 21.0.11 build of `e47d4b9` (same entry names, same bytes for every entry, 59/52/6 classes all major 65); only the jar SHA-1s differ, because zip entry timestamps aren't reproducible (no `project.build.outputTimestamp`, → X). The published poms equal `e47d4b9`'s `pom.xml` files byte for byte. The `1.1` release remains open (item above)
 
 ### Publishing runbook (owner only — D10)
 
+Status 2026-09-28: prerequisites 1, 2 and 4 are done and the first `1.1-SNAPSHOT` is published; only the GPG key (3) is
+still missing, and it's needed for the `1.1` release only.
+
 Prerequisites (one-off):
 1. **Namespace:** https://central.sonatype.com/publishing/namespaces → `org.orienteer` must be *Verified* (needs control of
-   `orienteer.org` DNS or the GitHub org), then ⋮ → *Enable SNAPSHOTs*. **Until this is confirmed, nothing is deployed.**
+   `orienteer.org` DNS or the GitHub org), then ⋮ → *Enable SNAPSHOTs*. (Done in practice: the 2026-09-28 snapshot deploy was accepted.)
 2. **Central Portal user token** (https://central.sonatype.com → account → *Generate User Token*) in `~/.m2/settings.xml`.
    It currently sits under server id `ossrh`, so every command below passes `-Dcentral.server.id=ossrh`; with a server
    `central` the flag can be dropped:
@@ -174,8 +180,9 @@ git switch master && git status                                           # clea
 curl -s https://central.sonatype.com/repository/maven-snapshots/org/orienteer/transponder/transponder-orientdb/1.1-SNAPSHOT/maven-metadata.xml
 ```
 Uploads parent pom, core (jar, tests, sources, test-sources, javadoc), orientdb, arcadedb, mongodb (jar, sources,
-javadoc); never neo4j/janusgraph (D8). Snapshots aren't validated and expire after 90 days. Once a GPG key exists, drop
-`-Dgpg.skip` to sign snapshots too.
+javadoc); never neo4j/janusgraph (D8). Snapshots aren't validated and are **deleted 90 days after upload** (first build:
+2026-09-28 → gone around 2026-12-27): redeploy with the same command, or release `1.1`, before then. Once a GPG key exists,
+drop `-Dgpg.skip` to sign snapshots too.
 
 Release `1.1` (only after Orienteer P3 is green against `1.1-SNAPSHOT` — D2). `-Pparked` is required so the parked
 modules get their versions bumped too; `-pl` keeps their known-red tests out of the preparation build:
@@ -195,6 +202,7 @@ Not exercised (would upload or tag): the plugin's upload paths, a non-dry-run `r
 ### Docs & cleanup
 - [ ] README: fix typos in examples (`Tranponder.save`, `IFodler`, `Transponder.save()` without argument, "Suppport")
 - [ ] `.gitignore`: `.DS_Store`, `.vscode/`
+- [ ] Optional: reproducible builds (`project.build.outputTimestamp`, set by `release:prepare`) so a local build is byte-identical to the published jars (today they match entry by entry, only the zip timestamps differ — R exit check)
 - [ ] Test-jar and `ArcadeDBUniversalTest` still use JUnit 4 asserts/annotations → Jupiter; then drop `junit-vintage-engine` (and consider JUnit 6)
 - [ ] Guava 33.4.8 → current, Objenesis 3.2 → 3.6 (no functional need in A)
 - [ ] Remove `System.out.println` from `DAOTest`
@@ -303,8 +311,11 @@ javap -v -cp transponder-core/target/classes org.orienteer.transponder.Transpond
 
 ## Handoff to Orienteer
 
-Stage A + phase R preparation, 2026-09-25. **`1.1-SNAPSHOT` is installed locally only** (`~/.m2` of the dev machine); it
-is not published yet — see §9 for what the owner has to do first. `1.1` is released after Orienteer P3 is green against the snapshot (D2).
+Stage A + phase R, 2026-09-25; **`1.1-SNAPSHOT` published** to the Central Portal snapshots repository on 2026-09-28
+(build `1.1-20260928.231316-1`, unsigned), and Orienteer resolves it from there — its root pom already declares that
+repository (Orienteer P1), no local install needed; verified from an empty local repository (§9). **Snapshots are deleted
+90 days after upload (~2026-12-27):** redeploy or release `1.1` before then. `1.1` is released after Orienteer P3 is green
+against the snapshot (D2).
 
 ### 1. Installed artifacts (`~/.m2/repository/org/orienteer/transponder/`)
 
@@ -316,6 +327,10 @@ is not published yet — see §9 for what the owner has to do first. `1.1` is re
 | `org.orienteer.transponder:transponder-orientdb:1.1-SNAPSHOT:jar` | `transponder-orientdb/1.1-SNAPSHOT/transponder-orientdb-1.1-SNAPSHOT.jar` (6 classes) |
 | (not used by Orienteer) `transponder-arcadedb`, `transponder-mongodb` `1.1-SNAPSHOT:jar` | `transponder-{arcadedb,mongodb}/1.1-SNAPSHOT/` |
 | parked, **not installed/published**: `transponder-neo4j`, `transponder-janusgraph` | — (D8, D13, D14) |
+
+The same set is **published** as `1.1-SNAPSHOT` (build `1.1-20260928.231316-1`) at
+`https://central.sonatype.com/repository/maven-snapshots/org/orienteer/transponder/`, plus `-sources`/`-javadoc` jars
+(and core's `-test-sources`); arcadedb and mongodb are published too (D17).
 
 - **Bytecode:** `--release 21`, so every class file is major version **65**; manifests say `Build-Jdk-Spec: 21`. JDK 17 can't load them.
 - **Built and tested with:** Temurin 21.0.11 and Temurin 25.0.4, Maven 3.9.16 through `./mvnw`.
@@ -360,8 +375,10 @@ is not published yet — see §9 for what the owner has to do first. `1.1` is re
    brings any Graal artifact to consumers (it was `provided` 21.3.5 before, now test-only 25.0.4), so nothing to add for it.
 3. **Sealed `@EntityType` interfaces** now work (A8 fix in `CommonUtils.listDeclaredMethods`); before, `Transponder.define`
    threw `UnsupportedOperationException: PermittedSubclasses requires ASM9` for any sealed interface.
-4. **Repository:** until `1.1-SNAPSHOT` is deployed (§9), Orienteer needs a local `./mvnw install` of this repo. After the
-   deploy, the Central Portal snapshots repository that Orienteer's root pom already declares (P1) resolves it.
+4. **Repository:** `1.1-SNAPSHOT` is deployed (2026-09-28, §9): the Central Portal snapshots repository that Orienteer's root
+   pom already declares (P1, `central-portal-snapshots`, snapshots only) resolves it — no local install of this repo needed
+   (verified with an empty local repository). Drop that repository once Orienteer pins the `1.1` release. Until then the
+   snapshot must be redeployed within 90 days of the last upload (next deadline ~2026-12-27).
 
 ### 5. Public API changes
 
@@ -402,31 +419,38 @@ Nothing is `@Disabled`/`@Ignore`d. Baseline (Appendix C): 111 of these passed on
   ByteBuddy 1.18.4 (compatible). Optional: enforcer `bannedDependencies` for `javax.servlet`/`javax.inject`/`javax.mail`.
 - Any future change goes to `1.2-SNAPSHOT` (after the `1.1` release), never to `1.1-SNAPSHOT` (D2).
 
-### 9. Publishing the snapshot — what is needed from the owner
+### 9. Publishing the snapshot — done 2026-09-28
 
-Phase R is prepared locally (CI, Central Portal publishing, release profile, Dependabot, JaCoCo; section R). Nothing was
-deployed, pushed or tagged. Before the first deploy:
-1. **Confirm the `org.orienteer` namespace** on the Central Portal: *Verified* and **SNAPSHOTs enabled** (status unknown
-   today; hard stop, D10).
-2. Decide whether `transponder-arcadedb` and `transponder-mongodb` are published too (open question; default: yes).
-3. Push `master` (agents never push) and check the first CI run (JDK 21/25).
-4. Run the snapshot deploy (runbook, section R) — the exact command:
-   ```bash
-   ./mvnw -B clean deploy -Prelease -Dgpg.skip -Dcentral.server.id=ossrh
-   ```
-5. For the later `1.1` release: a GPG key on a keyserver, then the release commands in the runbook (`-Pparked` on `release:prepare`).
+- **Deploy:** run by the Orienteer session with the owner's approval on 2026-09-28 at ~23:12 UTC, from a clean `master` at
+  `e47d4b9` (level with `origin/master`), JDK 21.0.11: `./mvnw -B clean deploy -Prelease -Dgpg.skip -Dcentral.server.id=ossrh`
+  → BUILD SUCCESS, 112 tests green. CI for `e47d4b9` had passed on JDK 21 and 25 (run 36196281855).
+- **Published** (`https://central.sonatype.com/repository/maven-snapshots/org/orienteer/transponder/`, timestamp
+  `20260928.231316`, build 1, unsigned): `transponder-parent` (pom), `transponder-core` (pom, jar, `tests`, `sources`,
+  `test-sources`, `javadoc`), `transponder-orientdb`, `transponder-arcadedb`, `transponder-mongodb` (pom, jar, `sources`,
+  `javadoc`). `transponder-neo4j` and `transponder-janusgraph` return 404 (never published, D8).
+- **Clean-repo verification (2026-09-28):** a throwaway consumer pom with only the Central Portal snapshots repository,
+  an empty local repository and an empty settings file resolved `transponder-orientdb`, `transponder-core` (+ test-jar) and
+  the parent pom from `central-portal-snapshots`, and only ByteBuddy 1.18.14, Objenesis 3.2 and Guava 33.4.8-jre (+ its 5
+  small dependencies) from Maven Central. The published jars are entry-by-entry identical to a fresh local JDK 21.0.11
+  build of `e47d4b9` (jar SHA-1s differ only by zip entry timestamps) and byte-identical to the deploy run's `~/.m2` copies;
+  the published poms equal the repository's `pom.xml` files.
+- **Expiry:** the Central Portal deletes snapshots 90 days after upload → around **2026-12-27**. Before then: redeploy
+  (same command; each deploy creates a new timestamped build) or release `1.1`.
+- **Still needed from the owner for `1.1`:** Orienteer P3 green against the snapshot, a GPG key on a keyserver, then the
+  release commands in the runbook (`-Pparked` on `release:prepare`).
 
-After the deploy, Orienteer's existing `central-portal-snapshots` repository (its P1) resolves `transponder-orientdb:1.1-SNAPSHOT`;
-tick Orienteer's P1 "external libraries resolvable" item for transponder once `dependency:tree` there finds it.
+Orienteer can now tick its P1 "external libraries resolvable" / "Stage A delivered" items for transponder once
+`dependency:tree` there resolves `transponder-orientdb:1.1-SNAPSHOT` from `central-portal-snapshots`.
 
 ### 10. Open questions for the owner
 
-1. `org.orienteer` namespace verified with SNAPSHOTs enabled? (blocks the deploy)
-2. Publish `transponder-arcadedb` / `transponder-mongodb` alongside core and orientdb?
+1. ~~`org.orienteer` namespace verified with SNAPSHOTs enabled?~~ — answered 2026-09-28: the snapshot deploy was accepted (D10).
+2. ~~Publish `transponder-arcadedb` / `transponder-mongodb` alongside core and orientdb?~~ — answered 2026-09-28: yes (D17).
 3. Parked drivers long-term: port Neo4j to 5.26 LTS / 2026.x and fix JanusGraph, or drop them (X)?
 4. Old GitHub secrets `OSSRH_USERNAME`/`OSSRH_TOKEN`: now unused — delete? CI publishing (tags → Central) wanted later?
 5. Stale merged branch `origin/mongodb`: delete?
 6. `~/.m2/settings.xml` is `644` with plain-text tokens: `chmod 600` / encrypt (recommended).
+7. Dependabot PRs #18–#25 (CI-green, unmerged): merge policy — in particular #18 (GraalJS 25.4.x vs wicket-orientdb's 25.0.4).
 
 ### 11. Phase R — Central bundle (local dry run, 2026-09-25)
 

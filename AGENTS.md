@@ -43,8 +43,9 @@ and is modernized in lockstep with it.
   `.github/dependabot.yml` (DB majors, JUnit 6, OrientDB 3.3+ held back). No publishing in CI.
 - Publishing: `central-publishing-maven-plugin` (server `${central.server.id}`, default `central`; the token is under `ossrh`
   here) — `-SNAPSHOT`s to the Central Portal snapshots repo, releases as a portal bundle; parked drivers never published.
-  **Only the owner runs `deploy`/releases** (plan runbook, section R); agents never upload, push or tag. The `org.orienteer`
-  namespace status is unconfirmed (D10). `release:prepare`/`release:clean` need `-Pparked` so parked poms get the new version.
+  **Only the owner runs `deploy`/releases** (plan runbook, section R); agents never upload, push or tag. **`1.1-SNAPSHOT` is
+  published** (first deploy 2026-09-28; Orienteer resolves it from the Central Portal snapshots repo). Snapshots are deleted
+  90 days after upload: redeploy or release `1.1` before ~2026-12-27. `release:prepare`/`release:clean` need `-Pparked`.
 
 ## Commands
 
